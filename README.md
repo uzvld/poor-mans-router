@@ -105,13 +105,23 @@ The seller step is decided by effective cost; subscription and free routes cost 
 
 Requires `omp` ≥ 18.2 and [Bun](https://bun.sh) (omp ships it).
 
+**One command**, no clone required — safe for agents too (no prompts, no TTY):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/uzvld/poor-mans-router/main/scripts/bootstrap.sh | bash
+```
+
+That fetches the repo to `~/.local/share/poor-mans-router` (override with `PMR_DIR`), deploys the extension, and sets the `retry.*` keys below. Add `-s -- --bridge` (or `--launcher`) to also deploy the [Hermes bridge](#optional) in the same call. Re-running is safe — it fast-forwards the checkout and redeploys.
+
+Already have a clone, or want one under version control for `git blame`/PRs?
+
 ```bash
 git clone https://github.com/uzvld/poor-mans-router.git
 cd poor-mans-router
-./scripts/install.sh
+./scripts/bootstrap.sh   # or ./scripts/install.sh for extension-only
 ```
 
-The installer copies `extension/` to `$(omp config path)/extensions/adaptive-router/`, backs up anything already there, and sets the handful of `retry.*` keys in [`config/config-patch.yml`](config/config-patch.yml) so OMP's own retry/fallback engine stays in charge of the *current* turn. Your `modelRoles` and existing `fallbackChains` are never touched.
+Either path copies `extension/` to `$(omp config path)/extensions/adaptive-router/`, backs up anything already there, and sets the handful of `retry.*` keys in [`config/config-patch.yml`](config/config-patch.yml) so OMP's own retry/fallback engine stays in charge of the *current* turn. Your `modelRoles` and existing `fallbackChains` are never touched.
 
 Restart `omp`. After the first turn, `/route-status` shows the decision.
 
@@ -122,7 +132,7 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 - **CodexBar** — install it for pace/wallet telemetry. The extension tries `http://127.0.0.1:8080/usage` first, then the `codexbar` CLI.
 - **OpenRouter intel** — quality/agentic benchmarks and traffic rankings are fetched from the OpenRouter Data API using the `openrouter` credential OMP already holds. No key is copied or stored by this project.
 - **Emergency fallback chains** — [`config/fallback-chains.example.yml`](config/fallback-chains.example.yml) is a starting point for `retry.fallbackChains`. Review against `omp models --json` before merging.
-- **Hermes bridge** — routing also governs `multica → hermes → omp`, because `omp --mode rpc-ui` is a full agent host. The bridge that drives it lives in [`hermes/omp-bridge/`](hermes/omp-bridge/) and deploys with `./scripts/install-bridge.sh` (`--check` reports drift, `--launcher` also installs the `hermes` wrapper that re-applies the Hermes core overlays every `hermes update` wipes). Point Hermes at a selector with `model.default: pmr/balanced` in `~/.hermes/config.yaml`. See [`docs/investigations/host-integration-matrix.md`](docs/investigations/host-integration-matrix.md).
+- **Hermes bridge** — routing also governs `multica → hermes → omp`, because `omp --mode rpc-ui` is a full agent host. The bridge that drives it lives in [`hermes/omp-bridge/`](hermes/omp-bridge/) and deploys with `./scripts/install-bridge.sh` (`--check` reports drift, `--launcher` also installs the `hermes` wrapper that re-applies the Hermes core overlays every `hermes update` wipes) — or pass `--bridge`/`--launcher` to `bootstrap.sh` to do both installs in one call. Point Hermes at a selector with `model.default: pmr/balanced` in `~/.hermes/config.yaml`. See [`docs/investigations/host-integration-matrix.md`](docs/investigations/host-integration-matrix.md).
 
 ## Where things are
 
@@ -144,7 +154,7 @@ hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     survives `hermes update`, and their tests
 fixtures/           sanitised real telemetry snapshots the tests replay
 config/             installer config patch · fallback-chain example
-scripts/            install / uninstall / install-bridge / fixture sanitiser
+scripts/            bootstrap (one-command install) · install / uninstall / install-bridge · fixture sanitiser
 docs/               design · implementation plan · investigations (root-cause reports)
 ```
 
@@ -156,6 +166,7 @@ cd extension && ln -sfn ../fixtures fixtures && bun test $(ls tests/*.test.ts | 
 bun test scripts/fixture-simulation.test.ts
 bash scripts/install.test.sh
 bash scripts/install-bridge.test.sh
+bash scripts/bootstrap.test.sh
 
 # bridge (needs a Hermes checkout for its interpreter)
 cd hermes/omp-bridge && ~/.hermes/hermes-agent/venv/bin/python -m unittest \
