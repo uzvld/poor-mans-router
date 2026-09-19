@@ -91,7 +91,7 @@ If, for any reason, a request is about to be sent **to** `provider === 'router'`
 
 - hook `before_provider_request`;
 - if `event/model.provider === 'router'` (any `pmr/*` model): **abort the turn locally** with a clear, non-retryable error:
-  `adaptive-router: virtual router model leaked to provider transport — this is a router bug; select a concrete model with /model`.
+  `pmr: virtual model leaked to provider transport — this is a router bug; select a concrete model with /model`.
 - No attempt to "fix" the request in-flight; fail closed, loud.
 
 This converts the worst case from "burn 10 silent retries" (F3) into one immediate actionable error.

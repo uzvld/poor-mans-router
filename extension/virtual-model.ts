@@ -63,6 +63,6 @@ export function registerVirtualRouterProvider(pi: unknown): void {
         supportsTools: true,
       })),
     },
-    'adaptive-router',
+    'pmr',
   );
 }

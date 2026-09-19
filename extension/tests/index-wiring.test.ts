@@ -21,7 +21,7 @@ test('extension registers lifecycle hooks and route-status without doing runtime
   };
 
   adaptiveRouter(pi);
-  assert.equal(label, 'Adaptive Model Router');
+  assert.equal(label, "PMR — Poor Man's Router");
   assert.ok(handlers.has('session_start'));
   assert.ok(handlers.has('before_agent_start'));
   assert.ok(handlers.has('auto_retry_start'));

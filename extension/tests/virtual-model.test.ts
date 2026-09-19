@@ -48,7 +48,7 @@ test('provider registration passes the fail-closed config and all four models', 
   registerVirtualRouterProvider(pi);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].name, VIRTUAL_PROVIDER);
-  assert.equal(calls[0].sourceId, 'adaptive-router');
+  assert.equal(calls[0].sourceId, 'pmr');
   assert.equal(calls[0].config.baseUrl, 'http://127.0.0.1:9');
   assert.equal(calls[0].config.apiKey, PLACEHOLDER_API_KEY);
   assert.equal(PLACEHOLDER_API_KEY.includes('sk-'), false, 'placeholder must never look like a credential');

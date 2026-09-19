@@ -71,7 +71,7 @@ function sortStatusRoutes(routes: any[], selected?: string) {
 }
 
 export default function adaptiveRouter(pi: ExtensionAPI) {
-  pi.setLabel('Adaptive Model Router');
+  pi.setLabel("PMR — Poor Man's Router");
   registerVirtualRouterProvider(pi);
 
   const logger: any = (pi as any).logger ?? { info() {}, warn() {}, debug() {} };
@@ -121,7 +121,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
         codexbar = { value: [], fetchedAt: 0 };
       }
     })().catch((error) => {
-      logger.warn('adaptive-router live telemetry refresh failed', { error: String(error) });
+      logger.warn('pmr live telemetry refresh failed', { error: String(error) });
     }).finally(() => {
       liveRefresh = undefined;
     });
@@ -137,7 +137,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       .then((value) => {
         if (Object.keys(value).length) history = { value, fetchedAt: Date.now() };
       })
-      .catch((error) => logger.warn('adaptive-router stats refresh failed', { error: String(error) }))
+      .catch((error) => logger.warn('pmr stats refresh failed', { error: String(error) }))
       .finally(() => { historyRefresh = undefined; });
     return historyRefresh;
   };
@@ -146,7 +146,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     try {
       intel = await refreshOpenRouterIntel(ctx, intel);
     } catch (error) {
-      logger.warn('adaptive-router OpenRouter intelligence refresh failed', { error: String(error) });
+      logger.warn('pmr OpenRouter intelligence refresh failed', { error: String(error) });
     }
   };
 
@@ -195,7 +195,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     ctx.setInterval(() => refreshHistory(false), HISTORY_TTL_MS);
     ctx.setInterval(() => refreshIntel(ctx), 15 * 60_000);
 
-    logger.info('adaptive-router started', { models: ctx.models.list().length });
+    logger.info('pmr started', { models: ctx.models.list().length });
   });
 
   // A successful router switch is announced in the transcript; a host without a UI
@@ -204,7 +204,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     try {
       ctx.ui?.notify?.(switchMarker(from, to, reason), 'info');
     } catch (error) {
-      logger.warn('adaptive-router could not announce model switch', { error: String(error) });
+      logger.warn('pmr could not announce model switch', { error: String(error) });
     }
   }
 
@@ -213,7 +213,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     const previousMode = routingMode;
     routingMode = resolveModeTransition(previousMode, currentKey, lastRouterSelected);
     if (previousMode !== 'manual' && routingMode === 'manual') {
-      logger.info('adaptive-router opt-out: manual model selection', { currentKey });
+      logger.info('pmr opt-out: manual model selection', { currentKey });
     }
     if (routingMode === 'manual') return undefined;
     if (!shouldRouteBeforeAgentStart(retryActive)) return undefined;
@@ -229,7 +229,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
         if (target && currentKey !== selection.route.key) {
           const changed = await pi.setModel(target);
           if (!changed) {
-            logger.warn('adaptive-router could not switch model', { selector: selection.route.selector });
+            logger.warn('pmr could not switch model', { selector: selection.route.selector });
             // A failed switch must not claim the target: the next turn retries.
             lastRouterSelected = undefined;
           } else {
@@ -245,7 +245,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       if (content) {
         return {
           message: {
-            customType: 'adaptive-router.resource-pressure',
+            customType: 'pmr.resource-pressure',
             content,
             display: false,
             details: { pressure },
@@ -253,7 +253,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
         };
       }
     } catch (error) {
-      logger.warn('adaptive-router selection failed open', { error: String(error) });
+      logger.warn('pmr selection failed open', { error: String(error) });
       return undefined;
     }
     return undefined;
@@ -269,15 +269,15 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     try {
       ctx.abort?.();
     } catch (error) {
-      logger.warn('adaptive-router guard could not abort the turn', { error: String(error) });
+      logger.warn('pmr guard could not abort the turn', { error: String(error) });
     }
     try {
       ctx.ui?.notify?.(
-        'adaptive-router: virtual router model leaked to provider transport — this is a router bug; select a concrete model with /model',
+        'pmr: virtual model leaked to provider transport — this is a router bug; select a concrete model with /model',
         'error',
       );
     } catch (error) {
-      logger.warn('adaptive-router guard could not announce the leak', { error: String(error) });
+      logger.warn('pmr guard could not announce the leak', { error: String(error) });
     }
     return undefined;
   });
@@ -327,7 +327,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
           // is the proof of model availability. No foreground inference request is burned.
           ctx.setTimeout(async () => {
             await refreshLive(true);
-            logger.debug('adaptive-router refreshed alternate free routes', {
+            logger.debug('pmr refreshed alternate free routes', {
               alternates: alternates.map((route) => route.key),
             });
           }, 0);
@@ -353,11 +353,11 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     description: 'Show adaptive model routing state',
     handler: async (_args: string, ctx: any) => {
       if (routingMode === 'manual') {
-        ctx.ui.notify('adaptive-router: mode manual (opt-out — select pmr/* to re-enable)', 'info');
+        ctx.ui.notify('pmr: mode manual (opt-out — select pmr/* to re-enable)', 'info');
         return;
       }
       if (!lastDecision) {
-        ctx.ui.notify('adaptive-router: no routing decision yet', 'info');
+        ctx.ui.notify('pmr: no routing decision yet', 'info');
         return;
       }
       const now = Date.now();

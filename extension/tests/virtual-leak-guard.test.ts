@@ -33,7 +33,7 @@ function harness(currentModel: unknown) {
   return { handlers, ctx, notifications, abortCount: () => aborted };
 }
 
-test('a provider request issued while still on router/* aborts the turn with a loud local error', async () => {
+test('a provider request issued while still on pmr/* aborts the turn with a loud local error', async () => {
   const h = harness({ provider: 'pmr', id: 'balanced' });
   const handler = h.handlers.get('before_provider_request')?.[0];
   assert.ok(handler, 'guard handler must be registered');
@@ -41,7 +41,7 @@ test('a provider request issued while still on router/* aborts the turn with a l
   assert.equal(result, undefined, 'the guard must not rewrite the payload');
   assert.equal(h.abortCount(), 1, 'ctx.abort() must fire');
   const notice = h.notifications.at(-1);
-  assert.match(notice!.text, /adaptive-router: virtual router model leaked/);
+  assert.match(notice!.text, /pmr: virtual model leaked/);
   assert.equal(notice!.level, 'error');
 });
 
@@ -71,5 +71,5 @@ test('a missing ctx.abort does not turn the guard into a crash', async () => {
   delete h.ctx.abort;
   const handler = h.handlers.get('before_provider_request')![0];
   await handler({ type: 'before_provider_request', payload: { body: { model: 'small' } } }, h.ctx);
-  assert.match(h.notifications.at(-1)!.text, /adaptive-router: virtual router model leaked/);
+  assert.match(h.notifications.at(-1)!.text, /pmr: virtual model leaked/);
 });
