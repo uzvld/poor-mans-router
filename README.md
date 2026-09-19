@@ -3,19 +3,32 @@
 **Adaptive model routing for [oh-my-pi](https://github.com/nicepkg/oh-my-pi) (`omp`).**
 Picks the cheapest model that is *good enough and actually available* for the work in front of it — using the subscriptions you already pay for before spending a cent on pay-as-you-go, and never sending new work to a model whose quota is about to run out.
 
+```mermaid
+flowchart TD
+    A[Turn starts] --> B{"Current model is pmr/* or<br/>the router's own last pick?"}
+    B -- no --> M[manual mode<br/>router never touches this session]
+    B -- yes --> C[mode = frontier · balanced · small · free]
+
+    subgraph Telemetry["Telemetry sources"]
+        direction LR
+        T1[omp usage<br/>quota · auth]
+        T2[CodexBar<br/>pace · wallet]
+        T3[omp stats<br/>reliability · TTFT]
+        T4[OpenRouter Data API<br/>coding · agentic · task-fit · popularity]
+    end
+
+    Telemetry --> H[buildRoutes<br/>health + classes + scores]
+    C --> D["class ladder for this mode<br/>(policy.yml)"]
+    H --> D
+    D --> E{first class with an<br/>AVAILABLE route}
+    E -- yes --> F[in-class comparator]
+    E -- "no, tier allows draining" --> G[retry ladder,<br/>DRAINING admitted]
+    G --> F
+    F --> R[route chosen:<br/>best model · cheapest seller]
+    R --> S["pi.setModel + switch marker<br/>[omp:pmr] pmr/tier -> provider/model"]
 ```
-                 ┌──────────────────────────────────────────────┐
-  /model          │ current model is router/<tier>?              │
-  pmr/balanced │   no  → manual: the router never touches it   │
-       ──────────▶│   yes → mode  = frontier | balanced | small   │
-                 │         class = first non-empty ladder rung   │
-                 │         route = best model · cheapest seller  │
-                 │         pi.setModel(route)                    │
-                 └──────────────────────────────────────────────┘
-                        ▲            ▲              ▲
-                  omp usage     CodexBar       omp stats
-                 (quota, auth)  (pace, wallet) (reliability, TTFT)
-```
+
+Inside the comparator, the tie-break order depends on the mode's preference — see [Inside a class](#inside-a-class).
 
 ## Opt-in, never automatic
 
@@ -68,17 +81,25 @@ A fresh, healthy OMP verdict always outranks a CodexBar burn-rate *forecast*. Th
 
 When several routes share the winning class:
 
-```
-health (AVAILABLE first)
-→ mode economics (speed for small, quality otherwise)
-→ explicit quality / OpenRouter intel
-→ measured reliability (unmeasured routes get a neutral 0.5, never a bonus)
-→ same-family affinity: keep the model the session is already on
-→ newer generation (claude-sonnet-5 ▸ claude-sonnet-4-6 ▸ claude-3-5-sonnet)
-→ lexical id — last resort only
+```mermaid
+flowchart TD
+    Start[Routes tied on health] --> Pref{preference}
+    Pref -- "value: free tier" --> V0[agentic completion score ↓]
+    V0 --> Q0
+    Pref -- "quality: frontier / balanced" --> Q0[explicit quality / OpenRouter intel ↓]
+    Q0 --> Q1["measured reliability ↓<br/>(unmeasured = neutral 0.5, never a bonus)"]
+    Q1 --> Q2[latency ↑]
+    Q2 --> Q3["effective cost ↑<br/>(subscription/free routes = 0)"]
+    Q3 --> Q4["same-family affinity:<br/>keep the model already running"]
+    Q4 --> Q5["newer generation<br/>(same family only)"]
+    Q5 --> Q6[lexical id — last resort]
+    Pref -- "speed: small tier" --> S0[latency ↑] --> S1[throughput ↓] --> S2[cost ↑] --> S3[reliability ↓] --> S4[quality ↓] --> S5[lexical id]
+    Q6 --> Done[winning model]
+    S5 --> Done
+    Done --> Seller["cheapest seller for that model<br/>(Anthropic direct vs OpenRouter vs Kilo)"]
 ```
 
-Then, for the winning *model*, the cheapest *seller* (Anthropic direct vs OpenRouter vs Kilo) is chosen by effective cost. Subscription and free routes cost 0.
+The seller step is decided by effective cost; subscription and free routes cost 0.
 
 ## Install
 
@@ -117,7 +138,7 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns (state.json, gitignored)
   compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
-  tests/              bun test — 113 tests, run from extension/
+  tests/              bun test — 115 tests, run from extension/
 hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
                     survives `hermes update`, and their tests
