@@ -10,9 +10,16 @@
 | `omp` directly (TUI / `-p`) | yes | **yes** | live: managed cold start switches and announces; manual sessions untouched |
 | `multica → omp` | yes | **yes** | daemon log: `omp base_url=rpc-ui://omp model=cursor/cursor-grok-4.6`; live probe of the same argv shape below |
 | `paseo → omp` | yes | **yes** | live: an agent started as `omp/pmr/balanced` was reported by Paseo as `omp/anthropic/claude-sonnet-5` after the router switched, and answered |
-| `multica → hermes → omp` | **no** | **no** | Hermes uses OMP as a *model provider* over RPC (`~/.hermes/config.yaml`: `model.provider: omp`), through the bridge plugin `~/.hermes/plugins/model-providers/omp/`. No OMP agent process exists on this path, so no extension is loaded and `pmr/*` selectors do not exist for it. |
+| `multica → hermes → omp` | yes (`omp --mode rpc-ui`) | **yes**, once Hermes' model is a `pmr/*` id | **Corrected 2026-09-19** — the earlier "cannot be governed" verdict was wrong. Extensions ARE loaded in `rpc-ui` mode: the bridge's own discovery returns `pmr/frontier|balanced|small|free`, `set_model('pmr/balanced')` is accepted, and `before_agent_start` switches the turn. Live: `hermes -z` printed `[omp:pmr] pmr/balanced -> anthropic/claude-sonnet-5 (available sonnet-sub; effective-cost=0.0000)` and answered. Probe: `tools/hermes-path-probe/probe.py`. |
 
-**Consequence to know:** agents that run through Hermes are routed by *Hermes'* model configuration, not by this router. Pointing a Hermes agent at `pmr/balanced` cannot work — the virtual models are registered by an extension inside an OMP agent process, and the bridge talks to OMP as a completion backend. If adaptive routing is wanted there, it has to live in Hermes' provider layer (or Hermes must spawn a real OMP agent session).
+**Why the first verdict was wrong:** it inferred "model provider over RPC ⇒ no agent process ⇒ no extension" from the bridge's architecture instead of probing it. `omp --mode rpc-ui` is a full agent host — it owns inference, tools and extensions; Hermes only consumes its event stream. The falsifying measurement is one call: `omp_models_probe.py` returns 1173 ids including all four `pmr/*` selectors, which only exist if `adaptiveRouter(pi)` ran `registerProvider('pmr')` inside that process.
+
+**What the path still needs:** Hermes must *select* a `pmr/*` id. Two seams, only the first is required:
+
+1. **Config (works today).** `~/.hermes/config.yaml` → `model.default: pmr/balanced`, `model.provider: omp`. Multica spawns a fresh `hermes acp` per task, so every new task picks it up with no restart.
+2. **The ACP picker cannot list it (Hermes-side gap).** `acp_adapter/model_catalog.py::build_model_state` builds rows from `hermes_cli.inventory.build_models_payload` → `list_authenticated_providers`, which enumerates only *credentialed* providers. The `omp` profile declares `env_vars=()` ("owned by the OMP subprocess"), so no `omp` row is ever produced — measured: 0 `omp` rows at every filter combination (`explicit_only`/`include_unconfigured`, `refresh` on and off). The current model survives only via the fallback insert at `model_catalog.py:298-303`, which is why the picker shows `omp:pmr/balanced` as current but offers no other OMP model. Hermes has the precedent for the fix three lines above the call: `_local_runtime_row` (`hermes_cli/inventory.py:103`) injects the credential-less `llamacpp` row for exactly this reason.
+
+**Second-order finding — the picker was also stale.** `~/.hermes/omp-rpc/models-cache.json` (30 min TTL, `plugins/model-providers/omp/__init__.py:24,106-150`) held a 06:30 snapshot of 1169 models, taken before the 09:58 install that registered the provider. Refreshed: 1173 models, all four `pmr/*` present.
 
 ## Multica path — live probe
 

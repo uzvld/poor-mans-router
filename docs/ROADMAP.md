@@ -17,13 +17,14 @@ Deferred until BUG C. Includes verifying that a native fallback request carries 
 ### 4. Docs drift
 `docs/design.md` §"DRAINING", lines describing "CodexBar `willLastToReset=false` → DRAINING" and the worked example `claude-sonnet-5 DRAINING quota pace`, predate the I2 policy. Update to match `health.ts`.
 
-### 5. Host integration — MOSTLY ANSWERED, one row open
+### 5. Host integration — ANSWERED for all four paths
 See `docs/investigations/host-integration-matrix.md`. Established: `omp` directly, `multica → omp` and `paseo → omp` all run a real OMP agent session, so the contract governs them; the Multica shape (fresh process per run, same session file, `--model`) was live-probed twice and rebuilt managed mode from `current()` both times.
 
-**`multica → hermes → omp` is not governed and cannot be:** Hermes uses OMP as a model *provider* over RPC (`model.provider: omp` via `~/.hermes/plugins/model-providers/omp/`), so no OMP agent process and no extension exist on that path. Agents routed through Hermes are selected by Hermes' own model config; `pmr/*` selectors are meaningless there. If adaptive routing is wanted for them it belongs in Hermes' provider layer.
+**`multica → hermes → omp` IS governed — the earlier "cannot be" verdict was wrong (corrected 2026-09-19).** `omp --mode rpc-ui` is a full agent host, so the extension loads and routes there too: the bridge's own discovery lists `pmr/frontier|balanced|small|free`, and a live `hermes -z` turn printed `[omp:pmr] pmr/balanced -> anthropic/claude-sonnet-5 (available sonnet-sub; effective-cost=0.0000)` before answering. Reproduce with `tools/hermes-path-probe/probe.py`. The only requirement is that Hermes selects a `pmr/*` id (`~/.hermes/config.yaml` → `model.default`).
 
 Still open:
 - Multica: confirm no runtime passes `--no-extensions` (the flag string exists in the binary); if one does, the router is silently absent there.
+- Hermes-side (not this repo): the ACP picker cannot enumerate OMP models at all, because `list_authenticated_providers` only yields credentialed providers and the `omp` profile has `env_vars=()`. `pmr/*` is therefore config-selectable but not menu-selectable. Fix has a precedent: the credential-less row injection `_local_runtime_row` at `hermes_cli/inventory.py:103`.
 
 ### 6. Hermes ⇄ OMP bridge: verify translation fidelity
 The bridge works (owner's report) — what is unverified is whether it translates OMP's stream faithfully into Hermes' OpenAI-shaped stream. Reading `~/.hermes/plugins/model-providers/omp/omp_rpc_client.py`, four places where a wrong mapping would hide:
