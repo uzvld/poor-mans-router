@@ -99,8 +99,15 @@ function combineCodexBar(route: RouteDescriptor, rows: CodexBarUsage[], now: num
     }
   }
 
-  if (matching.some((x) => x.draining)) {
-    return { state: 'DRAINING', freshness: 'FRESH', reason: 'CodexBar pace will not last to reset' };
+  const drainingRow = matching.find((x) => x.draining);
+  if (drainingRow) {
+    return {
+      state: 'DRAINING',
+      freshness: 'FRESH',
+      reason: drainingRow.drainingScope === 'balance'
+        ? 'CodexBar pace will exhaust the prepaid balance'
+        : 'CodexBar pace will not last to reset',
+    };
   }
   return { state: 'AVAILABLE', freshness: 'FRESH' };
 }
