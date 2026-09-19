@@ -32,17 +32,25 @@ Migration note: any session or Multica agent pinned to `router/*` stops resolvin
 ### 7. First managed turn stalls ~28 s on telemetry — APPROVED TO FIX
 `before_agent_start` awaits `refreshLive()` on the first turn of a managed session, which runs `omp usage` plus the CodexBar CLI. Observed 28–31 s before the first request goes out. Fix: route from cached/last-known telemetry (or no telemetry at all) and refresh in the background, so only later turns pay for fresh quota data. The owner approved fixing this 2026-09-19.
 
-### 8. Verify the contract through every host that reaches OMP natively
-The router is an in-process OMP extension, so every host that drives OMP natively must be checked separately — a host that spawns `omp` with its own `--model`, or that pins a model per agent, can silently bypass the opt-in or land in `manual` mode without anyone noticing. Matrix to cover, each with: does the extension load, does a `PMR/*` (today `router/*`) selector reach the registry, does the managed switch happen before the first request, does `manual` stay untouched, and does the fail-closed guard still abort rather than retry.
+### 8. Host integration — MOSTLY ANSWERED, one row open
+See `docs/investigations/host-integration-matrix.md`. Established: `omp` directly, `multica → omp` and `paseo → omp` all run a real OMP agent session, so the contract governs them; the Multica shape (fresh process per run, same session file, `--model`) was live-probed twice and rebuilt managed mode from `current()` both times.
 
-| Host | Path | What specifically to check |
-|---|---|---|
-| Hermes | hermes → omp | Extension loaded in Hermes-spawned sessions; `ctx.ui.notify` markers surface in Hermes output (the `[omp:` prefix contract); `/route-status` reachable or its data otherwise observable. |
-| Multica | multica → omp | Per-agent model field set to a virtual selector; the daemon re-spawns `omp -p --mode json --session <file> --model X` per run, so mode must be rebuilt from `current()` on every process (no persisted routing state). |
-| Multica | multica → hermes → omp | Same as above but with Hermes in the middle: confirm the model field is passed through rather than overridden, and that neither layer injects a concrete model that silently opts the agent out. |
-| Paseo | paseo → omp | Agent/workspace model configuration reaches OMP as a selector; managed switching and markers visible in Paseo's timeline. |
+**`multica → hermes → omp` is not governed and cannot be:** Hermes uses OMP as a model *provider* over RPC (`model.provider: omp` via `~/.hermes/plugins/model-providers/omp/`), so no OMP agent process and no extension exist on that path. Agents routed through Hermes are selected by Hermes' own model config; `pmr/*` selectors are meaningless there. If adaptive routing is wanted for them it belongs in Hermes' provider layer.
 
-Deliverable per row: the outgoing provider payload and the route decision, not just a model that answered (AGENTS.md step 6).
+Still open:
+- Paseo: capture one live agent run with a virtual selector (marker + outgoing payload), not just the structural proof.
+- Multica: confirm no runtime passes `--no-extensions` (the flag string exists in the binary); if one does, the router is silently absent there.
+
+### 9. Hermes ⇄ OMP bridge: verify translation fidelity
+The bridge works (owner's report) — what is unverified is whether it translates OMP's stream faithfully into Hermes' OpenAI-shaped stream. Reading `~/.hermes/plugins/model-providers/omp/omp_rpc_client.py`, three places where a wrong mapping would hide:
+- **Streaming.** `text_delta → delta.content`; check chunk boundaries, ordering against tool activity, and that an interrupted OMP stream surfaces as an error rather than a clean end.
+- **Reasoning.** `thinking_delta` is written to **both** `delta.reasoning_content` and `delta.reasoning` with the same text; confirm Hermes does not double-count or double-render it, and that reasoning never leaks into `content`.
+- **Tool calls.** `delta.tool_calls` is hard-coded `None` in both chunk builders while OMP emits `tool_execution_start` / `tool_end` / `tool_call_start`; OMP executes the tools itself (thin host). Confirm Hermes' loop is not waiting for structured tool calls, that tool activity is rendered rather than injected as assistant prose, and that `<tool_call>` text parsing cannot double-execute.
+- **Termination.** The stream always closes `finish_reason="stop"`, so truncation (`length`), tool-stops and errors are indistinguishable downstream; verify nothing depends on that distinction.
+
+Hermes-side work (the plugin has `test_thin_host.py` / `test_model_switch_markers.py` to extend), not `adaptive-router` code.
+
+Deliverable per row of item 8: the outgoing provider payload and the route decision, not just a model that answered (AGENTS.md step 6).
 
 ## Done
 
