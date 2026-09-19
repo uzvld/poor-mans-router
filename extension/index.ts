@@ -11,7 +11,7 @@ import {
   type IntelCache,
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
-import { cooldownFromRetry, isRateOrQuotaError } from './health.ts';
+import { cooldownFromPermanentModelError, cooldownFromRetry, isPermanentModelError, isRateOrQuotaError } from './health.ts';
 import { RouterStateStore } from './state.ts';
 import {
   FreeProbeGate,
@@ -92,6 +92,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   let lastRouterSelected: string | undefined;
   let retryActive = false;
   let nativeFallbackAppliedForRetry = false;
+  // Set by `retry_fallback_applied` (fires before `auto_retry_start` on the same native
+  // retry chain) so the cooldown/failure bookkeeping below can attribute the failure to
+  // the route OMP actually just fell back FROM, not whatever the session is on now.
+  let lastRetryFrom: string | undefined;
   // One notice per session: the hold is re-evaluated every turn, the human needs telling once.
   let remoteCompactionHoldAnnounced = false;
   let lastDecision: {
@@ -309,12 +313,30 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   // burn OMP's 10 silent auto-retries on a connection error. Abort the turn instead.
   // Detection uses the session's current model, not the payload's bare model id: a
   // real provider may legitimately ship a model called "balanced".
+  //
+  // This path never goes through OMP's native retry engine (no `auto_retry_start`,
+  // no `retry_fallback_applied`), so it is the ONLY failure the ladder's normal
+  // cooldown bookkeeping never sees. Left unrecorded, `lastRouterSelected` still
+  // names a route the request never actually reached, and `evaluateRouteHealth`
+  // has nothing marking it unhealthy — the very next `before_agent_start` derives
+  // the identical winner from the same inputs and repeats forever: same switch
+  // marker, same silent abort, no answer, no visible error, no back-off.
+  const LEAKED_SWITCH_COOLDOWN_MS = 5 * 60_000;
   (pi as any).on('before_provider_request', async (_event: any, ctx: any) => {
     if (ctx?.models?.current?.()?.provider !== VIRTUAL_PROVIDER) return undefined;
     try {
       ctx.abort?.();
     } catch (error) {
       logger.warn('pmr guard could not abort the turn', { error: String(error) });
+    }
+    if (lastRouterSelected) {
+      state.markCooldown(
+        lastRouterSelected,
+        Date.now() + LEAKED_SWITCH_COOLDOWN_MS,
+        'switch to this route never reached the provider request (virtual model leak)',
+      );
+      state.save();
+      lastRouterSelected = undefined;
     }
     try {
       ctx.ui?.notify?.(
@@ -337,6 +359,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     retryActive = true;
     const message = String(event?.errorMessage ?? '');
     const rateOrQuota = isRateOrQuotaError(message);
+    // Catalog drift ("model does not exist"/"not found"): permanent for this route, unlike
+    // a rate/quota backoff, so it always cools down regardless of delayMs/native-fallback
+    // heuristics that exist to protect healthy same-provider credential rotation.
+    const permanentModelError = isPermanentModelError(message);
     const retryDecision = retryRoutingPolicy(
       rateOrQuota,
       typeof event?.delayMs === 'number' ? event.delayMs : undefined,
@@ -348,7 +374,12 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     lastRetryFrom = undefined;
     if (!routeKey) return;
 
-    if (retryDecision.markRouteCooldown) {
+    if (permanentModelError) {
+      const cooldown = cooldownFromPermanentModelError(message, Date.now());
+      if (cooldown?.cooldownUntil) {
+        state.markCooldown(routeKey, cooldown.cooldownUntil, cooldown.reason ?? 'model does not exist', cooldown.lastFailureAt);
+      }
+    } else if (retryDecision.markRouteCooldown) {
       const cooldown = cooldownFromRetry(message, event?.delayMs, Date.now());
       if (cooldown?.cooldownUntil) {
         state.markCooldown(routeKey, cooldown.cooldownUntil, cooldown.reason ?? 'rate/quota retry', cooldown.lastFailureAt);
