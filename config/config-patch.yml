@@ -1,0 +1,13 @@
+# Installer applies these keys using `omp config set`.
+# Existing modelRoles and retry.fallbackChains are intentionally preserved.
+retry:
+  enabled: true
+  modelFallback: true
+  fallbackRevertPolicy: cooldown-expiry
+  usageAwareFallback: true
+  usageReservePct: 10
+  usageReservePolicy: auto
+  waitForUsageReset: false
+
+task:
+  showResolvedModelBadge: true

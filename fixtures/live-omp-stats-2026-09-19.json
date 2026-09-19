@@ -1,0 +1,101 @@
+{
+ "byModel": [
+  {
+   "avgTokensPerSecond": 24.570088931978578,
+   "avgTtft": 6314.2972779516485,
+   "errorRate": 0.00303951367781155,
+   "model": "kilo-auto/efficient",
+   "provider": "kilo",
+   "totalRequests": 1316
+  },
+  {
+   "avgTokensPerSecond": 26.92137178415711,
+   "avgTtft": 3397.3368143606117,
+   "errorRate": 0.0011806375442739079,
+   "model": "deepseek/deepseek-v4-flash-0731:free",
+   "provider": "kilo",
+   "totalRequests": 847
+  },
+  {
+   "avgTokensPerSecond": 28.90561736516347,
+   "avgTtft": 2072.1535619143538,
+   "errorRate": 0,
+   "model": "gpt-5.6-luna",
+   "provider": "openai-codex",
+   "totalRequests": 179
+  },
+  {
+   "avgTokensPerSecond": null,
+   "avgTtft": null,
+   "errorRate": 1,
+   "model": "deepseek-v4.1-flash",
+   "provider": "opencode-go",
+   "totalRequests": 150
+  },
+  {
+   "avgTokensPerSecond": 65.2794859577902,
+   "avgTtft": 1013.955968914895,
+   "errorRate": 0.3026315789473684,
+   "model": "claude-sonnet-5",
+   "provider": "anthropic",
+   "totalRequests": 76
+  },
+  {
+   "avgTokensPerSecond": null,
+   "avgTtft": null,
+   "errorRate": 1,
+   "model": "~deepseek/deepseek-v4-flash-latest",
+   "provider": "openrouter",
+   "totalRequests": 51
+  },
+  {
+   "avgTokensPerSecond": 4.5026007397858665,
+   "avgTtft": 6489.6150830000015,
+   "errorRate": 0.875,
+   "model": "kilo-auto/free",
+   "provider": "kilo",
+   "totalRequests": 48
+  },
+  {
+   "avgTokensPerSecond": null,
+   "avgTtft": null,
+   "errorRate": 0,
+   "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+   "provider": "openrouter",
+   "totalRequests": 42
+  },
+  {
+   "avgTokensPerSecond": 22.79374897017365,
+   "avgTtft": 1813.8926581999986,
+   "errorRate": 0.5714285714285714,
+   "model": "claude-opus-5",
+   "provider": "anthropic",
+   "totalRequests": 14
+  },
+  {
+   "avgTokensPerSecond": 38.65230411962454,
+   "avgTtft": 6895.977194333372,
+   "errorRate": 0,
+   "model": "~deepseek/deepseek-pro-latest",
+   "provider": "kilo",
+   "totalRequests": 3
+  },
+  {
+   "avgTokensPerSecond": null,
+   "avgTtft": null,
+   "errorRate": 1,
+   "model": "claude-haiku-4-5",
+   "provider": "anthropic",
+   "totalRequests": 1
+  },
+  {
+   "avgTokensPerSecond": 0,
+   "avgTtft": null,
+   "errorRate": 1,
+   "model": "tencent/hy3:free",
+   "provider": "kilo",
+   "totalRequests": 1
+  }
+ ],
+ "overall": {}
+}

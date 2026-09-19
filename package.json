@@ -1,0 +1,16 @@
+{
+  "name": "poor-mans-router",
+  "version": "0.1.0",
+  "description": "Adaptive, quota-aware model routing extension for oh-my-pi (omp): Frontier / Balanced / Small tiers, subscription-first, forecast-resistant.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "cd extension && ln -sfn ../fixtures fixtures && bun test",
+    "test:sim": "bun test scripts/fixture-simulation.test.ts",
+    "install:omp": "./scripts/install.sh",
+    "uninstall:omp": "./scripts/uninstall.sh",
+    "fixtures:sanitize": "python3 scripts/sanitize-fixtures.py fixtures/raw fixtures"
+  },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/uzvld/poor-mans-router.git" }
+}

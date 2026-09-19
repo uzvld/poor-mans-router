@@ -1,0 +1,220 @@
+{
+ "generatedAt": 1789786428912,
+ "reports": [
+  {
+   "fetchedAt": 1789786181167,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "openai-codex:primary",
+     "label": "7 days",
+     "scope": {
+      "provider": "openai-codex",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "exhausted",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 days",
+      "resetsAt": 1789805676000
+     }
+    }
+   ],
+   "provider": "openai-codex",
+   "resetCredits": {
+    "availableCount": 0
+   }
+  },
+  {
+   "fetchedAt": 1789786428494,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "openai-codex:primary",
+     "label": "7 days",
+     "scope": {
+      "provider": "openai-codex",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "exhausted",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 days",
+      "resetsAt": 1790278516000
+     }
+    }
+   ],
+   "provider": "openai-codex",
+   "resetCredits": {
+    "availableCount": 0
+   }
+  },
+  {
+   "fetchedAt": 1789786202426,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 99,
+      "remainingFraction": 0.99,
+      "unit": "percent",
+      "used": 1,
+      "usedFraction": 0.01
+     },
+     "id": "anthropic:5h",
+     "label": "Claude 5 Hour",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour",
+      "resetsAt": 1789789200000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 76,
+      "remainingFraction": 0.76,
+      "unit": "percent",
+      "used": 24,
+      "usedFraction": 0.24
+     },
+     "id": "anthropic:7d",
+     "label": "Claude 7 Day",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1790323200000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 83,
+      "remainingFraction": 0.83,
+      "unit": "percent",
+      "used": 17,
+      "usedFraction": 0.17
+     },
+     "id": "anthropic:7d:fable",
+     "label": "Claude 7 Day (Fable)",
+     "scope": {
+      "provider": "anthropic",
+      "tier": "fable",
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1790323199737
+     }
+    }
+   ],
+   "provider": "anthropic"
+  },
+  {
+   "fetchedAt": 1789786348259,
+   "limits": [
+    {
+     "amount": {
+      "remainingFraction": 1,
+      "unit": "percent",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "rolling-5h",
+     "label": "5 Hour limit",
+     "scope": {
+      "provider": "opencode-go",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour",
+      "resetsAt": 1789804348237
+     }
+    },
+    {
+     "amount": {
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "weekly",
+     "label": "Weekly limit",
+     "scope": {
+      "provider": "opencode-go",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "exhausted",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "Weekly",
+      "resetsAt": 1789948800237
+     }
+    },
+    {
+     "amount": {
+      "remainingFraction": 0.5,
+      "unit": "percent",
+      "used": 50,
+      "usedFraction": 0.5
+     },
+     "id": "monthly",
+     "label": "Monthly limit",
+     "scope": {
+      "provider": "opencode-go",
+      "shared": true,
+      "windowId": "monthly"
+     },
+     "status": "ok",
+     "window": {
+      "id": "monthly",
+      "label": "Monthly",
+      "resetsAt": 1792135905237
+     }
+    }
+   ],
+   "provider": "opencode-go"
+  }
+ ]
+}

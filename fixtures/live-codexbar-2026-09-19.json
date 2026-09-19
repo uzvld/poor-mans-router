@@ -1,0 +1,175 @@
+[
+ {
+  "pace": null,
+  "provider": "codex",
+  "usage": {
+   "accountEmail": "<redacted>",
+   "codexResetCredits": {
+    "availableCount": 0,
+    "credits": [],
+    "updatedAt": "2026-09-19T02:54:04Z"
+   },
+   "dataConfidence": "exact",
+   "loginMethod": "prolite",
+   "primary": null,
+   "providerCost": {
+    "balanceUpdatedAt": "2026-09-19T02:54:04Z",
+    "currencyCode": "Credits",
+    "limit": 0,
+    "period": "Extra usage",
+    "updatedAt": "2026-09-19T02:54:04Z",
+    "used": 0
+   },
+   "secondary": {
+    "resetsAt": "2026-09-24T19:35:16Z",
+    "usedPercent": 100,
+    "windowMinutes": 10080
+   },
+   "tertiary": null,
+   "updatedAt": "2026-09-19T02:54:04Z"
+  }
+ },
+ {
+  "pace": {
+   "primary": {
+    "deltaPercent": -81,
+    "expectedUsedPercent": 85,
+    "stage": "farBehind",
+    "summary": "81% in reserve | Expected 85% used | Lasts until reset",
+    "willLastToReset": true
+   },
+   "secondary": {
+    "deltaPercent": 14,
+    "etaSeconds": 204139,
+    "expectedUsedPercent": 11,
+    "stage": "farAhead",
+    "summary": "14% in deficit | Expected 11% used | Runs out in 2d 8h",
+    "willLastToReset": false
+   }
+  },
+  "provider": "claude",
+  "usage": {
+   "accountEmail": "<redacted>",
+   "accountOrganization": "<redacted>",
+   "extraRateWindows": [
+    {
+     "id": "claude-weekly-scoped-fable",
+     "title": "Fable only",
+     "window": {
+      "resetsAt": "2026-09-25T08:00:00Z",
+      "usedPercent": 17,
+      "windowMinutes": 10080
+     }
+    }
+   ],
+   "loginMethod": "Claude Max 5x",
+   "primary": {
+    "resetsAt": "2026-09-19T03:40:01Z",
+    "usedPercent": 4,
+    "windowMinutes": 300
+   },
+   "providerCost": {
+    "balance": 0,
+    "currencyCode": "EUR",
+    "limit": 0,
+    "period": "Extra usage",
+    "updatedAt": "2026-09-19T02:54:06Z",
+    "used": 0
+   },
+   "secondary": {
+    "resetsAt": "2026-09-25T08:00:01Z",
+    "usedPercent": 25,
+    "windowMinutes": 10080
+   },
+   "tertiary": null,
+   "updatedAt": "2026-09-19T02:54:07Z"
+  }
+ },
+ {
+  "pace": {
+   "tertiary": {
+    "deltaPercent": 41,
+    "etaSeconds": 242544,
+    "expectedUsedPercent": 9,
+    "stage": "farAhead",
+    "summary": "41% in deficit | Expected 9% used | Runs out in 2d 19h",
+    "willLastToReset": false
+   }
+  },
+  "provider": "opencodego",
+  "usage": {
+   "primary": {
+    "resetsAt": "2026-09-19T07:54:08Z",
+    "usedPercent": 0,
+    "windowMinutes": 300
+   },
+   "secondary": {
+    "resetsAt": "2026-09-20T23:59:59Z",
+    "usedPercent": 100,
+    "windowMinutes": 10080
+   },
+   "tertiary": {
+    "resetsAt": "2026-10-16T07:31:44Z",
+    "usedPercent": 50,
+    "windowMinutes": 43200
+   },
+   "updatedAt": "2026-09-19T02:54:08Z"
+  }
+ },
+ {
+  "pace": null,
+  "provider": "kilo",
+  "usage": {
+   "loginMethod": "Starter \u00b7 Auto top-up: off",
+   "primary": {
+    "usedPercent": 33.33993000000001
+   },
+   "secondary": {
+    "resetsAt": "2026-10-17T09:22:52Z",
+    "usedPercent": 100
+   },
+   "tertiary": null,
+   "updatedAt": "2026-09-19T02:54:15Z"
+  }
+ },
+ {
+  "pace": null,
+  "provider": "openrouter",
+  "usage": {
+   "details": [
+    {
+     "rows": [
+      {
+       "label": "Remaining",
+       "value": "$0.00"
+      },
+      {
+       "label": "Used",
+       "value": "$70.20"
+      },
+      {
+       "label": "Total added",
+       "value": "$70.00"
+      }
+     ],
+     "title": "Credits"
+    }
+   ],
+   "loginMethod": "Balance: $0.00",
+   "primary": null,
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-09-19T02:54:18Z"
+  }
+ },
+ {
+  "pace": null,
+  "provider": "deepseek",
+  "usage": {
+   "primary": null,
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-09-19T02:54:23Z"
+  }
+ }
+]

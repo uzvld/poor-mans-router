@@ -1,0 +1,28 @@
+tiers:
+  frontier:
+    classes:
+      - fable-sub
+      - astra-sub
+      - opus-sub
+      - opus-ish-sub
+      - strong-flash-sub
+      - strong-chinese
+      - best-free
+  balanced:
+    classes:
+      - sonnet-sub
+      - luna-sub
+      - chinese-flash-payg
+      - free-chinese-flash
+      - best-available
+      - healthy-free
+  small:
+    classes:
+      - cheap-sub
+      - cheap-flash
+      - healthy-free-fast
+agentTiers:
+  architect: frontier
+  reviewer: frontier
+  scout: small
+  librarian: small

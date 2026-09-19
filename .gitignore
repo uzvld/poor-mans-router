@@ -1,0 +1,62 @@
+# Secrets & credentials — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.token
+*credentials*
+*secret*
+!**/tests/**/*secret*.test.ts
+auth.json
+.netrc
+
+# Per-machine runtime state written by the extension
+extension/state.json
+state.json
+*.state.json
+
+# Raw (unsanitised) telemetry captures — only sanitised copies belong in fixtures/
+fixtures/raw/
+fixtures/**/*.raw.json
+*.har
+
+# Local config overrides
+config/*.local.yml
+config/*.local.yaml
+config.local.*
+policy.local.yml
+
+# Logs, dumps, temp
+*.log
+logs/
+tmp/
+*.tmp
+*.bak
+*.orig
+*.rej
+.DS_Store
+Thumbs.db
+
+# Tooling
+node_modules/
+bun.lockb
+.bun/
+coverage/
+.nyc_output/
+dist/
+build/
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# The test symlink created by `ln -sfn ../fixtures fixtures` inside extension/
+extension/fixtures

@@ -1,0 +1,48 @@
+# OPTIONAL emergency chains for the current-turn native OMP retry engine.
+# Review against `omp models --json` before merging. Do not blindly overwrite
+# existing model-selector/provider-wildcard chains you still need.
+retry:
+  fallbackChains:
+    plan:
+      - anthropic/claude-fable-5-1
+      - openai-codex/gpt-6-astra
+      - anthropic/claude-opus-5
+      - opencode-go/deepseek-v4-pro
+      - openrouter/nvidia/nemotron-3-ultra-550b-a55b:free
+
+    advisor:
+      - openai-codex/gpt-6-astra
+      - anthropic/claude-fable-5-1
+      - anthropic/claude-opus-5
+      - opencode-go/deepseek-v4-pro
+      - openrouter/nvidia/nemotron-3-ultra-550b-a55b:free
+
+    default:
+      - anthropic/claude-sonnet-5
+      - openai-codex/gpt-5.6-luna
+      - opencode-go/deepseek-v4.1-flash
+      - openrouter/z-ai/glm-5.3-flash
+      - kilo/deepseek/deepseek-v4.1-flash
+      - openrouter/nvidia/nemotron-3-ultra-550b-a55b:free
+
+    task:
+      - anthropic/claude-sonnet-5
+      - openai-codex/gpt-5.6-luna
+      - opencode-go/deepseek-v4.1-flash
+      - openrouter/z-ai/glm-5.3-flash
+      - kilo/deepseek/deepseek-v4.1-flash
+      - openrouter/nvidia/nemotron-3-ultra-550b-a55b:free
+
+    smol:
+      - openai-codex/gpt-5.6-luna
+      - opencode-go/deepseek-v4.1-flash
+      - openrouter/z-ai/glm-5.3-flash
+      - kilo/kilo-auto/free
+      - openrouter/nvidia/nemotron-3-ultra-550b-a55b:free
+
+    tiny:
+      - openai-codex/gpt-5.6-luna
+      - opencode-go/deepseek-v4.1-flash
+      - openrouter/z-ai/glm-5.3-flash
+      - kilo/kilo-auto/free
+      - openrouter/nvidia/nemotron-3-ultra-550b-a55b:free

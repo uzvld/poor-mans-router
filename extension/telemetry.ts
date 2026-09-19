@@ -1,0 +1,215 @@
+export interface UsageWindow {
+  id: string;
+  shared: boolean;
+  tier?: string;
+  usedFraction?: number;
+  remainingFraction?: number;
+  resetsAt?: number;
+  status?: string;
+}
+
+export interface OmpCredentialUsage {
+  provider: string;
+  credentialKey: string;
+  fetchedAt: number;
+  windows: UsageWindow[];
+}
+
+export interface CodexBarUsage {
+  provider: string;
+  telemetryAvailable: boolean;
+  exhausted: boolean;
+  draining: boolean;
+  blockedUntil?: number;
+  paidBalanceUsd?: number;
+  paidBalanceKnown: boolean;
+  fetchedAt: number;
+  reason?: string;
+}
+
+const CODEXBAR_PROVIDER_ALIASES: Record<string, string> = {
+  codex: 'openai-codex',
+  claude: 'anthropic',
+  opencodego: 'opencode-go',
+};
+
+export function canonicalTelemetryProvider(provider: string): string {
+  return CODEXBAR_PROVIDER_ALIASES[provider] ?? provider;
+}
+
+function asNumber(v: unknown): number | undefined {
+  return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
+}
+
+function fractionFromAmount(amount: any): number | undefined {
+  const direct = asNumber(amount?.remainingFraction);
+  if (direct !== undefined) return direct;
+  const remaining = asNumber(amount?.remaining);
+  const limit = asNumber(amount?.limit);
+  if (remaining !== undefined && limit && limit > 0) return remaining / limit;
+  const usedFraction = asNumber(amount?.usedFraction);
+  if (usedFraction !== undefined) return Math.max(0, 1 - usedFraction);
+  return undefined;
+}
+
+export function normalizeOmpUsage(raw: any): OmpCredentialUsage[] {
+  const reports = Array.isArray(raw?.reports) ? raw.reports : [];
+  const perProviderIndex = new Map<string, number>();
+
+  return reports.map((report: any) => {
+    const provider = String(report?.provider ?? 'unknown');
+    const n = (perProviderIndex.get(provider) ?? 0) + 1;
+    perProviderIndex.set(provider, n);
+
+    const windows: UsageWindow[] = (Array.isArray(report?.limits) ? report.limits : []).map((limit: any) => ({
+      id: String(limit?.scope?.windowId ?? limit?.window?.id ?? limit?.id ?? 'unknown'),
+      shared: limit?.scope?.shared === true,
+      tier: typeof limit?.scope?.tier === 'string' ? limit.scope.tier : undefined,
+      usedFraction: asNumber(limit?.amount?.usedFraction),
+      remainingFraction: fractionFromAmount(limit?.amount),
+      resetsAt: asNumber(limit?.window?.resetsAt),
+      status: typeof limit?.status === 'string' ? limit.status : undefined,
+    }));
+
+    return {
+      provider,
+      credentialKey: `${provider}#${n}`,
+      fetchedAt: asNumber(report?.fetchedAt) ?? asNumber(raw?.generatedAt) ?? Date.now(),
+      windows,
+    };
+  });
+}
+
+function codexBarWindows(usage: any): any[] {
+  const out = [usage?.primary, usage?.secondary, usage?.tertiary].filter(Boolean);
+  for (const extra of usage?.extraRateWindows ?? []) {
+    if (extra?.window) out.push(extra.window);
+  }
+  return out;
+}
+
+function parseMoney(value: unknown): number | undefined {
+  if (typeof value !== 'string') return undefined;
+  const match = value.replace(/,/g, '').match(/-?\$?\s*([0-9]+(?:\.[0-9]+)?)/);
+  if (!match) return undefined;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function balanceFromUsage(usage: any): { known: boolean; value?: number } {
+  // providerCost.balance in non-USD currencies (e.g. Codex "Credits") is not the
+  // paid USD wallet that the free-vs-paid routing rule cares about.
+  const direct = asNumber(usage?.providerCost?.balance);
+  if (direct !== undefined && String(usage?.providerCost?.currencyCode ?? 'USD').toUpperCase() === 'USD') {
+    return { known: true, value: direct };
+  }
+
+  for (const detail of usage?.details ?? []) {
+    if (String(detail?.title ?? '').toLowerCase() !== 'credits') continue;
+    for (const row of detail?.rows ?? []) {
+      if (String(row?.label ?? '').toLowerCase() === 'remaining') {
+        const value = parseMoney(row?.value);
+        return value === undefined ? { known: false } : { known: true, value };
+      }
+    }
+  }
+  return { known: false };
+}
+
+export function normalizeCodexBarProvider(row: any, now = Date.now()): CodexBarUsage {
+  const provider = canonicalTelemetryProvider(String(row?.provider ?? 'unknown'));
+  if (!row?.usage) {
+    return {
+      provider,
+      telemetryAvailable: false,
+      exhausted: false,
+      draining: false,
+      paidBalanceKnown: false,
+      fetchedAt: now,
+      reason: typeof row?.error?.message === 'string' ? row.error.message : undefined,
+    };
+  }
+
+  const windows = codexBarWindows(row.usage)
+    .map((w: any) => ({
+      usedPercent: asNumber(w?.usedPercent),
+      resetsAt: typeof w?.resetsAt === 'string' ? Date.parse(w.resetsAt) : asNumber(w?.resetsAt),
+    }))
+    .filter((w: any) => w.usedPercent !== undefined);
+
+  const exhaustedWindows = windows.filter((w: any) => (w.usedPercent ?? 0) >= 100);
+  const resetCandidates = exhaustedWindows
+    .map((w: any) => w.resetsAt)
+    .filter((x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > now);
+
+  const paceRows = Object.values(row?.pace ?? {}) as any[];
+  const draining = paceRows.some((p) => p?.willLastToReset === false);
+  const balance = balanceFromUsage(row.usage);
+
+  return {
+    provider,
+    telemetryAvailable: true,
+    exhausted: exhaustedWindows.length > 0,
+    draining,
+    blockedUntil: resetCandidates.length ? Math.max(...resetCandidates) : undefined,
+    paidBalanceUsd: balance.value,
+    paidBalanceKnown: balance.known,
+    fetchedAt: typeof row?.usage?.updatedAt === 'string' ? Date.parse(row.usage.updatedAt) || now : now,
+  };
+}
+
+export function parseCodexBarRows(rows: any[]): CodexBarUsage[] {
+  return (Array.isArray(rows) ? rows : []).map((row) => normalizeCodexBarProvider(row));
+}
+
+export interface ExecResult {
+  code: number;
+  stdout: string;
+  stderr?: string;
+}
+
+export interface ExecLike {
+  exec(command: string, args: string[], options?: { timeout?: number }): Promise<ExecResult>;
+}
+
+
+export function parseCodexBarCliOutput(result: Pick<ExecResult, 'code' | 'stdout'>): CodexBarUsage[] {
+  try {
+    const payload = JSON.parse(result.stdout);
+    return parseCodexBarRows(payload);
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchOmpUsage(exec: ExecLike): Promise<OmpCredentialUsage[]> {
+  const result = await exec.exec('omp', ['usage', '--redact', '--json'], { timeout: 90_000 });
+  if (result.code !== 0) return [];
+  try {
+    return normalizeOmpUsage(JSON.parse(result.stdout));
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchCodexBarUsage(exec: ExecLike): Promise<CodexBarUsage[]> {
+  try {
+    const res = await fetch('http://127.0.0.1:8080/usage?provider=all', {
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (res.ok) return parseCodexBarRows(await res.json() as any[]);
+  } catch {
+    // Fall through to CLI.
+  }
+
+  const result = await exec.exec(
+    'codexbar',
+    ['usage', '--provider', 'all', '--format', 'json', '--status'],
+    { timeout: 30_000 },
+  );
+
+  // CodexBar intentionally exits non-zero when one provider fails, while still
+  // emitting useful row-level JSON for the healthy providers. Parse stdout
+  // regardless of exit status and ignore only malformed/non-JSON output.
+  return parseCodexBarCliOutput(result);
+}

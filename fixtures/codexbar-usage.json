@@ -1,0 +1,819 @@
+[
+ {
+  "credits": {
+   "balanceIsWorkspace": false,
+   "balanceReadSucceeded": true,
+   "creditsAvailable": false,
+   "events": [],
+   "remaining": 0,
+   "updatedAt": "2026-09-18T17:53:35Z"
+  },
+  "provider": "codex",
+  "source": "oauth",
+  "status": {
+   "indicator": "none",
+   "updatedAt": "2026-07-09T19:25:56Z",
+   "url": "https://status.openai.com/"
+  },
+  "usage": {
+   "accountEmail": "***REDACTED***",
+   "codexResetCredits": {
+    "availableCount": 0,
+    "credits": [],
+    "updatedAt": "2026-09-18T17:53:35Z"
+   },
+   "dataConfidence": "exact",
+   "loginMethod": "prolite",
+   "primary": null,
+   "providerCost": {
+    "balanceUpdatedAt": "2026-09-18T17:53:35Z",
+    "currencyCode": "Credits",
+    "limit": 0,
+    "period": "Extra usage",
+    "updatedAt": "2026-09-18T17:53:35Z",
+    "used": 0
+   },
+   "secondary": {
+    "resetsAt": "2026-09-24T19:35:16Z",
+    "usedPercent": 100,
+    "windowMinutes": 10080
+   },
+   "tertiary": null,
+   "updatedAt": "2026-09-18T17:53:35Z"
+  },
+  "version": "0.155.0"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for openai."
+  },
+  "provider": "openai",
+  "source": "auto",
+  "status": {
+   "indicator": "none",
+   "updatedAt": "2026-07-09T19:25:56Z",
+   "url": "https://status.openai.com"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Azure OpenAI API key not configured. Set AZURE_OPENAI_API_KEY or configure an API key in Settings."
+  },
+  "provider": "azureopenai",
+  "source": "auto"
+ },
+ {
+  "pace": {
+   "primary": {
+    "deltaPercent": 26,
+    "etaSeconds": 1819,
+    "expectedUsedPercent": 5,
+    "stage": "farAhead",
+    "summary": "26% in deficit | Expected 5% used | Projected empty in 31m",
+    "willLastToReset": false
+   },
+   "secondary": {
+    "deltaPercent": 10,
+    "etaSeconds": 186991,
+    "expectedUsedPercent": 6,
+    "stage": "ahead",
+    "summary": "10% in deficit | Expected 6% used | Runs out in 2d 3h",
+    "willLastToReset": false
+   }
+  },
+  "provider": "claude",
+  "source": "web",
+  "status": {
+   "indicator": "none",
+   "updatedAt": "2026-09-18T16:47:58Z",
+   "url": "https://status.claude.com/"
+  },
+  "usage": {
+   "accountEmail": "***REDACTED***",
+   "accountOrganization": "***REDACTED***'s Organization",
+   "extraRateWindows": [
+    {
+     "id": "claude-weekly-scoped-fable",
+     "title": "Fable only",
+     "window": {
+      "resetsAt": "2026-09-25T08:00:00Z",
+      "usedPercent": 17,
+      "windowMinutes": 10080
+     }
+    }
+   ],
+   "loginMethod": "Claude Max 5x",
+   "primary": {
+    "resetsAt": "2026-09-18T22:40:00Z",
+    "usedPercent": 31,
+    "windowMinutes": 300
+   },
+   "providerCost": {
+    "balance": 0,
+    "currencyCode": "EUR",
+    "limit": 0,
+    "period": "Extra usage",
+    "updatedAt": "2026-09-18T17:53:37Z",
+    "used": 0
+   },
+   "secondary": {
+    "resetsAt": "2026-09-25T08:00:00Z",
+    "usedPercent": 16,
+    "windowMinutes": 10080
+   },
+   "tertiary": null,
+   "updatedAt": "2026-09-18T17:53:37Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for clinepass."
+  },
+  "provider": "clinepass",
+  "source": "auto"
+ },
+ {
+  "provider": "cursor",
+  "source": "web",
+  "status": {
+   "indicator": "minor",
+   "updatedAt": "2026-09-18T17:44:19Z",
+   "url": "https://status.cursor.com"
+  },
+  "usage": {
+   "accountEmail": "***REDACTED***",
+   "extraRateWindows": [
+    {
+     "id": "cursor-grok-bot",
+     "title": "Grok Bot",
+     "window": {
+      "usedPercent": 0
+     }
+    }
+   ],
+   "loginMethod": "Cursor Pro",
+   "primary": {
+    "resetsAt": "2026-10-15T17:50:49Z",
+    "usedPercent": 100,
+    "windowMinutes": 43200
+   },
+   "secondary": {
+    "resetsAt": "2026-10-15T17:50:49Z",
+    "usedPercent": 100,
+    "windowMinutes": 43200
+   },
+   "tertiary": {
+    "resetsAt": "2026-10-15T17:50:49Z",
+    "usedPercent": 100,
+    "windowMinutes": 43200
+   },
+   "updatedAt": "2026-09-18T17:53:39Z"
+  }
+ },
+ {
+  "account": "opencode",
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "OpenCode API error: No subscription usage data was returned for workspace wrk_<redacted>. This usually means this workspace does not have OpenCode subscription quota data available."
+  },
+  "provider": "opencode",
+  "source": "auto"
+ },
+ {
+  "pace": {
+   "tertiary": {
+    "deltaPercent": 42,
+    "etaSeconds": 210116,
+    "expectedUsedPercent": 8,
+    "stage": "farAhead",
+    "summary": "42% in deficit | Expected 8% used | Runs out in 2d 10h",
+    "willLastToReset": false
+   }
+  },
+  "provider": "opencodego",
+  "source": "api",
+  "usage": {
+   "primary": {
+    "resetsAt": "2026-09-18T22:53:40Z",
+    "usedPercent": 0,
+    "windowMinutes": 300
+   },
+   "secondary": {
+    "resetsAt": "2026-09-21T00:00:00Z",
+    "usedPercent": 100,
+    "windowMinutes": 10080
+   },
+   "tertiary": {
+    "resetsAt": "2026-10-16T07:31:45Z",
+    "usedPercent": 50,
+    "windowMinutes": 43200
+   },
+   "updatedAt": "2026-09-18T17:53:40Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for alibaba."
+  },
+  "provider": "alibaba",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Alibaba Token Plan session cookies found in browsers. Sign in to Model Studio/Bailian in Chrome, allow CodexBar to access Chrome Safe Storage in Keychain Access, or paste a manual Cookie header."
+  },
+  "provider": "alibabatokenplan",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Qwen Cloud session cookies found in browsers. Sign in to Qwen Cloud in Chrome or Brave, allow CodexBar to access the corresponding Safe Storage in Keychain Access (Chrome Safe Storage and/or Brave Safe Storage), or paste a manual Cookie header."
+  },
+  "provider": "qwencloud",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Factory session found. Please log in to app.factory.ai in Safari, Chrome, Microsoft Edge, Brave, Arc, Dia, ChatGPT Atlas, Chromium, Helium, Vivaldi, Yandex Browser, Firefox, Firefox Beta, Firefox Developer Edition, Firefox Nightly, Zen, Chrome Beta, Chrome Canary, Arc Beta, Arc Canary, Brave Beta, Brave Nightly, Microsoft Edge Beta, Microsoft Edge Canary, or Comet."
+  },
+  "provider": "factory",
+  "source": "auto",
+  "status": {
+   "indicator": "none",
+   "updatedAt": "2026-09-18T16:47:58Z",
+   "url": "https://status.factory.ai"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for fireworks."
+  },
+  "provider": "fireworks",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Not logged in to Gemini. Run 'gemini' in Terminal to authenticate."
+  },
+  "provider": "gemini",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Antigravity language server not detected. Launch Antigravity and retry."
+  },
+  "provider": "antigravity",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for copilot."
+  },
+  "provider": "copilot",
+  "source": "auto",
+  "status": {
+   "indicator": "none",
+   "updatedAt": "2026-09-18T17:46:20Z",
+   "url": "https://www.githubstatus.com/"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Devin organization was found. For automatic auth, open the organization's Usage page in Chrome. For manual auth, set Organization to the internal org-... or org_... ID from a successful quota request's x-cog-org-id header."
+  },
+  "provider": "devin",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for zai."
+  },
+  "provider": "zai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for minimax."
+  },
+  "provider": "minimax",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for manus."
+  },
+  "provider": "manus",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for kimi."
+  },
+  "provider": "kimi",
+  "source": "auto"
+ },
+ {
+  "provider": "kilo",
+  "source": "api",
+  "usage": {
+   "loginMethod": "Starter \u00b7 Auto top-up: off",
+   "primary": {
+    "usedPercent": 100
+   },
+   "secondary": {
+    "resetsAt": "2026-10-17T09:22:52Z",
+    "usedPercent": 100
+   },
+   "tertiary": null,
+   "updatedAt": "2026-09-18T17:53:44Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Kiro usage requires the Kiro CLI. Install it from https://kiro.dev/docs/cli/ and run 'kiro-cli login' first."
+  },
+  "provider": "kiro",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for vertexai."
+  },
+  "provider": "vertexai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Augment session found. Please log in to app.augmentcode.com in Safari, Chrome, Chrome Beta, Chrome Canary, Microsoft Edge, Microsoft Edge Beta, Brave, Arc, Dia, Arc Beta, or Firefox."
+  },
+  "provider": "augment",
+  "source": "auto",
+  "status": {
+   "indicator": "none",
+   "updatedAt": "2026-09-18T16:48:21Z",
+   "url": "https://status.augmentcode.com"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No JetBrains IDE with AI Assistant detected. Install a JetBrains IDE and enable AI Assistant."
+  },
+  "provider": "jetbrains",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for moonshot."
+  },
+  "provider": "moonshot",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Amp session cookie found. Please log in to ampcode.com in your browser."
+  },
+  "provider": "amp",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No T3 Chat cookies found. Please log in to t3.chat in your browser."
+  },
+  "provider": "t3chat",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Ollama session cookie found. Please sign in at https://ollama.com/signin in your browser."
+  },
+  "provider": "ollama",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for synthetic."
+  },
+  "provider": "synthetic",
+  "source": "auto"
+ },
+ {
+  "provider": "openrouter",
+  "source": "api",
+  "usage": {
+   "details": [
+    {
+     "rows": [
+      {
+       "label": "Remaining",
+       "value": "$0.00"
+      },
+      {
+       "label": "Used",
+       "value": "$70.20"
+      },
+      {
+       "label": "Total added",
+       "value": "$70.00"
+      }
+     ],
+     "title": "Credits"
+    }
+   ],
+   "loginMethod": "Balance: $0.00",
+   "primary": null,
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-09-18T17:53:46Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for elevenlabs."
+  },
+  "provider": "elevenlabs",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for warp."
+  },
+  "provider": "warp",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Windsurf database not found at /Users/<user>/Library/Application Support/Windsurf/User/globalStorage/state.vscdb. Ensure Windsurf is installed and has been launched at least once."
+  },
+  "provider": "windsurf",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Not signed in to Zed. Sign in from the Zed editor app with GitHub."
+  },
+  "provider": "zed",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for perplexity."
+  },
+  "provider": "perplexity",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Xiaomi MiMo browser session found. Log in at platform.xiaomimimo.com first."
+  },
+  "provider": "mimo",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "arkcli was not found. Install arkcli, run 'arkcli auth login', or configure Doubao API credentials."
+  },
+  "provider": "doubao",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for sakana."
+  },
+  "provider": "sakana",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Abacus AI session found. Please log in to apps.abacus.ai in your browser or paste a Cookie header in manual mode."
+  },
+  "provider": "abacus",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Mistral session cookies found in browsers."
+  },
+  "provider": "mistral",
+  "source": "auto"
+ },
+ {
+  "provider": "deepseek",
+  "source": "web",
+  "usage": {
+   "primary": null,
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-09-18T17:53:49Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for deepinfra."
+  },
+  "provider": "deepinfra",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Codebuff API token not configured. Set CODEBUFF_API_KEY or run `codebuff login` to populate ~/.config/manicode/credentials.json."
+  },
+  "provider": "codebuff",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for crof."
+  },
+  "provider": "crof",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for venice."
+  },
+  "provider": "venice",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Command Code session cookie not found. Sign in to commandcode.ai in Chrome."
+  },
+  "provider": "commandcode",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Qoder session cookie not found. Sign in to qoder.com or qoder.com.cn in Chrome, or paste a Cookie header."
+  },
+  "provider": "qoder",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Missing StepFun username or password. Set STEPFUN_USERNAME and STEPFUN_PASSWORD environment variables."
+  },
+  "provider": "stepfun",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for bedrock."
+  },
+  "provider": "bedrock",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for grok."
+  },
+  "provider": "grok",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for groq."
+  },
+  "provider": "groq",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for llmproxy."
+  },
+  "provider": "llmproxy",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for litellm."
+  },
+  "provider": "litellm",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for deepgram."
+  },
+  "provider": "deepgram",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for poe."
+  },
+  "provider": "poe",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for chutes."
+  },
+  "provider": "chutes",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for neuralwatt."
+  },
+  "provider": "neuralwatt",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for clawrouter."
+  },
+  "provider": "clawrouter",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for longcat."
+  },
+  "provider": "longcat",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for sub2api."
+  },
+  "provider": "sub2api",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Could not reach the Wayfinder gateway. Start it with `wayfinder-router serve` (default http://127.0.0.1:8088) or fix the Gateway URL in Settings."
+  },
+  "provider": "wayfinder",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for zenmux."
+  },
+  "provider": "zenmux",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for aiand."
+  },
+  "provider": "aiand",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No ZoomMate session is cached and no session cookies were imported from Chrome. Sign in to zoommate.zoom.us in Chrome and refresh from CodexBar, or paste a cURL capture."
+  },
+  "provider": "zoommate",
+  "source": "auto",
+  "status": {
+   "indicator": "maintenance",
+   "updatedAt": "2026-09-18T16:46:00Z",
+   "url": "https://www.zoomstatus.com/"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for xai."
+  },
+  "provider": "xai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Notion cookies can only be read during a manual refresh. Refresh CodexBar once to import them."
+  },
+  "provider": "notion",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for ibmbob."
+  },
+  "provider": "ibmbob",
+  "source": "auto"
+ }
+]
