@@ -10,17 +10,17 @@ import {
 } from '../virtual-model.ts';
 
 test('virtual selector keys map to their routing modes', () => {
-  assert.equal(virtualModeForModelKey('router/frontier'), 'frontier');
-  assert.equal(virtualModeForModelKey('router/balanced'), 'balanced');
-  assert.equal(virtualModeForModelKey('router/small'), 'small');
+  assert.equal(virtualModeForModelKey('pmr/frontier'), 'frontier');
+  assert.equal(virtualModeForModelKey('pmr/balanced'), 'balanced');
+  assert.equal(virtualModeForModelKey('pmr/small'), 'small');
   assert.equal(virtualModeForModelKey('anthropic/claude-sonnet-5'), undefined);
   assert.equal(virtualModeForModelKey(undefined), undefined);
   assert.equal(virtualModeForModelKey('router/friendly'), undefined);
 });
 
 test('a router/* selection enters managed mode from any state', () => {
-  assert.equal(resolveModeTransition('manual', 'router/balanced', undefined), 'balanced');
-  assert.equal(resolveModeTransition('balanced', 'router/frontier', 'kilo/m1'), 'frontier');
+  assert.equal(resolveModeTransition('manual', 'pmr/balanced', undefined), 'balanced');
+  assert.equal(resolveModeTransition('balanced', 'pmr/frontier', 'kilo/m1'), 'frontier');
 });
 
 test('our own router switch keeps managed mode', () => {
@@ -38,7 +38,7 @@ test('manual mode never re-activates except through a router/* selection', () =>
   assert.equal(resolveModeTransition('manual', 'anthropic/claude-sonnet-5', undefined), 'manual');
 });
 
-test('provider registration passes the fail-closed config and three models', () => {
+test('provider registration passes the fail-closed config and all four models', () => {
   const calls: Array<{ name: string; config: Record<string, unknown>; sourceId: string }> = [];
   const pi = {
     registerProvider(name: string, config: Record<string, unknown>, sourceId: string) {
@@ -53,10 +53,10 @@ test('provider registration passes the fail-closed config and three models', () 
   assert.equal(calls[0].config.apiKey, PLACEHOLDER_API_KEY);
   assert.equal(PLACEHOLDER_API_KEY.includes('sk-'), false, 'placeholder must never look like a credential');
   const models = calls[0].config.models as Array<{ id: string; api: string; supportsTools: boolean }>;
-  assert.deepEqual(models.map((m) => m.id), ['frontier', 'balanced', 'small']);
+  assert.deepEqual(models.map((m) => m.id), ['frontier', 'balanced', 'small', 'free']);
   for (const m of models) {
     assert.equal(m.api, 'openai-completions');
     assert.equal(m.supportsTools, true);
   }
-  assert.deepEqual(VIRTUAL_MODELS.map((m) => m.id), ['frontier', 'balanced', 'small']);
+  assert.deepEqual(VIRTUAL_MODELS.map((m) => m.id), ['frontier', 'balanced', 'small', 'free']);
 });

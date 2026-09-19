@@ -260,7 +260,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   });
 
   // Fail-closed seatbelt (spec §4): the virtual provider's baseUrl is the discard
-  // port, so a request issued while the session is still on a router/* model would
+  // port, so a request issued while the session is still on a pmr/* model would
   // burn OMP's 10 silent auto-retries on a connection error. Abort the turn instead.
   // Detection uses the session's current model, not the payload's bare model id: a
   // real provider may legitimately ship a model called "balanced".
@@ -353,7 +353,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     description: 'Show adaptive model routing state',
     handler: async (_args: string, ctx: any) => {
       if (routingMode === 'manual') {
-        ctx.ui.notify('adaptive-router: mode manual (opt-out — select router/* to re-enable)', 'info');
+        ctx.ui.notify('adaptive-router: mode manual (opt-out — select pmr/* to re-enable)', 'info');
         return;
       }
       if (!lastDecision) {

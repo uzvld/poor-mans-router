@@ -6,7 +6,7 @@ Picks the cheapest model that is *good enough and actually available* for the wo
 ```
                  ┌──────────────────────────────────────────────┐
   /model          │ current model is router/<tier>?              │
-  router/balanced │   no  → manual: the router never touches it   │
+  pmr/balanced │   no  → manual: the router never touches it   │
        ──────────▶│   yes → mode  = frontier | balanced | small   │
                  │         class = first non-empty ladder rung   │
                  │         route = best model · cheapest seller  │
@@ -19,25 +19,26 @@ Picks the cheapest model that is *good enough and actually available* for the wo
 
 ## Opt-in, never automatic
 
-The router registers three **virtual models**. Selecting one is the only way to hand it the wheel:
+The router registers four **virtual models**. Selecting one is the only way to hand it the wheel:
 
 | Selector | Meaning |
 |---|---|
-| `router/frontier` | managed routing, frontier ladder |
-| `router/balanced` | managed routing, balanced ladder |
-| `router/small` | managed routing, small ladder |
+| `pmr/frontier` | managed routing, frontier ladder |
+| `pmr/balanced` | managed routing, balanced ladder |
+| `pmr/small` | managed routing, small ladder (cheap and fast, paid rungs included) |
+| `pmr/free` | managed routing, **free-only** ladder — never spends |
 
-They appear in `/model` and work at cold start (`omp --model router/balanced`). Once you pick one, the router switches the session to a concrete model each turn and announces it: `[omp:router] router/balanced -> kilo/… (reason)`.
+They appear in `/model` and work at cold start (`omp --model pmr/balanced`). Once you pick one, the router switches the session to a concrete model each turn and announces it: `[omp:pmr] pmr/balanced -> kilo/… (reason)`.
 
-**Selecting any real model is an explicit opt-out.** `/model anthropic/claude-sonnet-5` — or starting a session on any concrete model — puts that session in `manual` mode for good: no telemetry polling, no switches, nothing. Return with `/model router/balanced`.
+**Selecting any real model is an explicit opt-out.** `/model anthropic/claude-sonnet-5` — or starting a session on any concrete model — puts that session in `manual` mode for good: no telemetry polling, no switches, nothing. Return with `/model pmr/balanced`.
 
 Manual mode only silences *this* extension. OMP's own `retry.modelFallback` still handles 429s for the active turn.
 
-For Multica-style spawners, set each agent's model to the tier it needs (`router/frontier`, `router/balanced`, `router/small`), or pin it to a concrete model to opt that agent out. No bootstrap mappings.
+For Multica-style spawners, set each agent's model to the tier it needs (`pmr/frontier`, `pmr/balanced`, `pmr/small`, `pmr/free`), or pin it to a concrete model to opt that agent out. No bootstrap mappings.
 
 If a request ever reaches the virtual provider itself — meaning the router failed to switch away — the turn is aborted locally with a loud error instead of retrying against an unroutable endpoint.
 
-## The three ladders
+## The four ladders
 
 Each mode owns an ordered **class ladder**; the first class with a healthy candidate wins. Lower classes are never consulted while a higher class has a healthy route.
 
@@ -46,6 +47,7 @@ Each mode owns an ordered **class ladder**; the first class with a healthy candi
 | **Frontier** | `fable-sub → astra-sub → opus-sub → opus-ish-sub → strong-flash-sub → strong-chinese → best-free` |
 | **Balanced** | `sonnet-sub → luna-sub → chinese-flash-payg → free-chinese-flash → best-available → healthy-free` |
 | **Small** | `cheap-sub → cheap-flash → healthy-free-fast` |
+| **Free** | `best-free → free-chinese-flash → healthy-free-fast → healthy-free` |
 
 A class is a *semantic* bucket, not a model list: `sonnet-sub` = "any Sonnet reachable through a subscription credential". Models are classified by id pattern (`policy.ts`), then decorated by economics — `-sub` if the provider has a live subscription meter in `omp usage`, `-payg` if it's metered per token, `free` if the selector says so.
 
@@ -105,7 +107,7 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 ```
 extension/          the OMP extension (TypeScript, loaded by Bun)
   index.ts            hooks: session_start · before_agent_start · before_provider_request · auto_retry_* · /route-status
-  virtual-model.ts    router/* registration · routing-mode state machine
+  virtual-model.ts    pmr/* registration · routing-mode state machine
   policy.ts/.yml      class ladders, model-id classification
   ranking.ts          buildRoutes · selectForTier · in-class comparators
   health.ts           AVAILABLE / DRAINING / COOLDOWN from telemetry
@@ -113,7 +115,7 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns (state.json, gitignored)
-  tests/              bun test — 89 tests, run from extension/
+  tests/              bun test — 94 tests, run from extension/
 fixtures/           sanitised real telemetry snapshots the tests replay
 config/             installer config patch · fallback-chain example
 scripts/            install / uninstall / fixture sanitiser

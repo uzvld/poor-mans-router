@@ -34,7 +34,7 @@ function harness(currentModel: unknown) {
 }
 
 test('a provider request issued while still on router/* aborts the turn with a loud local error', async () => {
-  const h = harness({ provider: 'router', id: 'balanced' });
+  const h = harness({ provider: 'pmr', id: 'balanced' });
   const handler = h.handlers.get('before_provider_request')?.[0];
   assert.ok(handler, 'guard handler must be registered');
   const result = await handler({ type: 'before_provider_request', payload: { body: { model: 'balanced', messages: [] } } }, h.ctx);
@@ -67,7 +67,7 @@ test('a real provider model whose id collides with a virtual tier is not aborted
 });
 
 test('a missing ctx.abort does not turn the guard into a crash', async () => {
-  const h = harness({ provider: 'router', id: 'small' });
+  const h = harness({ provider: 'pmr', id: 'small' });
   delete h.ctx.abort;
   const handler = h.handlers.get('before_provider_request')![0];
   await handler({ type: 'before_provider_request', payload: { body: { model: 'small' } } }, h.ctx);

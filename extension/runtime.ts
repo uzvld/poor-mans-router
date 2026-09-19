@@ -35,7 +35,7 @@ export function pressureMessage(pressure: ResourcePressure): string | undefined 
  * `extension_ui_request{method:"notify"}`; hosts opt `[omp:`-prefixed messages into output.
  */
 export function switchMarker(from: string, to: string, reason?: string): string {
-  return `[omp:router] ${from} -> ${to} (${reason && reason.length > 0 ? reason : 'routing decision'})`;
+  return `[omp:pmr] ${from} -> ${to} (${reason && reason.length > 0 ? reason : 'routing decision'})`;
 }
 
 export function allowDrainingForTier(tier: Tier): boolean {

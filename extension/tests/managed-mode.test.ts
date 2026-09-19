@@ -48,7 +48,7 @@ function harness(models: unknown[], currentModel: unknown) {
 
 const sonnet = { provider: 'anthropic', id: 'claude-sonnet-5', cost: { input: 2, output: 10 } };
 const kiloFree = { provider: 'kilo', id: 'deepseek/deepseek-v4-flash-0731:free', cost: { input: 0, output: 0 } };
-const virtualBalanced = { provider: 'router', id: 'balanced', cost: { input: 0, output: 0 } };
+const virtualBalanced = { provider: 'pmr', id: 'balanced', cost: { input: 0, output: 0 } };
 
 async function startSession(h: ReturnType<typeof harness>): Promise<void> {
   for (const h2 of h.handlers.get('session_start')!) await h2({}, h.ctx);
@@ -66,20 +66,20 @@ test('a session on a concrete model is manual: no registration-time routing, no 
   assert.deepEqual(h.setModelCalls, []);
 });
 
-test('cold start on router/balanced switches to the ladder winner before first work', async () => {
+test('cold start on pmr/balanced switches to the ladder winner before first work', async () => {
   const h = harness([sonnet, kiloFree, virtualBalanced], virtualBalanced);
   await startSession(h);
   await turn(h);
   assert.equal(h.setModelCalls.length, 1);
   assert.equal(h.setModelCalls[0].id, kiloFree.id);
-  const marker = h.notifications.find((n) => n.text.startsWith('[omp:router] '));
-  assert.ok(marker, 'expected an [omp:router] marker for the bootstrap switch');
+  const marker = h.notifications.find((n) => n.text.startsWith('[omp:pmr] '));
+  assert.ok(marker, 'expected an [omp:pmr] marker for the bootstrap switch');
 });
 
 test('after a router switch the next turn stays managed (affinity through lastRouterSelected)', async () => {
   const h = harness([sonnet, kiloFree, virtualBalanced], virtualBalanced);
   await startSession(h);
-  await turn(h); // router/balanced -> kilo free, lastRouterSelected = kilo key
+  await turn(h); // pmr/balanced -> kilo free, lastRouterSelected = kilo key
   assert.equal(h.setModelCalls.length, 1);
   await turn(h); // current == lastRouterSelected -> stay put
   assert.equal(h.setModelCalls.length, 1);
@@ -116,7 +116,7 @@ test('a failed router switch does not poison the state machine', async () => {
     async setModel() { calls += 1; return false; },
     logger: { info() {}, warn() {}, debug() {} },
   };
-  const current = { provider: 'router', id: 'balanced', cost: {} };
+  const current = { provider: 'pmr', id: 'balanced', cost: {} };
   const models = [sonnet, kiloFree, current];
   const ctx: any = {
     models: {
