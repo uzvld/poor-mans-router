@@ -11,7 +11,7 @@ Ordered. Each item links to the evidence that put it here. Do not start an item 
 ### 2. Deploy lock
 Installs and rollbacks must be single-writer. Proposed: atomic `mkdir` of `$(omp config path)/extensions/.adaptive-router-deploy.lock` containing `{pid, session, started_at}`, stale-lock reclaim after N minutes, and the installer refusing to run while it exists. Motivated by a replayed-turn incident where two runs of one session both deployed.
 
-### 3. FOLLOWUP-T1 — CodexBar pace still loses window scope
+### 3. FOLLOWUP-T1 — CodexBar pace still loses window scope — APPROVED TO FIX
 `telemetry.ts` collapses all pace windows into one provider-wide boolean (`draining = paceRows.some(...)`). Harmless while OMP reports on the provider (I2), but for providers with **no** OMP usage report it can yield an over-broad `DRAINING`. Fix: carry each pace window with its scope and let `health.ts` match window → route, the way the exhaustion path now does.
 
 The exhaustion half of this defect is **closed**: allowance windows (with a reset) no longer veto a provider whose prepaid balance still has capacity, and a spent balance no longer borrows an allowance's reset date. Found live on kilo, where a consumed monthly pass had vetoed every route for a month. See `docs/investigations/finding-codexbar-window-collapse.md`.
@@ -25,11 +25,24 @@ Deferred until BUG C. Includes verifying that a native fallback request carries 
 ### 6. Rename the virtual provider to `PMR`
 Requested by the owner 2026-09-19: the picker should read `PMR/balanced`, `PMR/frontier`, … instead of `router/*`. Mechanical in `virtual-model.ts` (`VIRTUAL_PROVIDER`, model `name`s) plus the `[omp:router]` marker tag, README/AGENTS wording, and `docs/spec-virtual-model-routing.md`. Two things to settle first:
 - **Tier naming.** The request listed `PMR/balanced`, `PMR/free`, `PMR/frontier`. Today the third tier is `small` (`cheap-sub → cheap-flash → healthy-free-fast`), i.e. cheap-and-fast, not free-only. Either rename `small` → `free` (then its ladder should drop the paid `cheap-sub`/`cheap-flash` rungs, which changes routing) or keep `small` and treat `free` as a wording slip. Needs the owner's answer before touching the ladder.
-- **Provider-id casing.** OMP normalises/compares provider ids in several paths; confirm an upper-case id survives registration, `/model` fuzzy match and cold-start `--model PMR/balanced` before committing to `PMR` over `pmr` with a display name.
+- **Provider-id casing — RESOLVED 2026-09-19.** An upper-case runtime provider id survives: a probe extension registering `PMR` resolved at cold start (`omp --model PMR/balanced`) and the outgoing payload carried `"provider":"PMR","model":"balanced"`. No lower-case fallback needed.
+
 Migration note: any session or Multica agent pinned to `router/*` stops resolving after the rename — ship it with the selectors documented in one place.
 
-### 7. First managed turn stalls ~28 s on telemetry
-`before_agent_start` awaits `refreshLive()` on the first turn of a managed session, which runs `omp usage` plus the CodexBar CLI. Observed 28–31 s before the first request goes out. Fix: route from cached/last-known telemetry (or no telemetry) and refresh in the background, so only later turns benefit from fresh quota data.
+### 7. First managed turn stalls ~28 s on telemetry — APPROVED TO FIX
+`before_agent_start` awaits `refreshLive()` on the first turn of a managed session, which runs `omp usage` plus the CodexBar CLI. Observed 28–31 s before the first request goes out. Fix: route from cached/last-known telemetry (or no telemetry at all) and refresh in the background, so only later turns pay for fresh quota data. The owner approved fixing this 2026-09-19.
+
+### 8. Verify the contract through every host that reaches OMP natively
+The router is an in-process OMP extension, so every host that drives OMP natively must be checked separately — a host that spawns `omp` with its own `--model`, or that pins a model per agent, can silently bypass the opt-in or land in `manual` mode without anyone noticing. Matrix to cover, each with: does the extension load, does a `PMR/*` (today `router/*`) selector reach the registry, does the managed switch happen before the first request, does `manual` stay untouched, and does the fail-closed guard still abort rather than retry.
+
+| Host | Path | What specifically to check |
+|---|---|---|
+| Hermes | hermes → omp | Extension loaded in Hermes-spawned sessions; `ctx.ui.notify` markers surface in Hermes output (the `[omp:` prefix contract); `/route-status` reachable or its data otherwise observable. |
+| Multica | multica → omp | Per-agent model field set to a virtual selector; the daemon re-spawns `omp -p --mode json --session <file> --model X` per run, so mode must be rebuilt from `current()` on every process (no persisted routing state). |
+| Multica | multica → hermes → omp | Same as above but with Hermes in the middle: confirm the model field is passed through rather than overridden, and that neither layer injects a concrete model that silently opts the agent out. |
+| Paseo | paseo → omp | Agent/workspace model configuration reaches OMP as a selector; managed switching and markers visible in Paseo's timeline. |
+
+Deliverable per row: the outgoing provider payload and the route decision, not just a model that answered (AGENTS.md step 6).
 
 ## Done
 
