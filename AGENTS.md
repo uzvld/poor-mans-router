@@ -44,7 +44,7 @@ The order is fixed. Skipping a step is how the bugs in `docs/investigations/` ha
 
 ## Repo conventions
 
-- **Runtime**: Bun for the router, the Hermes checkout's interpreter for the bridge. Gates: `bun run test` (unit, 113), `bun run test:sim` (end-to-end snapshot), `bash scripts/install.test.sh`, `bash scripts/install-bridge.test.sh`, plus the bridge suites listed in `README.md` · Development. No build step; OMP loads `.ts` directly.
+- **Runtime**: Bun for the router, the Hermes checkout's interpreter for the bridge. Gates: `bun run test` (unit, 113), `bun run test:sim` (end-to-end snapshot), `bash scripts/install.test.sh`, `bash scripts/install-bridge.test.sh`, `bash scripts/bootstrap.test.sh`, plus the bridge suites listed in `README.md` · Development. No build step; OMP loads `.ts` directly.
 - **No CI, no GitHub Actions.** Actions are disabled on the repo. Every gate below runs **locally** and its result is attested by hash. Do not add a workflow file.
 - **AppleDouble sidecars.** This checkout lives on an exFAT volume, so macOS writes a `._<name>` companion beside every file and `bun test` treats `._*.test.ts` as real tests (22 phantom failures). They are gitignored; always run `bun test $(ls tests/*.test.ts | grep -v '/\._')`. The same junk makes `git` print `non-monotonic index …idx` — noise, not corruption.
 - **Fixtures** are sanitised real snapshots. Never commit raw `omp usage` / CodexBar / `omp stats` output — it contains account ids, emails and workspace ids. Always pass through `scripts/sanitize-fixtures.py` and check its "removed field paths" report.
