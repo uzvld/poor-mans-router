@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Every commit must carry the attestation produced by the pre-commit scan:
+#   Secret-Scan: <attest>
+# and it must match the attest recorded for the staged set.
+MSG="$1"; ROOT="$(git rev-parse --show-toplevel)"
+want=$(sed -n 's/^attest=//p' "$ROOT/.secret-scan.attest" 2>/dev/null)
+have=$(sed -n 's/^Secret-Scan:[[:space:]]*//p' "$MSG" | head -1)
+if [[ -z "$want" ]]; then echo "commit-msg: no .secret-scan.attest — pre-commit gate did not run" >&2; exit 1; fi
+if [[ -z "$have" ]]; then printf 'commit-msg: missing trailer. Add to the commit message:\n\n  Secret-Scan: %s\n' "$want" >&2; exit 1; fi
+if [[ "$have" != "$want" ]]; then echo "commit-msg: Secret-Scan trailer '$have' does not match attested '$want' (staged set changed after scan)" >&2; exit 1; fi
+exit 0

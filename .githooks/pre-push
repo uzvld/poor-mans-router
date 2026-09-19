@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# 1) Only the personal uzvld account, never an org (Blokks-app etc.).
+# 2) Full-tree scan must be clean right before anything leaves the machine.
+remote_url="$2"
+case "$remote_url" in
+  https://github.com/uzvld/*|git@github.com:uzvld/*) ;;
+  *) echo "pre-push: REFUSED — remote '$remote_url' is not under github.com/uzvld/" >&2; exit 1 ;;
+esac
+exec "$(git rev-parse --show-toplevel)/scripts/secret-scan.sh" --all

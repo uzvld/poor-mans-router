@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Runs the secret/PII gate on staged files. Cannot be skipped by agents: --no-verify is
+# forbidden by AGENTS.md and the attest value must appear in the commit message.
+exec "$(git rev-parse --show-toplevel)/scripts/secret-scan.sh" --staged

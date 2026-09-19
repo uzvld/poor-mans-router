@@ -110,6 +110,8 @@ Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines t
 
 Live and in daily use on OMP 18.2.6. Known follow-ups are tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+This repo is public and has **no CI**: every check runs locally and is hash-attested (`scripts/secret-scan.sh`, see [`AGENTS.md`](AGENTS.md)). Clone → `git config core.hooksPath .githooks` before your first commit.
+
 ## License
 
 MIT — see [`LICENSE`](LICENSE).

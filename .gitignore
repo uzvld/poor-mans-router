@@ -11,6 +11,7 @@ id_ed25519*
 *.token
 *credentials*
 *secret*
+!scripts/secret-scan.sh
 !**/tests/**/*secret*.test.ts
 auth.json
 .netrc
@@ -60,3 +61,4 @@ build/
 
 # The test symlink created by `ln -sfn ../fixtures fixtures` inside extension/
 extension/fixtures
+.secret-scan.attest
