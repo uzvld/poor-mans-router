@@ -25,7 +25,7 @@ import {
   retryRoutingPolicy,
 } from './runtime.ts';
 import { formatRouteStatus } from './status.ts';
-import { registerVirtualRouterProvider, resolveModeTransition, type RoutingMode } from './virtual-model.ts';
+import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, type RoutingMode } from './virtual-model.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
 const STATE_FILE = join(EXTENSION_DIR, 'state.json');
@@ -260,6 +260,29 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     } catch (error) {
       logger.warn('adaptive-router selection failed open', { error: String(error) });
       return undefined;
+    }
+    return undefined;
+  });
+
+  // Fail-closed seatbelt (spec §4): the virtual provider's baseUrl is the discard
+  // port, so a request issued while the session is still on a router/* model would
+  // burn OMP's 10 silent auto-retries on a connection error. Abort the turn instead.
+  // Detection uses the session's current model, not the payload's bare model id: a
+  // real provider may legitimately ship a model called "balanced".
+  (pi as any).on('before_provider_request', async (_event: any, ctx: any) => {
+    if (ctx?.models?.current?.()?.provider !== VIRTUAL_PROVIDER) return undefined;
+    try {
+      ctx.abort?.();
+    } catch (error) {
+      logger.warn('adaptive-router guard could not abort the turn', { error: String(error) });
+    }
+    try {
+      ctx.ui?.notify?.(
+        'adaptive-router: virtual router model leaked to provider transport — this is a router bug; select a concrete model with /model',
+        'error',
+      );
+    } catch (error) {
+      logger.warn('adaptive-router guard could not announce the leak', { error: String(error) });
     }
     return undefined;
   });
