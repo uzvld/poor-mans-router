@@ -32,7 +32,7 @@ exit 2
 FAKE
 chmod +x "$FAKE_BIN/omp"
 
-TEST_AGENT_DIR="$AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh"
+TEST_AGENT_DIR="$AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup
 
 DEST="$AGENT_DIR/extensions/adaptive-router"
 [ -f "$DEST/index.ts" ]
@@ -51,7 +51,7 @@ grep -q 'task.showResolvedModelBadge true' "$LOG"
 
 # Reinstall backs up existing extension outside extensions/ and does not break the destination.
 printf 'sentinel\n' > "$DEST/sentinel.txt"
-TEST_AGENT_DIR="$AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh"
+TEST_AGENT_DIR="$AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup
 [ -f "$DEST/index.ts" ]
 find "$AGENT_DIR/backups" -type f -name sentinel.txt -print -quit | grep -q sentinel.txt
 
@@ -107,7 +107,7 @@ write_lock() {
 echo "test: concurrent install refuses while a fresh lock is held"
 write_lock "$$" 5 "concurrent-holder"
 set +e
-LOCK_OUT="$(TEST_AGENT_DIR="$LOCK_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+LOCK_OUT="$(TEST_AGENT_DIR="$LOCK_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
 LOCK_STATUS=$?
 set -e
 [ "$LOCK_STATUS" -ne 0 ]
@@ -122,7 +122,7 @@ echo "test: lock with a dead pid is reclaimed"
 wait "$DEAD_PID" 2>/dev/null || true
 write_lock "$DEAD_PID" 5 "dead-pid-holder"
 set +e
-LOCK_OUT="$(TEST_AGENT_DIR="$LOCK_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+LOCK_OUT="$(TEST_AGENT_DIR="$LOCK_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
 LOCK_STATUS=$?
 set -e
 [ "$LOCK_STATUS" -eq 0 ]
@@ -134,7 +134,7 @@ printf '%s\n' "$LOCK_OUT" | grep -q 'dead-pid-holder'
 echo "test: lock older than the stale window is reclaimed"
 write_lock "$$" 700 "stale-age-holder"
 set +e
-LOCK_OUT="$(TEST_AGENT_DIR="$LOCK_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+LOCK_OUT="$(TEST_AGENT_DIR="$LOCK_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
 LOCK_STATUS=$?
 set -e
 [ "$LOCK_STATUS" -eq 0 ]
@@ -146,7 +146,7 @@ printf '%s\n' "$LOCK_OUT" | grep -q 'stale-age-holder'
 echo "test: lock directory absent after a successful install"
 CLEAN_AGENT_DIR="$TMP/clean agent"
 mkdir -p "$CLEAN_AGENT_DIR"
-TEST_AGENT_DIR="$CLEAN_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh"
+TEST_AGENT_DIR="$CLEAN_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup
 [ -f "$CLEAN_AGENT_DIR/extensions/adaptive-router/index.ts" ]
 [ ! -d "$CLEAN_AGENT_DIR/extensions/.adaptive-router-deploy.lock" ]
 
@@ -154,7 +154,7 @@ echo "test: lock directory absent after a failed install"
 FAIL_AGENT_DIR="$TMP/fail agent"
 mkdir -p "$FAIL_AGENT_DIR"
 set +e
-FAIL_OUT="$(TEST_AGENT_DIR="$FAIL_AGENT_DIR" TEST_FAIL_CONFIG_SET=1 PATH="$FAKE_BIN2:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+FAIL_OUT="$(TEST_AGENT_DIR="$FAIL_AGENT_DIR" TEST_FAIL_CONFIG_SET=1 PATH="$FAKE_BIN2:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
 FAIL_STATUS=$?
 set -e
 [ "$FAIL_STATUS" -ne 0 ]
@@ -188,14 +188,63 @@ chmod +x "$FAKE_BIN4/pgrep"
 echo "test: a running 'omp --mode rpc-ui' process triggers the stale-code warning"
 WARN_AGENT_DIR="$TMP/warn agent"
 mkdir -p "$WARN_AGENT_DIR"
-WARN_OUT="$(TEST_AGENT_DIR="$WARN_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN3:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+WARN_OUT="$(TEST_AGENT_DIR="$WARN_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN3:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
 printf '%s\n' "$WARN_OUT" | grep -q 'WARNING: long-lived'
 printf '%s\n' "$WARN_OUT" | grep -q '4242'
 
 echo "test: no running rpc-ui process means no stale-code warning"
 CLEAN2_AGENT_DIR="$TMP/warn agent clean"
 mkdir -p "$CLEAN2_AGENT_DIR"
-CLEAN2_OUT="$(TEST_AGENT_DIR="$CLEAN2_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN4:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+CLEAN2_OUT="$(TEST_AGENT_DIR="$CLEAN2_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN4:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
 ! printf '%s\n' "$CLEAN2_OUT" | grep -q 'WARNING: long-lived'
+
+# --- Warm-up loop (Follow-up 3): pmr/free must be pre-warmed after install so a real
+# Multica turn never burns its whole attempt budget learning dead routes cold. ------
+
+echo "test: warm-up retries pmr/free until it answers, then stops"
+FAKE_BIN5="$TMP/bin5"
+mkdir -p "$FAKE_BIN5"
+WARMUP_COUNTER="$TMP/warmup-counter"
+printf '0' > "$WARMUP_COUNTER"
+cat > "$FAKE_BIN5/omp" <<FAKEOMP5
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "\${1:-}" == "config" && "\${2:-}" == "path" ]]; then
+  printf '%s\n' "\$TEST_AGENT_DIR"
+  exit 0
+fi
+if [[ "\${1:-}" == "config" && "\${2:-}" == "set" ]]; then
+  printf '%q ' "\$@" >> "\$TEST_OMP_LOG"
+  printf '\n' >> "\$TEST_OMP_LOG"
+  exit 0
+fi
+if [[ "\${1:-}" == "-p" ]]; then
+  n=\$(cat "$WARMUP_COUNTER")
+  n=\$((n + 1))
+  printf '%s' "\$n" > "$WARMUP_COUNTER"
+  if [[ "\$n" -lt 3 ]]; then
+    echo "404 The requested model does not exist."
+    exit 1
+  fi
+  echo "PONG"
+  exit 0
+fi
+echo "unexpected omp invocation: \$*" >&2
+exit 2
+FAKEOMP5
+chmod +x "$FAKE_BIN5/omp"
+WARMUP_AGENT_DIR="$TMP/warmup agent"
+mkdir -p "$WARMUP_AGENT_DIR"
+WARMUP_OUT="$(TEST_AGENT_DIR="$WARMUP_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN5:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+printf '%s\n' "$WARMUP_OUT" | grep -q 'Warm-up done after 3 attempt(s)'
+[ "$(cat "$WARMUP_COUNTER")" = "3" ]
+
+echo "test: --skip-warmup skips the warm-up loop entirely"
+printf '0' > "$WARMUP_COUNTER"
+SKIP_AGENT_DIR="$TMP/warmup agent skip"
+mkdir -p "$SKIP_AGENT_DIR"
+SKIP_OUT="$(TEST_AGENT_DIR="$SKIP_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN5:$PATH" bash "$ROOT/scripts/install.sh" --skip-warmup 2>&1)"
+! printf '%s\n' "$SKIP_OUT" | grep -qi 'warm-up'
+[ "$(cat "$WARMUP_COUNTER")" = "0" ]
 
 echo "install.test.sh: all checks passed"
