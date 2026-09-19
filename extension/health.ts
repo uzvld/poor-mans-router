@@ -87,11 +87,14 @@ function combineCodexBar(route: RouteDescriptor, rows: CodexBarUsage[], now: num
       const resets = matching
         .map((x) => x.blockedUntil)
         .filter((x): x is number => typeof x === 'number' && x > now);
+      // A spent prepaid balance clears on a manual top-up, not on an allowance reset,
+      // so it must not borrow another window's date.
+      const balanceExhausted = matching.some((x) => x.exhausted && x.exhaustionScope === 'balance');
       return {
         state: 'COOLDOWN',
         freshness: 'FRESH',
         cooldownUntil: resets.length ? Math.min(...resets) : undefined,
-        reason: 'CodexBar quota exhausted',
+        reason: balanceExhausted ? 'CodexBar prepaid balance exhausted' : 'CodexBar quota exhausted',
       };
     }
   }

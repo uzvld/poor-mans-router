@@ -10,13 +10,13 @@ import {
   retryRoutingPolicy,
 } from '../runtime.ts';
 
-test('latestSessionIdentity reads the most recent session_init agent and role', () => {
+test('latestSessionIdentity reads the most recent session_init agent (modelRole is gone)', () => {
   const branch: any[] = [
     { type: 'session_init', agent: 'scout', modelRole: 'smol' },
     { type: 'message', message: { role: 'user' } },
     { type: 'session_init', agent: 'reviewer', modelRole: 'plan' },
   ];
-  assert.deepEqual(latestSessionIdentity(branch), { agent: 'reviewer', modelRole: 'plan' });
+  assert.deepEqual(latestSessionIdentity(branch), { agent: 'reviewer' });
 });
 
 test('resource pressure is compact and driven by selected route health', () => {

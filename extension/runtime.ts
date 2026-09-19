@@ -9,7 +9,6 @@ export function latestSessionIdentity(branch: readonly any[]): SessionIdentity {
     if (entry?.type !== 'session_init') continue;
     latest = {
       agent: typeof entry.agent === 'string' ? entry.agent : undefined,
-      modelRole: typeof entry.modelRole === 'string' ? entry.modelRole : undefined,
     };
   }
   return latest;
@@ -28,6 +27,15 @@ export function pressureMessage(pressure: ResourcePressure): string | undefined 
     return '[resource-pressure: critical]\nValidate and persist current progress, summarize remaining work, and avoid starting a new phase.';
   }
   return undefined;
+}
+
+/**
+ * One-line switch marker for the session transcript, in the same `[omp:<tag>]` shape hosts
+ * use for tool calls. Delivered through `ctx.ui.notify`, which OMP forwards to RPC hosts as
+ * `extension_ui_request{method:"notify"}`; hosts opt `[omp:`-prefixed messages into output.
+ */
+export function switchMarker(from: string, to: string, reason?: string): string {
+  return `[omp:router] ${from} -> ${to} (${reason && reason.length > 0 ? reason : 'routing decision'})`;
 }
 
 export function allowDrainingForTier(tier: Tier): boolean {

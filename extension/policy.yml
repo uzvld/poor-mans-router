@@ -21,8 +21,3 @@ tiers:
       - cheap-sub
       - cheap-flash
       - healthy-free-fast
-agentTiers:
-  architect: frontier
-  reviewer: frontier
-  scout: small
-  librarian: small

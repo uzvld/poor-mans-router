@@ -5,30 +5,51 @@ Picks the cheapest model that is *good enough and actually available* for the wo
 
 ```
                  ┌──────────────────────────────────────────────┐
-  omp session ──▶│ before_agent_start                            │
-                 │   tier  = frontier | balanced | small         │
-                 │   class = first non-empty rung of the ladder  │
-                 │   route = best model · cheapest seller        │
-                 │   pi.setModel(route)                          │
+  /model          │ current model is router/<tier>?              │
+  router/balanced │   no  → manual: the router never touches it   │
+       ──────────▶│   yes → mode  = frontier | balanced | small   │
+                 │         class = first non-empty ladder rung   │
+                 │         route = best model · cheapest seller  │
+                 │         pi.setModel(route)                    │
                  └──────────────────────────────────────────────┘
                         ▲            ▲              ▲
                   omp usage     CodexBar       omp stats
                  (quota, auth)  (pace, wallet) (reliability, TTFT)
 ```
 
-## The three tiers
+## Opt-in, never automatic
 
-Every task lands in one **tier**; the tier owns an ordered **class ladder**; the first class with a healthy candidate wins. Lower classes are never consulted while a higher class has a healthy route.
+The router registers three **virtual models**. Selecting one is the only way to hand it the wheel:
 
-| Tier | Who gets it | Ladder (first match wins) |
-|---|---|---|
-| **1 · Frontier** | `plan`, `advisor`, `slow` roles · `architect`, `reviewer` agents | `fable-sub → astra-sub → opus-sub → opus-ish-sub → strong-flash-sub → strong-chinese → best-free` |
-| **2 · Balanced** | everything else (default) | `sonnet-sub → luna-sub → chinese-flash-payg → free-chinese-flash → best-available → healthy-free` |
-| **3 · Small** | `smol`, `tiny` roles · `scout`, `librarian` agents | `cheap-sub → cheap-flash → healthy-free-fast` |
+| Selector | Meaning |
+|---|---|
+| `router/frontier` | managed routing, frontier ladder |
+| `router/balanced` | managed routing, balanced ladder |
+| `router/small` | managed routing, small ladder |
+
+They appear in `/model` and work at cold start (`omp --model router/balanced`). Once you pick one, the router switches the session to a concrete model each turn and announces it: `[omp:router] router/balanced -> kilo/… (reason)`.
+
+**Selecting any real model is an explicit opt-out.** `/model anthropic/claude-sonnet-5` — or starting a session on any concrete model — puts that session in `manual` mode for good: no telemetry polling, no switches, nothing. Return with `/model router/balanced`.
+
+Manual mode only silences *this* extension. OMP's own `retry.modelFallback` still handles 429s for the active turn.
+
+For Multica-style spawners, set each agent's model to the tier it needs (`router/frontier`, `router/balanced`, `router/small`), or pin it to a concrete model to opt that agent out. No bootstrap mappings.
+
+If a request ever reaches the virtual provider itself — meaning the router failed to switch away — the turn is aborted locally with a loud error instead of retrying against an unroutable endpoint.
+
+## The three ladders
+
+Each mode owns an ordered **class ladder**; the first class with a healthy candidate wins. Lower classes are never consulted while a higher class has a healthy route.
+
+| Mode | Ladder (first match wins) |
+|---|---|
+| **Frontier** | `fable-sub → astra-sub → opus-sub → opus-ish-sub → strong-flash-sub → strong-chinese → best-free` |
+| **Balanced** | `sonnet-sub → luna-sub → chinese-flash-payg → free-chinese-flash → best-available → healthy-free` |
+| **Small** | `cheap-sub → cheap-flash → healthy-free-fast` |
 
 A class is a *semantic* bucket, not a model list: `sonnet-sub` = "any Sonnet reachable through a subscription credential". Models are classified by id pattern (`policy.ts`), then decorated by economics — `-sub` if the provider has a live subscription meter in `omp usage`, `-payg` if it's metered per token, `free` if the selector says so.
 
-Tier assignment lives in [`extension/policy.yml`](extension/policy.yml). Change the ladder there; no code edit required.
+Ladders live in [`extension/policy.yml`](extension/policy.yml). Change them there; no code edit required.
 
 ## What "healthy" means
 
@@ -47,7 +68,7 @@ When several routes share the winning class:
 
 ```
 health (AVAILABLE first)
-→ tier economics (speed for small, quality otherwise)
+→ mode economics (speed for small, quality otherwise)
 → explicit quality / OpenRouter intel
 → measured reliability (unmeasured routes get a neutral 0.5, never a bonus)
 → same-family affinity: keep the model the session is already on
@@ -83,15 +104,16 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 
 ```
 extension/          the OMP extension (TypeScript, loaded by Bun)
-  index.ts            hooks: session_start · before_agent_start · auto_retry_* · /route-status
-  policy.ts/.yml      tier ladders, agent→tier map, model-id classification
+  index.ts            hooks: session_start · before_agent_start · before_provider_request · auto_retry_* · /route-status
+  virtual-model.ts    router/* registration · routing-mode state machine
+  policy.ts/.yml      class ladders, model-id classification
   ranking.ts          buildRoutes · selectForTier · in-class comparators
   health.ts           AVAILABLE / DRAINING / COOLDOWN from telemetry
   telemetry.ts        omp usage + CodexBar normalisation
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns (state.json, gitignored)
-  tests/              bun test — 67 tests, run from extension/
+  tests/              bun test — 89 tests, run from extension/
 fixtures/           sanitised real telemetry snapshots the tests replay
 config/             installer config patch · fallback-chain example
 scripts/            install / uninstall / fixture sanitiser

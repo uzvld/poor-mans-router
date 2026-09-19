@@ -14,6 +14,7 @@ test('extension registers lifecycle hooks and route-status without doing runtime
       handlers.set(name, list);
     },
     registerCommand(name: string, config: any) { commands.set(name, config); },
+    registerProvider(_name: string, _config: unknown, _sourceId: string) { /* recorded via providerRegistrations below when needed */ },
     exec() { throw new Error('exec must not run at extension load time'); },
     setModel() { throw new Error('setModel must not run at extension load time'); },
     logger: { info() {}, warn() {}, debug() {} },

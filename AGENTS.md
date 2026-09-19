@@ -22,8 +22,13 @@ Tests exist for each of these. If your change needs one relaxed, that is a desig
 | I8 | Current-model affinity is a tie-break only: same family, after economics/quality/reliability, never across families. | `in-class-winner.test.ts` · `index-affinity.test.ts` |
 | I9 | Generation ordering is family-scoped. `qwen3` vs `trinity` must not be reordered by a digit. | `sonnet-tiebreak.test.ts` |
 | I10 | `:batch` variants are never live candidates. | `ranking.test.ts` |
-| I11 | The extension never creates a new session, branch, or `SessionManager`; it only calls `pi.setModel`. | `index-wiring.test.ts` |
-| I12 | No secret is ever read from disk by this code. The OpenRouter key comes from `ctx.modelRegistry` at runtime and is never persisted. | `openrouter-intel.test.ts` |
+| I11 | The extension never creates a new session, branch, or `SessionManager`; it only calls `pi.setModel` and `pi.registerProvider` (registration creates no session state). | `index-wiring.test.ts` |
+| I12 | No secret is ever read from disk by this code. The OpenRouter key comes from `ctx.modelRegistry` at runtime and is never persisted. The `router` provider's `apiKey` is a constant placeholder, never a credential. | `openrouter-intel.test.ts` · `virtual-model.test.ts` |
+| N1 | A session whose current model is not `router/*` (and not the router's own last pick) is never routed and polls no telemetry. | `managed-mode.test.ts` |
+| N2 | A `router/*` model never reaches a provider request: the turn is aborted locally instead. | `virtual-leak-guard.test.ts` |
+| N3 | After the router's own switch, the session stays in managed mode (`lastRouterSelected` affinity). | `managed-mode.test.ts` |
+| N4 | A manual model change flips the session to `manual` permanently; only a `router/*` selection re-enables routing. | `managed-mode.test.ts` · `virtual-model.test.ts` |
+| N5 | A CodexBar allowance window (one with a reset) never vetoes a provider whose prepaid balance still has capacity; a spent balance never borrows an allowance's reset date. | `codexbar-windows.test.ts` |
 
 ## How to change routing behaviour
 
@@ -31,14 +36,14 @@ The order is fixed. Skipping a step is how the bugs in `docs/investigations/` ha
 
 1. **Reproduce with evidence, not a story.** Replay the installed modules against a real telemetry snapshot (see `scripts/fixture-simulation.test.ts` for the pattern). Capture `omp usage --redact --json`, `codexbar usage --provider all --format json`, `omp models --json`, `omp stats --json`. Run `scripts/sanitize-fixtures.py` on them before they touch git.
 2. **Name the layer.** telemetry → health → classes → ladder → in-class comparator → `index.ts` wiring. One root cause per failure mode. "Probably" and "seems" are not allowed in the write-up.
-3. **Check the design first.** `docs/design.md` documents intended behaviour. If the code matches the design and the design is wrong, that is a *policy change* — write it up in `docs/investigations/` and get a human decision before touching `ranking.ts` ladder semantics.
+3. **Check the design first.** `docs/design.md` documents intended ranking behaviour; the **activation contract** (who the router is allowed to touch) lives in `docs/spec-virtual-model-routing.md` and supersedes design.md on that subject. If the code matches the design and the design is wrong, that is a *policy change* — write it up in `docs/investigations/` and get a human decision before touching `ranking.ts` ladder semantics.
 4. **RED first.** Write the failing test against the *current* code and watch it fail for the right reason. Then the minimal change. Then green. Then the full suite. Prove each new guard is red-capable by mutating the code it protects — a test that stays green under mutation tests nothing.
 5. **Differential replay.** Compare selections for *all three tiers and every class* before/after on the same snapshot. Every changed line must be explained by the intended change. Unexplained flips (e.g. a free class reordering) are regressions — fix them before proposing.
 6. **Live proof.** After install, one fresh `omp` session, `/route-status`, saved to a file. The model answering is not proof; the provider payload and the route decision are.
 
 ## Repo conventions
 
-- **Runtime**: Bun. Tests: `bun run test` (unit, 67) and `bun run test:sim` (end-to-end snapshot). No build step; OMP loads `.ts` directly.
+- **Runtime**: Bun. Tests: `bun run test` (unit, 89) and `bun run test:sim` (end-to-end snapshot). No build step; OMP loads `.ts` directly.
 - **No CI, no GitHub Actions.** Actions are disabled on the repo. Every gate below runs **locally** and its result is attested by hash. Do not add a workflow file.
 - **Fixtures** are sanitised real snapshots. Never commit raw `omp usage` / CodexBar / `omp stats` output — it contains account ids, emails and workspace ids. Always pass through `scripts/sanitize-fixtures.py` and check its "removed field paths" report.
 - **`state.json`** is per-machine runtime state. It is gitignored. Do not add it, do not read it in tests.

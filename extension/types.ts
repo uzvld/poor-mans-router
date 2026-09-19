@@ -41,10 +41,8 @@ export interface TierPolicy {
 
 export interface RouterPolicy {
   tiers: Record<Tier, TierPolicy>;
-  agentTiers?: Record<string, Tier>;
 }
 
 export interface SessionIdentity {
   agent?: string;
-  modelRole?: string;
 }

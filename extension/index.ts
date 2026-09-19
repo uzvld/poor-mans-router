@@ -2,7 +2,7 @@ import type { ExtensionAPI } from '@oh-my-pi/pi-coding-agent';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RouterPolicy, Tier } from './types.ts';
-import { DEFAULT_POLICY, normalizePolicy, tierForSession } from './policy.ts';
+import { DEFAULT_POLICY, normalizePolicy } from './policy.ts';
 import { fetchCodexBarUsage, fetchOmpUsage, type CodexBarUsage, type OmpCredentialUsage } from './telemetry.ts';
 import { fetchOmpHistory, type HistoryMap } from './history.ts';
 import {
@@ -16,14 +16,15 @@ import { RouterStateStore } from './state.ts';
 import {
   FreeProbeGate,
   allowDrainingForTier,
-  latestSessionIdentity,
   pressureForSelection,
   pressureMessage,
+  switchMarker,
   normalizeRuntimeSelector,
   shouldRouteBeforeAgentStart,
   retryRoutingPolicy,
 } from './runtime.ts';
 import { formatRouteStatus } from './status.ts';
+import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, type ManagedMode, type RoutingMode } from './virtual-model.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
 const STATE_FILE = join(EXTENSION_DIR, 'state.json');
@@ -71,6 +72,7 @@ function sortStatusRoutes(routes: any[], selected?: string) {
 
 export default function adaptiveRouter(pi: ExtensionAPI) {
   pi.setLabel('Adaptive Model Router');
+  registerVirtualRouterProvider(pi);
 
   const logger: any = (pi as any).logger ?? { info() {}, warn() {}, debug() {} };
   const state = new RouterStateStore(STATE_FILE);
@@ -84,7 +86,8 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   let liveRefresh: Promise<void> | undefined;
   let historyRefresh: Promise<void> | undefined;
   let lastRoutedSelector: string | undefined;
-  let lastRetryFrom: string | undefined;
+  let routingMode: RoutingMode = 'manual';
+  let lastRouterSelected: string | undefined;
   let retryActive = false;
   let nativeFallbackAppliedForRetry = false;
   let lastDecision: {
@@ -161,22 +164,20 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     });
   };
 
-  const chooseForCurrentWork = (ctx: any) => {
-    const identity = latestSessionIdentity(ctx.sessionManager.getBranch());
-    const tier = tierForSession(identity, policy.agentTiers ?? {});
+  const chooseForCurrentWork = (ctx: any, mode: ManagedMode) => {
     const routes = currentRoutes(ctx);
     const selection = selectForTier(
       routes,
-      policy.tiers[tier].classes,
+      policy.tiers[mode].classes,
       {
-        allowDraining: allowDrainingForTier(tier),
-        preference: tier === 'small' ? 'speed' : 'quality',
+        allowDraining: allowDrainingForTier(mode),
+        preference: mode === 'small' ? 'speed' : 'quality',
         // Same-family affinity for the model the session is already on (scoped tie-break only).
         currentKey: modelKey(ctx.models.current()),
       },
     );
-    lastDecision = { tier, selection, routes, at: Date.now() };
-    return { tier, routes, selection };
+    lastDecision = { tier: mode, selection, routes, at: Date.now() };
+    return { routes, selection };
   };
 
   pi.on('session_start', async (_event: any, ctx: any) => {
@@ -197,7 +198,24 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     logger.info('adaptive-router started', { models: ctx.models.list().length });
   });
 
+  // A successful router switch is announced in the transcript; a host without a UI
+  // surface (or a notify that throws) must never turn a routing decision into a failed turn.
+  function announceSwitch(ctx: any, from: string, to: string, reason?: string): void {
+    try {
+      ctx.ui?.notify?.(switchMarker(from, to, reason), 'info');
+    } catch (error) {
+      logger.warn('adaptive-router could not announce model switch', { error: String(error) });
+    }
+  }
+
   pi.on('before_agent_start', async (_event: any, ctx: any) => {
+    const currentKey = modelKey(ctx.models.current());
+    const previousMode = routingMode;
+    routingMode = resolveModeTransition(previousMode, currentKey, lastRouterSelected);
+    if (previousMode !== 'manual' && routingMode === 'manual') {
+      logger.info('adaptive-router opt-out: manual model selection', { currentKey });
+    }
+    if (routingMode === 'manual') return undefined;
     if (!shouldRouteBeforeAgentStart(retryActive)) return undefined;
     try {
       await refreshLive(false);
@@ -205,14 +223,19 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       ctx.setTimeout(() => refreshHistory(false), 0);
       ctx.setTimeout(() => refreshIntel(ctx), 0);
 
-      const { selection } = chooseForCurrentWork(ctx);
+      const { selection } = chooseForCurrentWork(ctx, routingMode === 'manual' ? 'balanced' : routingMode);
       if (selection) {
         const target = ctx.models.resolve(selection.route.selector);
-        const current = ctx.models.current();
-        const currentKey = modelKey(current);
         if (target && currentKey !== selection.route.key) {
           const changed = await pi.setModel(target);
-          if (!changed) logger.warn('adaptive-router could not switch model', { selector: selection.route.selector });
+          if (!changed) {
+            logger.warn('adaptive-router could not switch model', { selector: selection.route.selector });
+            // A failed switch must not claim the target: the next turn retries.
+            lastRouterSelected = undefined;
+          } else {
+            announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
+            lastRouterSelected = selection.route.key;
+          }
         }
         lastRoutedSelector = selection.route.key;
       }
@@ -232,6 +255,29 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     } catch (error) {
       logger.warn('adaptive-router selection failed open', { error: String(error) });
       return undefined;
+    }
+    return undefined;
+  });
+
+  // Fail-closed seatbelt (spec §4): the virtual provider's baseUrl is the discard
+  // port, so a request issued while the session is still on a router/* model would
+  // burn OMP's 10 silent auto-retries on a connection error. Abort the turn instead.
+  // Detection uses the session's current model, not the payload's bare model id: a
+  // real provider may legitimately ship a model called "balanced".
+  (pi as any).on('before_provider_request', async (_event: any, ctx: any) => {
+    if (ctx?.models?.current?.()?.provider !== VIRTUAL_PROVIDER) return undefined;
+    try {
+      ctx.abort?.();
+    } catch (error) {
+      logger.warn('adaptive-router guard could not abort the turn', { error: String(error) });
+    }
+    try {
+      ctx.ui?.notify?.(
+        'adaptive-router: virtual router model leaked to provider transport — this is a router bug; select a concrete model with /model',
+        'error',
+      );
+    } catch (error) {
+      logger.warn('adaptive-router guard could not announce the leak', { error: String(error) });
     }
     return undefined;
   });
@@ -306,6 +352,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   pi.registerCommand('route-status', {
     description: 'Show adaptive model routing state',
     handler: async (_args: string, ctx: any) => {
+      if (routingMode === 'manual') {
+        ctx.ui.notify('adaptive-router: mode manual (opt-out — select router/* to re-enable)', 'info');
+        return;
+      }
       if (!lastDecision) {
         ctx.ui.notify('adaptive-router: no routing decision yet', 'info');
         return;
@@ -314,6 +364,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       const selected = lastDecision.selection?.route.key;
       const text = formatRouteStatus({
         tier: lastDecision.tier,
+        mode: routingMode,
         selected,
         reason: lastDecision.selection?.reason,
         routes: sortStatusRoutes(lastDecision.routes, selected),

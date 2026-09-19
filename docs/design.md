@@ -1,7 +1,12 @@
 # OMP Adaptive Model Routing — Design Spec
 
 **Date:** 2026-09-18  
-**Status:** Proposed design, ready for review  
+**Status:** Historical record. Ranking, class, and health semantics still apply.
+**The activation contract (which sessions the router touches) is superseded as of 2026-09-19** by
+[`spec-virtual-model-routing.md`](spec-virtual-model-routing.md): routing is opt-in via the virtual
+`router/frontier|balanced|small` models, and any manual selection of a concrete model opts the
+session out. Every statement below about deriving a tier from `modelRoles` or an agent name
+describes removed behaviour.
 **Target:** oh-my-pi / `omp` with a small in-process extension; no external LLM proxy in the request path
 
 ## 1. Goal
