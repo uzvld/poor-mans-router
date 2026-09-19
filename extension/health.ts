@@ -208,3 +208,25 @@ export function cooldownFromRetry(message: string, delayMs: number | undefined, 
     reason: message.slice(0, 240),
   };
 }
+
+// A hard "this model does not exist" rejection is catalog drift (the provider removed or
+// renamed the model OMP's own catalog still lists), not a transient rate/quota condition --
+// `isRateOrQuotaError` never matches it. Left unclassified it falls through to
+// `state.recordFailure`, which only records `lastFailureAt` and never changes
+// `evaluateRouteHealth`'s AVAILABLE verdict, so the ladder re-derives and re-announces the
+// identical dead route on every fresh process forever (2026-09-19 live incident:
+// `docs/investigations/multica-repeated-switch-marker.md`).
+export function isPermanentModelError(message: string): boolean {
+  return /model.{0,40}(does not exist|not found)|no such model|unknown model|invalid model ?id/i.test(message);
+}
+
+const PERMANENT_MODEL_ERROR_COOLDOWN_MS = 15 * 60_000;
+
+export function cooldownFromPermanentModelError(message: string, now = Date.now()): LocalRouteState | undefined {
+  if (!isPermanentModelError(message)) return undefined;
+  return {
+    cooldownUntil: now + PERMANENT_MODEL_ERROR_COOLDOWN_MS,
+    lastFailureAt: now,
+    reason: message.slice(0, 240),
+  };
+}
