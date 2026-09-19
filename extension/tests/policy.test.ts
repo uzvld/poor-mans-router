@@ -1,15 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_POLICY, classifyModelId, tierForRole, decorateClasses, tierForSession, normalizePolicy } from '../policy.ts';
-
-test('tierForRole maps OMP roles to workload tiers', () => {
-  assert.equal(tierForRole('plan'), 'frontier');
-  assert.equal(tierForRole('advisor'), 'frontier');
-  assert.equal(tierForRole('default'), 'balanced');
-  assert.equal(tierForRole('task'), 'balanced');
-  assert.equal(tierForRole('smol'), 'small');
-  assert.equal(tierForRole('tiny'), 'small');
-});
+import { DEFAULT_POLICY, classifyModelId, decorateClasses, normalizePolicy } from '../policy.ts';
 
 test('classification follows model identity, not provider inventory', () => {
   assert.ok(classifyModelId('vendor-a/deepseek-v4.1-flash').includes('chinese-flash'));
@@ -31,22 +22,17 @@ test('decorates semantic classes from route economics without provider allowlist
   assert.ok(sub.includes('fable-sub'));
 });
 
-test('session agent override beats model role and unknown sessions default balanced', () => {
-  assert.equal(tierForSession({ agent: 'architect', modelRole: 'smol' }, { architect: 'frontier' }), 'frontier');
-  assert.equal(tierForSession({ modelRole: 'smol' }, {}), 'small');
-  assert.equal(tierForSession({}, {}), 'balanced');
-});
-
 test('default policy preserves the agreed tier class order', () => {
   assert.deepEqual(DEFAULT_POLICY.tiers.frontier.classes.slice(0, 3), ['fable-sub', 'astra-sub', 'opus-sub']);
   assert.deepEqual(DEFAULT_POLICY.tiers.balanced.classes.slice(0, 3), ['sonnet-sub', 'luna-sub', 'chinese-flash-payg']);
   assert.deepEqual(DEFAULT_POLICY.tiers.small.classes, ['cheap-sub', 'cheap-flash', 'healthy-free-fast']);
 });
 
-test('normalizePolicy accepts partial user overrides without losing defaults', () => {
-  const p = normalizePolicy({ agentTiers: { builder: 'frontier' } });
-  assert.equal(p.agentTiers?.builder, 'frontier');
-  assert.deepEqual(p.tiers.small.classes, DEFAULT_POLICY.tiers.small.classes);
+test('normalizePolicy accepts tier class overrides and drops the removed agentTiers surface', () => {
+  const p = normalizePolicy({ agentTiers: { builder: 'frontier' }, tiers: { small: { classes: ['x'] } } });
+  assert.equal((p as Record<string, unknown>).agentTiers, undefined);
+  assert.deepEqual(p.tiers.small.classes, ['x']);
+  assert.deepEqual(p.tiers.frontier.classes, DEFAULT_POLICY.tiers.frontier.classes);
 });
 
 test('free strong models enter through the free tail, not the paid strong-chinese class', () => {

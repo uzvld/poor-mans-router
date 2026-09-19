@@ -9,7 +9,6 @@ export function latestSessionIdentity(branch: readonly any[]): SessionIdentity {
     if (entry?.type !== 'session_init') continue;
     latest = {
       agent: typeof entry.agent === 'string' ? entry.agent : undefined,
-      modelRole: typeof entry.modelRole === 'string' ? entry.modelRole : undefined,
     };
   }
   return latest;

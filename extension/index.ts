@@ -2,7 +2,7 @@ import type { ExtensionAPI } from '@oh-my-pi/pi-coding-agent';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RouterPolicy, Tier } from './types.ts';
-import { DEFAULT_POLICY, normalizePolicy, tierForSession } from './policy.ts';
+import { DEFAULT_POLICY, normalizePolicy } from './policy.ts';
 import { fetchCodexBarUsage, fetchOmpUsage, type CodexBarUsage, type OmpCredentialUsage } from './telemetry.ts';
 import { fetchOmpHistory, type HistoryMap } from './history.ts';
 import {
@@ -16,7 +16,6 @@ import { RouterStateStore } from './state.ts';
 import {
   FreeProbeGate,
   allowDrainingForTier,
-  latestSessionIdentity,
   pressureForSelection,
   pressureMessage,
   switchMarker,
@@ -25,7 +24,7 @@ import {
   retryRoutingPolicy,
 } from './runtime.ts';
 import { formatRouteStatus } from './status.ts';
-import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, type RoutingMode } from './virtual-model.ts';
+import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, type ManagedMode, type RoutingMode } from './virtual-model.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
 const STATE_FILE = join(EXTENSION_DIR, 'state.json');
@@ -165,22 +164,20 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     });
   };
 
-  const chooseForCurrentWork = (ctx: any) => {
-    const identity = latestSessionIdentity(ctx.sessionManager.getBranch());
-    const tier = tierForSession(identity, policy.agentTiers ?? {});
+  const chooseForCurrentWork = (ctx: any, mode: ManagedMode) => {
     const routes = currentRoutes(ctx);
     const selection = selectForTier(
       routes,
-      policy.tiers[tier].classes,
+      policy.tiers[mode].classes,
       {
-        allowDraining: allowDrainingForTier(tier),
-        preference: tier === 'small' ? 'speed' : 'quality',
+        allowDraining: allowDrainingForTier(mode),
+        preference: mode === 'small' ? 'speed' : 'quality',
         // Same-family affinity for the model the session is already on (scoped tie-break only).
         currentKey: modelKey(ctx.models.current()),
       },
     );
-    lastDecision = { tier, selection, routes, at: Date.now() };
-    return { tier, routes, selection };
+    lastDecision = { tier: mode, selection, routes, at: Date.now() };
+    return { routes, selection };
   };
 
   pi.on('session_start', async (_event: any, ctx: any) => {
@@ -226,9 +223,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       ctx.setTimeout(() => refreshHistory(false), 0);
       ctx.setTimeout(() => refreshIntel(ctx), 0);
 
-      // Task 5 passes the mode down; until then chooseForCurrentWork keeps its
-      // internal tierForSession guess — do NOT change its signature here.
-      const { selection } = chooseForCurrentWork(ctx);
+      const { selection } = chooseForCurrentWork(ctx, routingMode === 'manual' ? 'balanced' : routingMode);
       if (selection) {
         const target = ctx.models.resolve(selection.route.selector);
         if (target && currentKey !== selection.route.key) {

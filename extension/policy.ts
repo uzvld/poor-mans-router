@@ -1,4 +1,4 @@
-import type { RouterPolicy, SessionIdentity, Tier } from './types.ts';
+import type { RouterPolicy } from './types.ts';
 
 
 export const DEFAULT_POLICY: RouterPolicy = {
@@ -7,31 +7,11 @@ export const DEFAULT_POLICY: RouterPolicy = {
     balanced: { classes: ['sonnet-sub', 'luna-sub', 'chinese-flash-payg', 'free-chinese-flash', 'best-available', 'healthy-free'] },
     small: { classes: ['cheap-sub', 'cheap-flash', 'healthy-free-fast'] },
   },
-  agentTiers: {
-    architect: 'frontier',
-    reviewer: 'frontier',
-    scout: 'small',
-    librarian: 'small',
-  },
 };
 
 export interface RouteEconomics {
   free: boolean;
   subscriptionLike: boolean;
-}
-
-export function tierForRole(role: string | undefined): Tier {
-  if (role === 'plan' || role === 'advisor' || role === 'slow') return 'frontier';
-  if (role === 'smol' || role === 'tiny') return 'small';
-  return 'balanced';
-}
-
-export function tierForSession(
-  session: SessionIdentity,
-  agentTiers: Record<string, Tier> = {},
-): Tier {
-  if (session.agent && agentTiers[session.agent]) return agentTiers[session.agent];
-  return tierForRole(session.modelRole);
 }
 
 export function classifyModelId(selector: string): string[] {
@@ -113,9 +93,5 @@ export function normalizePolicy(raw: any): import('./types.ts').RouterPolicy {
     balanced: { classes: Array.isArray(raw?.tiers?.balanced?.classes) ? raw.tiers.balanced.classes.map(String) : [...DEFAULT_POLICY.tiers.balanced.classes] },
     small: { classes: Array.isArray(raw?.tiers?.small?.classes) ? raw.tiers.small.classes.map(String) : [...DEFAULT_POLICY.tiers.small.classes] },
   };
-  const agentTiers: Record<string, Tier> = { ...(DEFAULT_POLICY.agentTiers ?? {}) };
-  for (const [name, value] of Object.entries(raw?.agentTiers ?? {})) {
-    if (value === 'frontier' || value === 'balanced' || value === 'small') agentTiers[name] = value;
-  }
-  return { tiers, agentTiers };
+  return { tiers };
 }
