@@ -115,7 +115,7 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns (state.json, gitignored)
-  tests/              bun test — 94 tests, run from extension/
+  tests/              bun test — 101 tests, run from extension/
 fixtures/           sanitised real telemetry snapshots the tests replay
 config/             installer config patch · fallback-chain example
 scripts/            install / uninstall / fixture sanitiser

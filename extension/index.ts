@@ -120,6 +120,13 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       } else if (fetchedAt - codexbar.fetchedAt > LIVE_STALE_IF_ERROR_MS) {
         codexbar = { value: [], fetchedAt: 0 };
       }
+
+      // Persist so the next process (Multica spawns one per run) can route
+      // immediately instead of waiting ~30 s for `omp usage` + CodexBar.
+      if (ompUsage.value.length || codexbar.value.length) {
+        state.saveTelemetry({ ompReports: ompUsage.value, codexbar: codexbar.value }, fetchedAt);
+        state.save();
+      }
     })().catch((error) => {
       logger.warn('pmr live telemetry refresh failed', { error: String(error) });
     }).finally(() => {
@@ -187,6 +194,14 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     state.garbageCollect(keys);
     state.save();
 
+    // Last-known telemetry from an earlier process: good enough to route the first
+    // turn from, and dropped once too old to act on (see RouterStateStore.telemetry).
+    const cached = state.telemetry();
+    if (cached) {
+      if (cached.ompReports.length) ompUsage = { value: cached.ompReports as OmpCredentialUsage[], fetchedAt: cached.fetchedAt };
+      if (cached.codexbar.length) codexbar = { value: cached.codexbar as CodexBarUsage[], fetchedAt: cached.fetchedAt };
+    }
+
     // Do not stall session startup on optional telemetry; managed timers contain callback failures.
     ctx.setTimeout(async () => {
       await Promise.allSettled([refreshLive(true), refreshHistory(true), refreshIntel(ctx)]);
@@ -218,8 +233,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     if (routingMode === 'manual') return undefined;
     if (!shouldRouteBeforeAgentStart(retryActive)) return undefined;
     try {
-      await refreshLive(false);
-      // History and public intelligence are ranking hints; they never block new work.
+      // Nothing here waits on the network: quota telemetry, history and public
+      // intelligence are all ranking hints. The decision uses last-known data
+      // (seeded from disk at session_start) and the refresh lands for later turns.
+      ctx.setTimeout(() => refreshLive(false), 0);
       ctx.setTimeout(() => refreshHistory(false), 0);
       ctx.setTimeout(() => refreshIntel(ctx), 0);
 

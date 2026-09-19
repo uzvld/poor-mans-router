@@ -29,6 +29,7 @@ Tests exist for each of these. If your change needs one relaxed, that is a desig
 | N3 | After the router's own switch, the session stays in managed mode (`lastRouterSelected` affinity). | `managed-mode.test.ts` |
 | N4 | A manual model change flips the session to `manual` permanently; only a `pmr/*` selection re-enables routing. | `managed-mode.test.ts` · `virtual-model.test.ts` |
 | N5 | A CodexBar allowance window (one with a reset) never vetoes a provider whose prepaid balance still has capacity; a spent balance never borrows an allowance's reset date. | `codexbar-windows.test.ts` |
+| N6 | A CodexBar pace forecast only marks a route `DRAINING` when it belongs to the window that carries capacity. | `codexbar-pace-scope.test.ts` |
 
 ## How to change routing behaviour
 
@@ -43,7 +44,7 @@ The order is fixed. Skipping a step is how the bugs in `docs/investigations/` ha
 
 ## Repo conventions
 
-- **Runtime**: Bun. Tests: `bun run test` (unit, 94) and `bun run test:sim` (end-to-end snapshot). No build step; OMP loads `.ts` directly.
+- **Runtime**: Bun. Tests: `bun run test` (unit, 101) and `bun run test:sim` (end-to-end snapshot). No build step; OMP loads `.ts` directly.
 - **No CI, no GitHub Actions.** Actions are disabled on the repo. Every gate below runs **locally** and its result is attested by hash. Do not add a workflow file.
 - **Fixtures** are sanitised real snapshots. Never commit raw `omp usage` / CodexBar / `omp stats` output — it contains account ids, emails and workspace ids. Always pass through `scripts/sanitize-fixtures.py` and check its "removed field paths" report.
 - **`state.json`** is per-machine runtime state. It is gitignored. Do not add it, do not read it in tests.

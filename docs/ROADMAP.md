@@ -11,35 +11,37 @@ Ordered. Each item links to the evidence that put it here. Do not start an item 
 ### 2. Deploy lock
 Installs and rollbacks must be single-writer. Proposed: atomic `mkdir` of `$(omp config path)/extensions/.adaptive-router-deploy.lock` containing `{pid, session, started_at}`, stale-lock reclaim after N minutes, and the installer refusing to run while it exists. Motivated by a replayed-turn incident where two runs of one session both deployed.
 
-### 3. FOLLOWUP-T1 — CodexBar pace still loses window scope — APPROVED TO FIX
-`telemetry.ts` collapses all pace windows into one provider-wide boolean (`draining = paceRows.some(...)`). Harmless while OMP reports on the provider (I2), but for providers with **no** OMP usage report it can yield an over-broad `DRAINING`. Fix: carry each pace window with its scope and let `health.ts` match window → route, the way the exhaustion path now does.
-
-The exhaustion half of this defect is **closed**: allowance windows (with a reset) no longer veto a provider whose prepaid balance still has capacity, and a spent balance no longer borrows an allowance's reset date. Found live on kilo, where a consumed monthly pass had vetoed every route for a month. See `docs/investigations/finding-codexbar-window-collapse.md`.
-
-### 4. 429 / fallback and PAYG-vs-free routing
+### 3. 429 / fallback and PAYG-vs-free routing
 Deferred until BUG C. Includes verifying that a native fallback request carries the full prior history and that a PAYG route is never chosen over an equivalent healthy subscription.
 
-### 5. Docs drift
+### 4. Docs drift
 `docs/design.md` §"DRAINING", lines describing "CodexBar `willLastToReset=false` → DRAINING" and the worked example `claude-sonnet-5 DRAINING quota pace`, predate the I2 policy. Update to match `health.ts`.
 
-### 6. First managed turn stalls ~28 s on telemetry — APPROVED TO FIX
-`before_agent_start` awaits `refreshLive()` on the first turn of a managed session, which runs `omp usage` plus the CodexBar CLI. Observed 28–31 s before the first request goes out. Fix: route from cached/last-known telemetry (or no telemetry at all) and refresh in the background, so only later turns pay for fresh quota data. The owner approved fixing this 2026-09-19.
+### 5. Host integration — MOSTLY ANSWERED, one row open
+See `docs/investigations/host-integration-matrix.md`. Established: `omp` directly, `multica → omp` and `paseo → omp` all run a real OMP agent session, so the contract governs them; the Multica shape (fresh process per run, same session file, `--model`) was live-probed twice and rebuilt managed mode from `current()` both times.
 
-### 7. Verify the contract through every host that reaches OMP natively
-The router is an in-process OMP extension, so every host that drives OMP natively must be checked separately — a host that spawns `omp` with its own `--model`, or that pins a model per agent, can silently bypass the opt-in or land in `manual` mode without anyone noticing. Matrix to cover, each with: does the extension load, does a `PMR/*` (today `pmr/*`) selector reach the registry, does the managed switch happen before the first request, does `manual` stay untouched, and does the fail-closed guard still abort rather than retry.
+**`multica → hermes → omp` is not governed and cannot be:** Hermes uses OMP as a model *provider* over RPC (`model.provider: omp` via `~/.hermes/plugins/model-providers/omp/`), so no OMP agent process and no extension exist on that path. Agents routed through Hermes are selected by Hermes' own model config; `pmr/*` selectors are meaningless there. If adaptive routing is wanted for them it belongs in Hermes' provider layer.
 
-| Host | Path | What specifically to check |
-|---|---|---|
-| Hermes | hermes → omp | Extension loaded in Hermes-spawned sessions; `ctx.ui.notify` markers surface in Hermes output (the `[omp:` prefix contract); `/route-status` reachable or its data otherwise observable. |
-| Multica | multica → omp | Per-agent model field set to a virtual selector; the daemon re-spawns `omp -p --mode json --session <file> --model X` per run, so mode must be rebuilt from `current()` on every process (no persisted routing state). |
-| Multica | multica → hermes → omp | Same as above but with Hermes in the middle: confirm the model field is passed through rather than overridden, and that neither layer injects a concrete model that silently opts the agent out. |
-| Paseo | paseo → omp | Agent/workspace model configuration reaches OMP as a selector; managed switching and markers visible in Paseo's timeline. |
+Still open:
+- Multica: confirm no runtime passes `--no-extensions` (the flag string exists in the binary); if one does, the router is silently absent there.
 
-Deliverable per row: the outgoing provider payload and the route decision, not just a model that answered (AGENTS.md step 6).
+### 7. Hermes ⇄ OMP bridge: verify translation fidelity
+The bridge works (owner's report) — what is unverified is whether it translates OMP's stream faithfully into Hermes' OpenAI-shaped stream. Reading `~/.hermes/plugins/model-providers/omp/omp_rpc_client.py`, three places where a wrong mapping would hide:
+- **Streaming.** `text_delta → delta.content`; check chunk boundaries, ordering against tool activity, and that an interrupted OMP stream surfaces as an error rather than a clean end.
+- **Reasoning.** `thinking_delta` is written to **both** `delta.reasoning_content` and `delta.reasoning` with the same text; confirm Hermes does not double-count or double-render it, and that reasoning never leaks into `content`.
+- **Tool calls.** `delta.tool_calls` is hard-coded `None` in both chunk builders while OMP emits `tool_execution_start` / `tool_end` / `tool_call_start`; OMP executes the tools itself (thin host). Confirm Hermes' loop is not waiting for structured tool calls, that tool activity is rendered rather than injected as assistant prose, and that `<tool_call>` text parsing cannot double-execute.
+- **Termination.** The stream always closes `finish_reason="stop"`, so truncation (`length`), tool-stops and errors are indistinguishable downstream; verify nothing depends on that distinction.
+
+Hermes-side work (the plugin has `test_thin_host.py` / `test_model_switch_markers.py` to extend), not `adaptive-router` code.
+
+Deliverable per row of item 8: the outgoing provider payload and the route decision, not just a model that answered (AGENTS.md step 6).
 
 ## Done
 
 - **`pmr/*` selectors** — the virtual provider is `pmr`, and the picker offers four tiers: `pmr/frontier`, `pmr/balanced`, `pmr/small` (cheap and fast, paid rungs included) and `pmr/free` (free-only by contract, never spends). Switch markers read `[omp:pmr]`. Upper-case ids were verified to resolve, but lower case matches every other OMP provider id, with `PMR: …` as the display name.
+- **First managed turn no longer waits for telemetry** — `before_agent_start` used to await `omp usage` + the CodexBar CLI (28–31 s live). Refreshes are scheduled instead, and the normalized snapshot is persisted in `state.json` (15-minute bound) so a fresh process — every Multica run — routes from last-known data. Live: 7 s including the answer. `first-turn-latency.test.ts`.
+
+- **CodexBar window scope** — allowance windows (with a reset) no longer veto a provider whose prepaid balance still has capacity, a spent balance no longer borrows an allowance's reset date, and a pace forecast only counts for the window that carries capacity. Closes FOLLOWUP-T1 and the exhaustion half found live on kilo. Invariants N5/N6; `codexbar-windows.test.ts`, `codexbar-pace-scope.test.ts`. See `docs/investigations/finding-codexbar-window-collapse.md`.
 
 - **BUG D** — healthy Sonnet subscription bypassed by CodexBar weekly pace forecast. Root cause proven with counterfactual replay; fixed in `health.ts` precedence; in-class winner fixed (neutral cold-start prior, family-scoped affinity, generation tie-break). 67/67 tests; live-verified. See `docs/investigations/`.
 - **Virtual-model routing contract** — the router no longer guesses which sessions it owns. Three registered virtual models (`pmr/frontier|balanced|small`) are the only opt-in; selecting any concrete model is a permanent per-session opt-out; `agentTiers`/`modelRole`/agent-name tier guessing deleted. A fail-closed `before_provider_request` guard aborts the turn if a request ever reaches the virtual provider (live-verified: 0 auto-retries vs 10 unguarded). 85/85 unit tests + differential replay; live-verified managed cold start and manual opt-out. Spec: `docs/spec-virtual-model-routing.md`; plan: `docs/superpowers/plans/2026-09-19-virtual-model-routing.md`.

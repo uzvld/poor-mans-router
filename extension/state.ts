@@ -6,12 +6,24 @@ interface StoredRouteState extends LocalRouteState {
   updatedAt?: number;
 }
 
+/**
+ * Telemetry is cached on disk because Multica spawns a fresh OMP process per run:
+ * an in-memory cache is always cold there, and the first turn must not wait for
+ * `omp usage` plus the CodexBar CLI (~30 s observed) before routing.
+ */
+export interface TelemetrySnapshot {
+  ompReports: unknown[];
+  codexbar: unknown[];
+}
+
 interface PersistedState {
   routes: Record<string, StoredRouteState>;
+  telemetry?: TelemetrySnapshot & { fetchedAt: number };
 }
 
 export class RouterStateStore {
   private routes: Record<string, StoredRouteState> = {};
+  private telemetrySnapshot: (TelemetrySnapshot & { fetchedAt: number }) | undefined;
   private readonly filename: string;
 
   constructor(filename: string) {
@@ -22,16 +34,35 @@ export class RouterStateStore {
     try {
       const raw = JSON.parse(fs.readFileSync(this.filename, 'utf8'));
       this.routes = raw && typeof raw.routes === 'object' && raw.routes ? raw.routes : {};
+      const cached = raw?.telemetry;
+      this.telemetrySnapshot = cached && typeof cached.fetchedAt === 'number'
+        && Array.isArray(cached.ompReports) && Array.isArray(cached.codexbar)
+        ? cached
+        : undefined;
     } catch {
       this.routes = {};
+      this.telemetrySnapshot = undefined;
     }
   }
 
   save(): void {
     fs.mkdirSync(path.dirname(this.filename), { recursive: true });
     const tmp = `${this.filename}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify({ routes: this.routes } satisfies PersistedState, null, 2));
+    const state: PersistedState = { routes: this.routes };
+    if (this.telemetrySnapshot) state.telemetry = this.telemetrySnapshot;
+    fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
     fs.renameSync(tmp, this.filename);
+  }
+
+  saveTelemetry(snapshot: TelemetrySnapshot, now = Date.now()): void {
+    this.telemetrySnapshot = { ompReports: snapshot.ompReports, codexbar: snapshot.codexbar, fetchedAt: now };
+  }
+
+  /** Last-known telemetry with its original age, or `undefined` once too old to act on. */
+  telemetry(now = Date.now(), maxAgeMs = 15 * 60_000): (TelemetrySnapshot & { fetchedAt: number }) | undefined {
+    const cached = this.telemetrySnapshot;
+    if (!cached || now - cached.fetchedAt > maxAgeMs) return undefined;
+    return { ompReports: cached.ompReports, codexbar: cached.codexbar, fetchedAt: cached.fetchedAt };
   }
 
   get(routeKey: string): StoredRouteState | undefined {
