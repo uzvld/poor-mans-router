@@ -44,13 +44,16 @@ The order is fixed. Skipping a step is how the bugs in `docs/investigations/` ha
 
 ## Repo conventions
 
-- **Runtime**: Bun. Tests: `bun run test` (unit, 101) and `bun run test:sim` (end-to-end snapshot). No build step; OMP loads `.ts` directly.
+- **Runtime**: Bun for the router, the Hermes checkout's interpreter for the bridge. Gates: `bun run test` (unit, 113), `bun run test:sim` (end-to-end snapshot), `bash scripts/install.test.sh`, `bash scripts/install-bridge.test.sh`, plus the bridge suites listed in `README.md` · Development. No build step; OMP loads `.ts` directly.
 - **No CI, no GitHub Actions.** Actions are disabled on the repo. Every gate below runs **locally** and its result is attested by hash. Do not add a workflow file.
+- **AppleDouble sidecars.** This checkout lives on an exFAT volume, so macOS writes a `._<name>` companion beside every file and `bun test` treats `._*.test.ts` as real tests (22 phantom failures). They are gitignored; always run `bun test $(ls tests/*.test.ts | grep -v '/\._')`. The same junk makes `git` print `non-monotonic index …idx` — noise, not corruption.
 - **Fixtures** are sanitised real snapshots. Never commit raw `omp usage` / CodexBar / `omp stats` output — it contains account ids, emails and workspace ids. Always pass through `scripts/sanitize-fixtures.py` and check its "removed field paths" report.
 - **`state.json`** is per-machine runtime state. It is gitignored. Do not add it, do not read it in tests.
-- **Test files** live in `extension/tests/`, one behaviour per test, names describe behaviour not implementation. Live-snapshot regressions are named after the bug (`bug-d-*.test.ts`).
+- **Test files** live in `extension/tests/` (router) and `hermes/omp-bridge/test_*` (bridge), one behaviour per test, names describe behaviour not implementation. Live-snapshot regressions are named after the bug (`bug-d-*.test.ts`).
+- **The bridge in `hermes/omp-bridge/` is the source of truth**, not the copy at `~/.hermes/plugins/model-providers/omp/`. Deploy with `scripts/install-bridge.sh`; `--check` must be clean before you claim the live runtime matches this repo. Never edit the installed copy directly — that is how it went unversioned in the first place.
+- **Hermes core overlays are not ours to keep.** `reapply_omp_patches.py` holds every edit the bridge needs inside the Hermes checkout, and `hermes update` wipes all of them (all 15 were missing on 2026-09-19 — the model picker had silently lost every OMP model). The launcher wrapper re-applies them; after touching anything Hermes-side, run `python3 ~/.hermes/plugins/model-providers/omp/reapply_omp_patches.py --check` and restart the gateway.
 - **Investigations** are permanent. Each root-cause report in `docs/investigations/` includes: reproduction matrix, the hypothesis table with verdicts, alternatives disproved, minimal fix boundary. They are the reason the invariants above exist.
-- **Deployment lock**: installs must be atomic and single-writer. See `docs/ROADMAP.md` · "deploy lock". Until it exists, never install from two agents at once, and re-verify installed hashes after every install.
+- **Deployment lock**: installs are atomic and single-writer — `install.sh`/`uninstall.sh` hold `extensions/.adaptive-router-deploy.lock` (atomic `mkdir`, stale reclaim after 600 s or a dead pid). Still re-verify installed hashes after every install.
 
 ## Secret & PII gate — this repo is PUBLIC
 

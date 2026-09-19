@@ -43,6 +43,17 @@ tmp/
 .DS_Store
 Thumbs.db
 
+# AppleDouble sidecars. macOS writes `._<name>` next to every file on a non-native
+# filesystem (this repo lives on an exFAT volume), and `bun test` picks up
+# `._*.test.ts` as real test files — 22 phantom failures. Never commit them; exclude
+# them when running tests: bun test $(ls tests/*.test.ts | grep -v '/\._')
+
+# Python bytecode from running the bridge suites out of hermes/omp-bridge/
+__pycache__/
+*.pyc
+.pytest_cache/
+._*
+
 # Tooling
 node_modules/
 bun.lockb

@@ -1,0 +1,5 @@
+name: omp-provider
+kind: model-provider
+version: 0.1.0
+description: Oh My Pi (omp) thin-host rpc-ui provider
+author: uzvld (Hermes Agent)

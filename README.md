@@ -101,6 +101,7 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 - **CodexBar** — install it for pace/wallet telemetry. The extension tries `http://127.0.0.1:8080/usage` first, then the `codexbar` CLI.
 - **OpenRouter intel** — quality/agentic benchmarks and traffic rankings are fetched from the OpenRouter Data API using the `openrouter` credential OMP already holds. No key is copied or stored by this project.
 - **Emergency fallback chains** — [`config/fallback-chains.example.yml`](config/fallback-chains.example.yml) is a starting point for `retry.fallbackChains`. Review against `omp models --json` before merging.
+- **Hermes bridge** — routing also governs `multica → hermes → omp`, because `omp --mode rpc-ui` is a full agent host. The bridge that drives it lives in [`hermes/omp-bridge/`](hermes/omp-bridge/) and deploys with `./scripts/install-bridge.sh` (`--check` reports drift, `--launcher` also installs the `hermes` wrapper that re-applies the Hermes core overlays every `hermes update` wipes). Point Hermes at a selector with `model.default: pmr/balanced` in `~/.hermes/config.yaml`. See [`docs/investigations/host-integration-matrix.md`](docs/investigations/host-integration-matrix.md).
 
 ## Where things are
 
@@ -115,17 +116,30 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns (state.json, gitignored)
-  tests/              bun test — 101 tests, run from extension/
+  compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
+  tests/              bun test — 113 tests, run from extension/
+hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
+                    `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
+                    survives `hermes update`, and their tests
 fixtures/           sanitised real telemetry snapshots the tests replay
 config/             installer config patch · fallback-chain example
-scripts/            install / uninstall / fixture sanitiser
+scripts/            install / uninstall / install-bridge / fixture sanitiser
 docs/               design · implementation plan · investigations (root-cause reports)
 ```
 
 ## Development
 
 ```bash
-cd extension && ln -sfn ../fixtures fixtures && bun test
+# router: AppleDouble sidecars (`._*.test.ts`) are not tests — exclude them
+cd extension && ln -sfn ../fixtures fixtures && bun test $(ls tests/*.test.ts | grep -v '/\._')
+bun test scripts/fixture-simulation.test.ts
+bash scripts/install.test.sh
+bash scripts/install-bridge.test.sh
+
+# bridge (needs a Hermes checkout for its interpreter)
+cd hermes/omp-bridge && ~/.hermes/hermes-agent/venv/bin/python -m unittest \
+  test_thin_host test_model_pin test_tool_rail test_stream_fidelity test_model_switch_markers
+bash hermes/omp-bridge/test_launcher_wrapper.sh
 ```
 
 Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines the invariants every change must keep and the evidence a PR must carry. Every fix here has been a *proven* root cause first and a failing test second; keep it that way.
