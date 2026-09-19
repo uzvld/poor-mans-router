@@ -44,9 +44,52 @@ Full suite: 114/114 (`bun test $(ls extension/tests/*.test.ts | grep -v '/\._')`
 
 **B (bridge notify/content conflation, `hermes/omp-bridge/omp_rpc_client.py`)** is a separate, larger-blast-radius issue: it affects every extension's notify markers for every provider on this bridge, not just `pmr`. Changing how a marker-only, zero-real-content turn is reported to Hermes (e.g. surfacing it as an explicit empty-completion/error condition instead of silently returning the marker text as `message.content`) is a turn-completion-semantics change outside `extension/`, and per this repo's contract that kind of change needs a human decision before implementation, not a silent patch alongside a router bug fix.
 
-## Live proof
+## Live proof (first fix)
 
-Not yet performed from this debug worktree — would require `scripts/install.sh` against the
-live `~/.omp` install and triggering a real Multica turn against the (now cooled-down) dead
-route. Held pending explicit go-ahead, since the live install is the production surface other
-concurrent sessions are actively using.
+Not performed before install. The first fix (`d3b888e`) was installed live at 14:43 (+02:00)
+and the identical four-marker, zero-content reply recurred at 14:52 (Mr Janitor) and 14:57
+(Jared). That is the follow-up below.
+
+## Follow-up 2026-09-19 14:52 — the first fix did not hold
+
+### Reproduction matrix
+
+| # | Layer | Evidence | Verdict |
+|---|---|---|---|
+| G | Fix not installed | `md5` of live `~/.omp/agent/extensions/adaptive-router/{index,health,state,runtime}.ts` == repo HEAD `c4758a2`; install mtime 14:43, failures 14:52/14:57. | **DISPROVED** |
+| H | `auto_retry_start` never fires for a 404 | 50 OMP processes in `~/.omp/logs/omp.2026-09-19.*.log` hit the trinity 404 today; **0** of them logged any `auto_retry_start`/`retry_fallback_applied`/fallback line. Every one goes `agent turn ended with provider error` → `agent_end maintenance routing stopReason=error` → `Session exit recorded`. OMP 18.2.6 `isRetryableError` (strings of the compiled binary): `if (n >= 400 && n < 500) return false` after the 408/429 check, and its non-retryable regex includes `not found`. The retry engine is never entered, so the handler the first fix hooked never runs. Its regression test synthesised an `auto_retry_start` 404 event OMP never emits. | **CONFIRMED — root cause 1** |
+| I | `agent_end` records the error turn as a success | `index.ts` `agent_end` handler called `state.recordSuccess(key)` unconditionally; OMP delivers the full message list to extensions and the last assistant message carries `stopReason: "error"`, `errorMessage`, `errorStatus`, `provider`, `model` (`logProviderTurnError`, same object). Reproduced in-repo: after an error-turn `agent_end`, the dead route's record was `{lastSuccessAt, updatedAt}`. | **CONFIRMED — root cause 1, mechanism** |
+| J | `state.json` last-writer-wins | `RouterStateStore.save()` wrote the whole in-memory `routes` map loaded once at `session_start`; every long-lived session saves on every `agent_end`. Live: no trinity entry at all despite 50 logged 404s, while the file's mtime moved every few minutes (14:58, 15:02, …) from unrelated sessions on `anthropic/*`. Would erase any cooldown fix H/I records. | **CONFIRMED — would defeat the fix** |
+| K | `isPermanentModelError` length bound | Live loop with the fixed handler: `bytedance-seed/dola-seed-2.0-pro:free` 404d six times in a row and only got `lastFailureAt`. `/model.{0,40}(does not exist|not found)/` — the quoted id plus spaces is 41 chars. | **CONFIRMED — root cause 2** |
+| L | Catalog drift is wide | `omp models --json` lists 52 `kilo/*:free` ids; Kilo's live `/api/gateway/models` serves 20; **32 are dead**, at least 5 of them rank above the first live free route. Multica gives a turn 4 fresh attempts. With a 15-minute cooldown that is one dead turn every 15 minutes, forever. | **CONFIRMED — why 15 min could not work** |
+
+### Fix
+
+- `extension/index.ts` `agent_end`: find the last assistant message; on `stopReason: "error"` classify `errorMessage` (permanent model error → cooldown; rate/quota → `cooldownFromRetry`; else `recordFailure`) and announce `[omp:pmr] <route> failed; cooled down <n> (<error>)` on the same notify channel as the switch marker. Never `recordSuccess` an error turn. Route key is taken from the message's own `provider`/`model`.
+- `extension/state.ts` `save()`: re-read the file and merge per route, newest `updatedAt` wins (telemetry snapshot: newest `fetchedAt`); the `garbageCollect` sweep is remembered and re-applied after the merge so collected keys are not resurrected from a peer's older copy.
+- `extension/health.ts`: `isPermanentModelError` anchors on the phrase, not a 40-char budget; `PERMANENT_MODEL_ERROR_COOLDOWN_MS` 15 min → 24 h (the store's GC window).
+- `extension/runtime.ts`: `failureMarker`.
+
+Tests (RED on `c4758a2`, GREEN after): `error-turn-cooldown.test.ts` (error-turn `agent_end` → cooldown, second process picks another route; unclassified error → failure without success stamp), `state-concurrent-save.test.ts` (stale peer save preserves the other process's cooldown; newer per-route record wins), `health.test.ts` (long quoted model ids). Full suite 121/121, `test:sim` 5/5.
+
+### Live proof (this fix)
+
+Run against the real Kilo gateway with the worktree extension only, isolated from the live install and its state (`omp -p --no-extensions -e <worktree>/extension/index.ts --model pmr/free "Reply with exactly: PONG"`), starting from `{"routes":{}}`:
+
+```
+attempt 1: 404 arcee-ai/trinity-large-preview:free       -> cooled 24h
+attempt 2: 404 arcee-ai/trinity-large-thinking:free      -> cooled 24h
+attempt 3: 404 baidu/cobuddy:free                        -> cooled 24h
+attempt 4: 404 baidu/qianfan-ocr-fast:free               -> cooled 24h
+attempt 5: 404 bytedance-seed/dola-seed-2.0-pro:free     -> cooled 24h
+attempt 6: PONG   (kilo/cohere/north-mini-code:free, lastSuccessAt recorded)
+next fresh process: PONG
+```
+
+Before fix K the loop sat on `dola-seed-2.0-pro:free` for 6 consecutive processes. Before fix H/I (= live `c4758a2`) it sat on `trinity-large-preview:free` for 50.
+
+### Still open
+
+- **B (bridge notify/content conflation)** — unchanged, still a human decision. The failure marker makes a marker-only turn *say why*, it does not make the bridge report it as an error.
+- **Catalog drift (L)** — the router now learns dead routes one failed turn each and remembers them for a day. Filtering `kilo/*` candidates against Kilo's live `/api/gateway/models` up front would remove even those first failures, but that is a new telemetry source (`AGENTS.md` · must ask).
+- **Multica's 4 attempts per turn** — each is a fresh OMP process; from a cold state the first turn after install still burns its 4 attempts on dead routes and fails once. Pre-warming the live `state.json` (run the loop above against the installed extension path once) avoids that.

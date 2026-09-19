@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { evaluateRouteHealth } from '../health.ts';
+import { evaluateRouteHealth, isPermanentModelError } from '../health.ts';
 import { normalizeOmpUsage, parseCodexBarRows } from '../telemetry.ts';
 
 test('all exhausted subscription credentials cooldown only until earliest credential becomes usable', () => {
@@ -78,4 +78,16 @@ test('runtime cooldown honors retry timing stated in the error text when OMP swi
   const { cooldownFromRetry } = await import('../health.ts');
   const h = cooldownFromRetry('429 rate limit exceeded; retry after 120 seconds', 0, 1000);
   assert.equal(h?.cooldownUntil, 121000);
+});
+
+// Kilo's gateway quotes the full model id between "model" and "does not exist". Ids are
+// arbitrary length: `bytedance-seed/dola-seed-2.0-pro:free` put 41 chars in that gap and
+// slipped past a 40-char bound live (2026-09-19 15:08, six identical 404s, no cooldown).
+test('a "model does not exist" rejection is permanent regardless of how long the quoted model id is', () => {
+  for (const id of ['arcee-ai/trinity-large-preview:free', 'bytedance-seed/dola-seed-2.0-pro:free', 'x-ai/grok-code-fast-1:optimized:free', 'a'.repeat(120)]) {
+    const message = `404 The requested model '${id}' does not exist. Please use an exact model id as listed on /api/gateway/models.`;
+    assert.ok(isPermanentModelError(message), `not classified as permanent for id length ${id.length}`);
+  }
+  assert.ok(!isPermanentModelError('429 rate limit exceeded, retry after 30s'));
+  assert.ok(!isPermanentModelError('400 Bad Request: messages must not be empty'));
 });
