@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SKIP_WARMUP="${ADAPTIVE_ROUTER_SKIP_WARMUP:-0}"
+for arg in "$@"; do
+  if [[ "$arg" == "--skip-warmup" ]]; then SKIP_WARMUP=1; fi
+done
+
 OMP_BIN="${OMP_BIN:-omp}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -160,4 +165,32 @@ Each one will keep overwriting $DEST/state.json with its stale in-memory snapsho
 its own schedule until it is restarted -- this can silently undo this install. Restart
 or kill these processes now; do not rely on redeploying files alone.
 WARN
+fi
+
+# Follow-up 3 (docs/investigations/multica-repeated-switch-marker.md): Kilo's free-tier
+# catalog can have several dead ids ranked ahead of the first live one (5 observed live
+# 2026-09-19). Multica caps a turn at a handful of attempts, so the FIRST real turn after
+# any cold/wiped state.json burns its whole budget learning dead routes one at a time and
+# never reaches a live model -- correct cooldown code cannot help within a single turn's
+# attempt budget. Pre-warming here (or after any future state.json wipe) means the first
+# real turn starts from already-learned cooldowns instead of a cold ladder.
+if [[ "$SKIP_WARMUP" != "1" ]]; then
+  echo ""
+  echo "Warming up pmr/free (learns any dead free-tier routes before the first real turn)..."
+  WARMUP_ATTEMPTS=0
+  WARMUP_MAX_ATTEMPTS=10
+  WARMUP_ANSWERED=0
+  while [[ "$WARMUP_ATTEMPTS" -lt "$WARMUP_MAX_ATTEMPTS" ]]; do
+    WARMUP_ATTEMPTS=$((WARMUP_ATTEMPTS + 1))
+    WARMUP_OUT="$("$OMP_BIN" -p --model pmr/free "Reply with exactly: PONG" 2>&1)" || true
+    if printf '%s' "$WARMUP_OUT" | grep -q 'PONG'; then
+      WARMUP_ANSWERED=1
+      break
+    fi
+  done
+  if [[ "$WARMUP_ANSWERED" == "1" ]]; then
+    echo "Warm-up done after $WARMUP_ATTEMPTS attempt(s): pmr/free answered."
+  else
+    echo "Warm-up did not get a live answer within $WARMUP_MAX_ATTEMPTS attempts -- check /route-status." >&2
+  fi
 fi
