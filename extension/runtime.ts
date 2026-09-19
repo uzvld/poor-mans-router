@@ -30,6 +30,15 @@ export function pressureMessage(pressure: ResourcePressure): string | undefined 
   return undefined;
 }
 
+/**
+ * One-line switch marker for the session transcript, in the same `[omp:<tag>]` shape hosts
+ * use for tool calls. Delivered through `ctx.ui.notify`, which OMP forwards to RPC hosts as
+ * `extension_ui_request{method:"notify"}`; hosts opt `[omp:`-prefixed messages into output.
+ */
+export function switchMarker(from: string, to: string, reason?: string): string {
+  return `[omp:router] ${from} -> ${to} (${reason && reason.length > 0 ? reason : 'routing decision'})`;
+}
+
 export function allowDrainingForTier(tier: Tier): boolean {
   // Frontier is the first class of new work denied access to scarce/degraded capacity.
   // Balanced can keep using degraded routes long enough to finish useful work; small lasts longest.

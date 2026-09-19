@@ -19,6 +19,7 @@ import {
   latestSessionIdentity,
   pressureForSelection,
   pressureMessage,
+  switchMarker,
   normalizeRuntimeSelector,
   shouldRouteBeforeAgentStart,
   retryRoutingPolicy,
@@ -197,6 +198,16 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     logger.info('adaptive-router started', { models: ctx.models.list().length });
   });
 
+  // A successful router switch is announced in the transcript; a host without a UI
+  // surface (or a notify that throws) must never turn a routing decision into a failed turn.
+  function announceSwitch(ctx: any, from: string, to: string, reason?: string): void {
+    try {
+      ctx.ui?.notify?.(switchMarker(from, to, reason), 'info');
+    } catch (error) {
+      logger.warn('adaptive-router could not announce model switch', { error: String(error) });
+    }
+  }
+
   pi.on('before_agent_start', async (_event: any, ctx: any) => {
     if (!shouldRouteBeforeAgentStart(retryActive)) return undefined;
     try {
@@ -213,6 +224,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
         if (target && currentKey !== selection.route.key) {
           const changed = await pi.setModel(target);
           if (!changed) logger.warn('adaptive-router could not switch model', { selector: selection.route.selector });
+          else announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
         }
         lastRoutedSelector = selection.route.key;
       }
