@@ -14,6 +14,7 @@ function harness(models: any[], currentModel: any) {
     setLabel() {},
     on(name: string, handler: Function) { handlers.set(name, [...(handlers.get(name) ?? []), handler]); },
     registerCommand() {},
+    registerProvider() {},
     async exec() { return { code: 1, stdout: '', stderr: '' }; },
     async setModel(m: any) { setModelCalls.push(m); return true; },
     logger: { info() {}, warn() {}, debug() {} },
