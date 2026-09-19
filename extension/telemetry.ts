@@ -22,6 +22,8 @@ export interface CodexBarUsage {
   /** Which window kind vetoed: a refilling `allowance` or a top-up-only `balance`. */
   exhaustionScope?: 'allowance' | 'balance';
   draining: boolean;
+  /** Which window kind forecast the drain: `allowance` or `balance`. */
+  drainingScope?: 'allowance' | 'balance';
   blockedUntil?: number;
   paidBalanceUsd?: number;
   paidBalanceKnown: boolean;
@@ -82,10 +84,14 @@ export function normalizeOmpUsage(raw: any): OmpCredentialUsage[] {
   });
 }
 
-function codexBarWindows(usage: any): any[] {
-  const out = [usage?.primary, usage?.secondary, usage?.tertiary].filter(Boolean);
-  for (const extra of usage?.extraRateWindows ?? []) {
-    if (extra?.window) out.push(extra.window);
+/** Windows keep their key, because `usage.pace` is keyed by the same names. */
+function codexBarWindows(usage: any): Array<{ window: any; name: string }> {
+  const out: Array<{ window: any; name: string }> = [];
+  for (const name of ['primary', 'secondary', 'tertiary']) {
+    if (usage?.[name]) out.push({ window: usage[name], name });
+  }
+  for (const [index, extra] of (usage?.extraRateWindows ?? []).entries()) {
+    if (extra?.window) out.push({ window: extra.window, name: String(extra.name ?? `extra${index}`) });
   }
   return out;
 }
@@ -138,12 +144,13 @@ export function normalizeCodexBarProvider(row: any, now = Date.now()): CodexBarU
   // pass is the normal state while credits remain and must not veto the provider;
   // an empty balance vetoes, but there is no reset date to wait for.
   const windows = codexBarWindows(row.usage)
-    .map((w: any) => ({
+    .map(({ window: w, name }) => ({
+      name,
       usedPercent: asNumber(w?.usedPercent),
       resetsAt: typeof w?.resetsAt === 'string' ? Date.parse(w.resetsAt) : asNumber(w?.resetsAt),
     }))
-    .filter((w: any) => w.usedPercent !== undefined)
-    .map((w: any) => ({
+    .filter((w) => w.usedPercent !== undefined)
+    .map((w) => ({
       ...w,
       scope: typeof w.resetsAt === 'number' && Number.isFinite(w.resetsAt) ? 'allowance' : 'balance',
     }));
@@ -162,8 +169,19 @@ export function normalizeCodexBarProvider(row: any, now = Date.now()): CodexBarU
     .map((w: any) => w.resetsAt)
     .filter((x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > now);
 
-  const paceRows = Object.values(row?.pace ?? {}) as any[];
-  const draining = paceRows.some((p) => p?.willLastToReset === false);
+  // A pace forecast answers "will this window last to its reset?", so it is only
+  // meaningful for the window that carries capacity — same rule as exhaustion. A
+  // spent monthly allowance forecasting badly is accounting, not the provider
+  // running dry, while credits remain.
+  const capacityScope: 'balance' | 'allowance' = balanceWindows.length ? 'balance' : 'allowance';
+  const capacityNames = new Set(
+    windows.filter((w: any) => w.scope === capacityScope).map((w: any) => w.name),
+  );
+  const pace = Object.entries(row?.pace ?? {}) as Array<[string, any]>;
+  const drainingNames = pace
+    .filter(([name, p]) => p?.willLastToReset === false && capacityNames.has(name))
+    .map(([name]) => name);
+  const draining = drainingNames.length > 0;
   const balance = balanceFromUsage(row.usage);
 
   return {
@@ -172,6 +190,7 @@ export function normalizeCodexBarProvider(row: any, now = Date.now()): CodexBarU
     exhausted: vetoing.length > 0,
     exhaustionScope: vetoing.length ? (balanceWindows.length ? 'balance' : 'allowance') : undefined,
     draining,
+    drainingScope: draining ? capacityScope : undefined,
     blockedUntil: resetCandidates.length ? Math.max(...resetCandidates) : undefined,
     paidBalanceUsd: balance.value,
     paidBalanceKnown: balance.known,
