@@ -93,8 +93,17 @@ function bestComparator(a: NormalizedRoute, b: NormalizedRoute, currentKey?: str
   return a.key.localeCompare(b.key);
 }
 
+// Free-quota routes are metered by request count, not tokens or dollars: a model that
+// finishes agentic tasks in fewer turns is worth more than one that is merely popular.
+// Leads on the raw agentic-completion benchmark, then defers to the exact same
+// reliability/latency/cost/affinity/generation/lexical chain as bestComparator.
+function valueComparator(a: NormalizedRoute, b: NormalizedRoute, currentKey?: string): number {
+  if (a.agenticScore !== b.agenticScore) return b.agenticScore - a.agenticScore;
+  return bestComparator(a, b, currentKey);
+}
 
-export type RoutePreference = 'quality' | 'speed';
+
+export type RoutePreference = 'quality' | 'speed' | 'value';
 
 function speedComparator(a: NormalizedRoute, b: NormalizedRoute): number {
   const aHasLatency = typeof a.latencyMs === 'number' && Number.isFinite(a.latencyMs);
@@ -115,9 +124,9 @@ function speedComparator(a: NormalizedRoute, b: NormalizedRoute): number {
 }
 
 function preferenceComparator(preference: RoutePreference, currentKey?: string) {
-  return preference === 'speed'
-    ? speedComparator
-    : (a: NormalizedRoute, b: NormalizedRoute) => bestComparator(a, b, currentKey);
+  if (preference === 'speed') return speedComparator;
+  if (preference === 'value') return (a: NormalizedRoute, b: NormalizedRoute) => valueComparator(a, b, currentKey);
+  return (a: NormalizedRoute, b: NormalizedRoute) => bestComparator(a, b, currentKey);
 }
 
 function cheapestThenBest(routes: NormalizedRoute[], currentKey?: string): NormalizedRoute | undefined {
@@ -283,6 +292,7 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
       price: model.cost ?? {},
       health,
       qualityScore: qualityFromIntel(intel, reliabilityScore),
+      agenticScore: intel?.agentic ?? 0.5,
       reliabilityScore,
       latencyMs: history?.ttftMs,
       throughput: history?.throughput,

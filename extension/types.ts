@@ -30,6 +30,7 @@ export interface NormalizedRoute {
   price: PriceVector;
   health: RouteHealth;
   qualityScore: number;
+  agenticScore: number;
   reliabilityScore: number;
   latencyMs?: number;
   throughput?: number;

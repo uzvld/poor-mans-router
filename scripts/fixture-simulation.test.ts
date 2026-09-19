@@ -61,6 +61,15 @@ test('snapshot: every tier lands on a healthy Anthropic subscription class, not 
   }
 });
 
+test('snapshot: free tier value preference matches quality when no OpenRouter intel is available (no regression)', () => {
+  const routes = routesFromSnapshot();
+  const value = selectForTier(routes, DEFAULT_POLICY.tiers.free.classes, { allowDraining: true, preference: 'value' });
+  const quality = selectForTier(routes, DEFAULT_POLICY.tiers.free.classes, { allowDraining: true, preference: 'quality' });
+  assert.equal(value?.route.key, quality?.route.key);
+  assert.equal(value?.route.free, true);
+  assert.equal(value?.route.health.state, 'AVAILABLE');
+});
+
 test('snapshot: with Anthropic removed, the ladder degrades gracefully to the free tail', () => {
   const routes = routesFromSnapshot().filter((r) => r.provider !== 'anthropic');
   const frontier = selectForTier(routes, DEFAULT_POLICY.tiers.frontier.classes, { allowDraining: false });

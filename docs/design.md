@@ -461,6 +461,18 @@ If cheap routes are unavailable or repeatedly fail, ignore price as the leading 
 
 This is the survival path, not the normal operating path.
 
+### 10.1 Free tier: value preference (agentic-first)
+
+Free-quota routes are metered by request count, not tokens or dollars: a model that
+needs fewer follow-up turns to finish a task is worth more than one that is merely
+popular. Within an already-eligible free class (Stage A/B/C above still apply
+unchanged), the `free` tier's in-class comparator leads on the raw OpenRouter
+agentic-completion benchmark score (`agentic_index`, §14) instead of the
+popularity-blended `qualityScore`, then falls through to the identical
+reliability → latency → cost → affinity → generation → lexical chain used by every
+other tier. This changes which model wins inside an already-eligible free class only;
+it does not change class order (§9) or health gating (§6–8).
+
 ## 11. Cost / "best effort per buck"
 
 ### 11.1 Subscription/free marginal cost

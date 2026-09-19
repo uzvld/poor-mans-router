@@ -182,7 +182,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       policy.tiers[mode].classes,
       {
         allowDraining: allowDrainingForTier(mode),
-        preference: mode === 'small' ? 'speed' : 'quality',
+        preference: mode === 'small' ? 'speed' : mode === 'free' ? 'value' : 'quality',
         // Same-family affinity for the model the session is already on (scoped tie-break only).
         currentKey: modelKey(ctx.models.current()),
       },
