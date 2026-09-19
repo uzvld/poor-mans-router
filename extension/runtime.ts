@@ -47,6 +47,17 @@ export function holdMarker(current: string, wanted: string, reason?: string): st
   return `[omp:pmr] switch held: staying on ${current} instead of ${wanted} (${why})`;
 }
 
+/**
+ * Failed-route marker, same `[omp:pmr]` channel. A turn OMP does not retry (4xx other than
+ * 408/429) ends with nothing but the switch marker in the transcript; the reader must be
+ * told the route failed and that the router has stopped selecting it.
+ */
+export function failureMarker(route: string, cooldownMs: number | undefined, reason: string): string {
+  const minutes = cooldownMs && cooldownMs > 0 ? Math.ceil(cooldownMs / 60_000) : 0;
+  const action = minutes === 0 ? 'failure recorded' : minutes >= 60 ? `cooled down ${Math.ceil(minutes / 60)}h` : `cooled down ${minutes}m`;
+  return `[omp:pmr] ${route} failed; ${action} (${reason})`;
+}
+
 export function allowDrainingForTier(tier: Tier): boolean {
   // Frontier is the first class of new work denied access to scarce/degraded capacity.
   // Balanced can keep using degraded routes long enough to finish useful work; small lasts longest.

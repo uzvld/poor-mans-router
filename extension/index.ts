@@ -20,6 +20,7 @@ import {
   pressureMessage,
   switchMarker,
   holdMarker,
+  failureMarker,
   normalizeRuntimeSelector,
   shouldRouteBeforeAgentStart,
   retryRoutingPolicy,
@@ -418,11 +419,46 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     lastRetryFrom = undefined;
   });
 
-  pi.on('agent_end', async (_event: any, ctx: any) => {
-    const key = modelKey(ctx.models.current()) ?? lastRoutedSelector;
+  // The only hook that observes a failure OMP does not retry. OMP 18.2.6 `isRetryableError`
+  // returns false for every 4xx except 408/429 (and its non-retryable wording includes
+  // "not found"), so a 404 "model does not exist" never reaches `auto_retry_start`: the turn
+  // ends with the assistant message carrying `stopReason: "error"` + `errorMessage`, and
+  // that message is what arrives here. Recording it as a success (2026-09-19 14:52/14:57
+  // live incident, after d3b888e was installed) keeps a dead route AVAILABLE forever.
+  pi.on('agent_end', async (event: any, ctx: any) => {
+    const messages: any[] = Array.isArray(event?.messages) ? event.messages : [];
+    let last: any;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i]?.role === 'assistant') { last = messages[i]; break; }
+    }
+    const key = (last?.provider && last?.model ? `${last.provider}/${last.model}` : undefined)
+      ?? modelKey(ctx.models.current())
+      ?? lastRoutedSelector;
     if (!key) return;
-    state.recordSuccess(key);
+
+    if (last?.stopReason !== 'error') {
+      state.recordSuccess(key);
+      state.save();
+      return;
+    }
+
+    const message = String(last.errorMessage ?? '');
+    const now = Date.now();
+    const cooldown = cooldownFromPermanentModelError(message, now) ?? cooldownFromRetry(message, undefined, now);
+    if (cooldown?.cooldownUntil) {
+      state.markCooldown(key, cooldown.cooldownUntil, cooldown.reason ?? 'provider error', cooldown.lastFailureAt);
+    } else {
+      state.recordFailure(key, now);
+    }
     state.save();
+    try {
+      ctx.ui?.notify?.(
+        failureMarker(key, cooldown?.cooldownUntil ? cooldown.cooldownUntil - now : undefined, message.slice(0, 160) || 'provider error'),
+        'warn',
+      );
+    } catch (error) {
+      logger.warn('pmr could not announce the failed route', { error: String(error) });
+    }
   });
 
   pi.registerCommand('route-status', {

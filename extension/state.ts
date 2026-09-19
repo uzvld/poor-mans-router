@@ -21,31 +21,61 @@ interface PersistedState {
   telemetry?: TelemetrySnapshot & { fetchedAt: number };
 }
 
+function stampOf(state: StoredRouteState): number {
+  return state.updatedAt ?? state.lastFailureAt ?? state.lastSuccessAt ?? 0;
+}
+
 export class RouterStateStore {
   private routes: Record<string, StoredRouteState> = {};
   private telemetrySnapshot: (TelemetrySnapshot & { fetchedAt: number }) | undefined;
   private readonly filename: string;
+  // Remembered so `save()` can re-apply the sweep after merging: a key this process already
+  // collected must not be resurrected from a peer's older on-disk copy.
+  private gc: { currentRoutes: Set<string>; maxAgeMs: number } | undefined;
 
   constructor(filename: string) {
     this.filename = filename;
   }
 
-  load(): void {
+  private read(): PersistedState {
     try {
       const raw = JSON.parse(fs.readFileSync(this.filename, 'utf8'));
-      this.routes = raw && typeof raw.routes === 'object' && raw.routes ? raw.routes : {};
+      const routes = raw && typeof raw.routes === 'object' && raw.routes ? raw.routes : {};
       const cached = raw?.telemetry;
-      this.telemetrySnapshot = cached && typeof cached.fetchedAt === 'number'
+      const telemetry = cached && typeof cached.fetchedAt === 'number'
         && Array.isArray(cached.ompReports) && Array.isArray(cached.codexbar)
         ? cached
         : undefined;
+      return telemetry ? { routes, telemetry } : { routes };
     } catch {
-      this.routes = {};
-      this.telemetrySnapshot = undefined;
+      return { routes: {} };
     }
   }
 
+  load(): void {
+    const disk = this.read();
+    this.routes = disk.routes;
+    this.telemetrySnapshot = disk.telemetry;
+  }
+
+  /**
+   * Every OMP process on the machine shares this file -- the fresh one Multica spawns per
+   * attempt and any long-lived interactive session -- and each loaded it once at
+   * session_start. Writing the in-memory map back verbatim lets the stalest process erase
+   * whatever its peers recorded since (a cooldown, most damagingly). Merge per route
+   * instead, newest record wins; same for the telemetry snapshot.
+   */
   save(): void {
+    const disk = this.read();
+    for (const [key, theirs] of Object.entries(disk.routes)) {
+      const ours = this.routes[key];
+      if (!ours || stampOf(theirs) > stampOf(ours)) this.routes[key] = theirs;
+    }
+    if (disk.telemetry && (!this.telemetrySnapshot || disk.telemetry.fetchedAt > this.telemetrySnapshot.fetchedAt)) {
+      this.telemetrySnapshot = disk.telemetry;
+    }
+    if (this.gc) this.sweep(this.gc.currentRoutes, Date.now(), this.gc.maxAgeMs);
+
     fs.mkdirSync(path.dirname(this.filename), { recursive: true });
     const tmp = `${this.filename}.tmp`;
     const state: PersistedState = { routes: this.routes };
@@ -104,10 +134,14 @@ export class RouterStateStore {
   }
 
   garbageCollect(currentRoutes: Set<string>, now = Date.now(), maxAgeMs = 24 * 60 * 60_000): void {
+    this.gc = { currentRoutes, maxAgeMs };
+    this.sweep(currentRoutes, now, maxAgeMs);
+  }
+
+  private sweep(currentRoutes: Set<string>, now: number, maxAgeMs: number): void {
     for (const [key, state] of Object.entries(this.routes)) {
       if (currentRoutes.has(key)) continue;
-      const updatedAt = state.updatedAt ?? state.lastFailureAt ?? state.lastSuccessAt ?? 0;
-      if (now - updatedAt > maxAgeMs) delete this.routes[key];
+      if (now - stampOf(state) > maxAgeMs) delete this.routes[key];
     }
   }
 }

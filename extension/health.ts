@@ -217,10 +217,17 @@ export function cooldownFromRetry(message: string, delayMs: number | undefined, 
 // identical dead route on every fresh process forever (2026-09-19 live incident:
 // `docs/investigations/multica-repeated-switch-marker.md`).
 export function isPermanentModelError(message: string): boolean {
-  return /model.{0,40}(does not exist|not found)|no such model|unknown model|invalid model ?id/i.test(message);
+  // The quoted model id sits between "model" and the verdict and has no length bound
+  // (`bytedance-seed/dola-seed-2.0-pro:free` is 41 chars with quotes; ids get longer).
+  return /model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id/i.test(message);
 }
 
-const PERMANENT_MODEL_ERROR_COOLDOWN_MS = 15 * 60_000;
+// Catalog drift does not heal in minutes: on 2026-09-19 32 of the 52 `kilo/*:free` ids in
+// OMP's catalog were absent from Kilo's live gateway, at least 5 of them ranked above the
+// first live free route, and Multica gives a turn 4 fresh attempts. With a 15-minute
+// cooldown that is one dead turn every 15 minutes, forever. One day matches the state
+// store's GC window; a re-added model is picked up again the next day.
+const PERMANENT_MODEL_ERROR_COOLDOWN_MS = 24 * 60 * 60_000;
 
 export function cooldownFromPermanentModelError(message: string, now = Date.now()): LocalRouteState | undefined {
   if (!isPermanentModelError(message)) return undefined;
