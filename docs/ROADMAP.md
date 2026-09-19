@@ -4,8 +4,9 @@ Ordered. Each item links to the evidence that put it here. Do not start an item 
 
 ## Open
 
-### 1. BUG C — context loss on model switch
-**Status:** not investigated. A systematic-debugging matrix is specified (cases 0–7: direct OMP switch with router disabled, router `pi.setModel`, native 429 fallback, Multica model-field change, same-provider vs cross-provider). The deliverable is a root-cause report with session/branch identity and provider-payload traces before and after the switch. **No fix until the losing layer is proven.**
+### 1. BUG C — context loss on model switch — ROOT CAUSE PROVEN, fix is outside this repo
+**Status:** investigated across 7 cases with provider-payload tracing (`tools/context-tracer/`). The hypothesised loss (switch resets/omits history) **does not reproduce** for direct switch, `pi.setModel`, native 429 fallback, cross-provider, 1M→32k shrink, or Multica same-file re-spawn. The real loss is **OMP OpenAI remote compaction**: on a Responses-API provider OMP stores provider-native `replacementHistory` and a one-line placeholder summary; after a switch to any non-Responses model the placeholder is all the new model sees. Proven in a real 3,300-entry session (4 remote compactions, 250–300k tokens each → 933-char placeholder). See `docs/investigations/bug-c-context-loss-root-cause.md`.
+**Fix boundary:** OMP config (`compaction.remoteEnabled: false`) or OMP core — **not adaptive-router**. Router-side follow-up (guard only, not a fix): warn/refuse `setModel` away from a Responses-API provider when the branch's newest compaction is `method: "remote"`.
 
 ### 2. Deploy lock
 Installs and rollbacks must be single-writer. Proposed: atomic `mkdir` of `$(omp config path)/extensions/.adaptive-router-deploy.lock` containing `{pid, session, started_at}`, stale-lock reclaim after N minutes, and the installer refusing to run while it exists. Motivated by a replayed-turn incident where two runs of one session both deployed.
