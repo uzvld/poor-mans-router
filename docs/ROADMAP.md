@@ -11,8 +11,12 @@ Ordered. Each item links to the evidence that put it here. Do not start an item 
 ### 2. Deploy lock
 Installs and rollbacks must be single-writer. Proposed: atomic `mkdir` of `$(omp config path)/extensions/.adaptive-router-deploy.lock` containing `{pid, session, started_at}`, stale-lock reclaim after N minutes, and the installer refusing to run while it exists. Motivated by a replayed-turn incident where two runs of one session both deployed.
 
-### 3. FOLLOWUP-T1 — scoped CodexBar pace
-`telemetry.ts` still collapses all pace windows into one provider-wide boolean via `.some()`. Harmless while OMP reports on the provider (I2), but for providers with **no** OMP usage report it can still yield an over-broad `DRAINING`. Fix: carry per-window pace with its scope and let `health.ts` match window to route.
+### 3. CodexBar windows lose their scope — exhaustion and pace both collapse
+Two faces of one defect in `telemetry.ts` normalisation:
+- **Exhaustion** (`telemetry.ts:152`, `exhausted: exhaustedWindows.length > 0`): any window at 100 % vetoes **every** route of the provider. Observed live on kilo — a spent paid wallet (`secondary`, 100 %) put all kilo routes in `COOLDOWN` until 2026-10-17 while the plan credit pool (`primary`) still had 31 % left and kilo was demonstrably serving requests. See `docs/investigations/finding-codexbar-window-collapse.md`. Latent today (the balanced ladder prefers `sonnet-sub`), harmful under Anthropic pressure.
+- **Pace** (FOLLOWUP-T1, `telemetry.ts:146`, `.some()`): collapses all pace windows into one provider-wide boolean. Harmless while OMP reports on the provider (I2), but for providers with **no** OMP usage report it can yield an over-broad `DRAINING`.
+
+Fix for both: carry each window with its scope through `CodexBarUsage` and let `health.ts` match window → route economics. Requires a policy decision first (see the open questions in the finding) — it changes which routes are eligible under real quota pressure.
 
 ### 4. 429 / fallback and PAYG-vs-free routing
 Deferred until BUG C. Includes verifying that a native fallback request carries the full prior history and that a PAYG route is never chosen over an equivalent healthy subscription.
