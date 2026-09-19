@@ -19,6 +19,8 @@ export interface CodexBarUsage {
   provider: string;
   telemetryAvailable: boolean;
   exhausted: boolean;
+  /** Which window kind vetoed: a refilling `allowance` or a top-up-only `balance`. */
+  exhaustionScope?: 'allowance' | 'balance';
   draining: boolean;
   blockedUntil?: number;
   paidBalanceUsd?: number;
@@ -130,15 +132,33 @@ export function normalizeCodexBarProvider(row: any, now = Date.now()): CodexBarU
     };
   }
 
+  // A window with a reset time is an allowance that refills on its own (Codex 5h /
+  // weekly, Anthropic). A window without one is a prepaid balance that only a manual
+  // top-up refills. Kilo's monthly pass is itself a top-up with a bonus, so a spent
+  // pass is the normal state while credits remain and must not veto the provider;
+  // an empty balance vetoes, but there is no reset date to wait for.
   const windows = codexBarWindows(row.usage)
     .map((w: any) => ({
       usedPercent: asNumber(w?.usedPercent),
       resetsAt: typeof w?.resetsAt === 'string' ? Date.parse(w.resetsAt) : asNumber(w?.resetsAt),
     }))
-    .filter((w: any) => w.usedPercent !== undefined);
+    .filter((w: any) => w.usedPercent !== undefined)
+    .map((w: any) => ({
+      ...w,
+      scope: typeof w.resetsAt === 'number' && Number.isFinite(w.resetsAt) ? 'allowance' : 'balance',
+    }));
 
-  const exhaustedWindows = windows.filter((w: any) => (w.usedPercent ?? 0) >= 100);
-  const resetCandidates = exhaustedWindows
+  const spent = (w: { usedPercent?: number }) => (w.usedPercent ?? 0) >= 100;
+  const balanceWindows = windows.filter((w: any) => w.scope === 'balance');
+  const allowanceWindows = windows.filter((w: any) => w.scope === 'allowance');
+
+  // Capacity lives in the balance when the provider exposes one; allowances are then
+  // accounting only. With no balance window the allowances are the capacity.
+  const vetoing = balanceWindows.length
+    ? (balanceWindows.every(spent) ? balanceWindows.filter(spent) : [])
+    : allowanceWindows.filter(spent);
+
+  const resetCandidates = vetoing
     .map((w: any) => w.resetsAt)
     .filter((x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > now);
 
@@ -149,7 +169,8 @@ export function normalizeCodexBarProvider(row: any, now = Date.now()): CodexBarU
   return {
     provider,
     telemetryAvailable: true,
-    exhausted: exhaustedWindows.length > 0,
+    exhausted: vetoing.length > 0,
+    exhaustionScope: vetoing.length ? (balanceWindows.length ? 'balance' : 'allowance') : undefined,
     draining,
     blockedUntil: resetCandidates.length ? Math.max(...resetCandidates) : undefined,
     paidBalanceUsd: balance.value,

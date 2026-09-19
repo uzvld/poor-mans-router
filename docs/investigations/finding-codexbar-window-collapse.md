@@ -1,9 +1,9 @@
 # FINDING — CodexBar exhaustion collapses independent quota windows
 
 **Found:** 2026-09-19, during live verification of the virtual-model routing install (OMP 18.2.6, installed extension, unmodified).
-**Status:** NOT FIXED. Policy decision required — this touches `health.ts`/`telemetry.ts` exhaustion semantics, which `AGENTS.md` puts behind a human decision.
-**Impact today:** latent. The balanced ladder picks `sonnet-sub` before any kilo class, so the wrong verdict changed no decision in the observed session.
-**Impact when it bites:** every kilo route is vetoed for ~a month whenever the paid window is spent, even with plan credits left — so a drained Anthropic subscription would push work to PAYG or free routes instead of a working kilo subscription.
+**Status:** FIXED 2026-09-19 in `telemetry.ts` (window scope) + `health.ts` (truthful reason). The exhaustion half of roadmap item 3 is closed; the pace half (FOLLOWUP-T1) remains open.
+**Resolution:** the human owner clarified the semantics — the Kilo Pass is itself a monthly top-up with a bonus, so both windows describe **one wallet**, not independent scopes: `secondary` is cumulative spend against the pass allowance, `primary` is what remains of the last top-up. Capacity therefore lives in the remaining balance; a consumed allowance is the normal state and must not veto.
+**Impact before the fix:** every kilo route was vetoed for ~a month whenever the pass was spent, even with credits left — a drained Anthropic subscription would have pushed work to PAYG or free routes instead of a working kilo balance. Latent at discovery time only because the balanced ladder prefers `sonnet-sub`.
 
 ## Evidence
 
@@ -52,23 +52,37 @@ The two windows are different scopes: `primary` is the plan's credit pool (31 % 
 
 This is the exhaustion-path twin of open roadmap item 3 (FOLLOWUP-T1), which describes the same collapse on the **pace** path (`.some()` in `telemetry.ts:146`). Both stem from CodexBar windows losing their scope during normalisation.
 
-## Why no fix in this change
+## The fix
 
-Invariant I4 ("quota windows are independent scopes") is currently tested only for OMP-reported windows (`health.test.ts` · "Fable scoped quota"). Extending it to CodexBar windows changes which routes are eligible under real quota pressure — a policy change, not a defect fix with an obvious correct answer. Open questions for the human:
+The distinction is derivable from the data, with no provider allowlist: **a window with a reset time is an allowance that refills on its own; a window without one is a prepaid balance that only a manual top-up refills.**
 
-1. Does a spent `secondary` (paid wallet) window block **paid** kilo routes only, or nothing, while `primary` credits remain?
-2. Is `primary` the authority for subscription-like routes on aggregators, with `secondary` only gating PAYG overage?
-3. Should `blockedUntil` ever come from a window that did not veto the route?
+`telemetry.ts` now tags every window with that scope and picks the vetoing set accordingly:
 
-A fix would carry each window's scope through `CodexBarUsage` (instead of one provider-wide boolean) and let `health.ts` match window → route economics, which is the same refactor FOLLOWUP-T1 needs.
+- the provider exposes a balance window → capacity is the balance; the veto fires only when **every** balance window is spent, and allowance windows are accounting only;
+- no balance window (Codex 5h + weekly, Anthropic) → the allowances *are* the capacity and any spent one vetoes until its reset — unchanged, so I2/I3 and the BUG D fix are untouched;
+- `blockedUntil` is taken only from windows that actually vetoed, so a spent balance no longer borrows the allowance's reset date.
+
+`health.ts` reports `CodexBar prepaid balance exhausted` when the veto came from a balance, instead of claiming a quota reset that does not apply. `CodexBarUsage` carries `exhaustionScope: 'allowance' | 'balance'`.
+
+Verdict change on the live kilo row (same input as above):
+
+```
+before:  COOLDOWN/FRESH until 2026-10-17T09:22:52.000Z  "CodexBar quota exhausted"
+after:   AVAILABLE/FRESH
+```
+
+Guarded by `tests/codexbar-windows.test.ts` (4 tests: pass-spent-with-credits stays usable; empty balance vetoes with no borrowed reset date; all-allowance providers keep the reset-until veto; route-level health and reason text). Mutation-checked: restoring the any-window veto turns 3 of the 4 red. Full suite 89/89, `test:sim` differential replay unchanged.
+
+What is **not** fixed: the pace path (`telemetry.ts`, `draining = paceRows.some(...)`) still collapses pace windows into one provider-wide boolean. That is FOLLOWUP-T1 and stays open in roadmap item 3.
 
 ## Reproduction
 
 ```bash
 cd ~/Projects/poor-mans-router/extension
-# feed the live row above through the installed normaliser
+# the live row above, through the current normaliser
 bun -e 'import {normalizeCodexBarProvider} from "./telemetry.ts";
 console.log(normalizeCodexBarProvider({provider:"kilo",usage:{
   primary:{usedPercent:68.69402},
   secondary:{usedPercent:100,resetsAt:"2026-10-17T09:22:52Z"}}}))'
+# => { exhausted: false, ... }   (before the fix: exhausted true, blockedUntil 2026-10-17)
 ```
