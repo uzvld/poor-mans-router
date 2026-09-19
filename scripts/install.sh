@@ -129,6 +129,17 @@ mv "$STAGING" "$DEST"
 "$OMP_BIN" config set retry.waitForUsageReset false
 "$OMP_BIN" config set task.showResolvedModelBadge true
 
+# Live incident 2026-09-19 (docs/investigations/multica-repeated-switch-marker.md ·
+# Follow-up 2): a long-lived `omp --mode rpc-ui` session loads adaptive-router's code
+# into memory ONCE at its own startup and keeps it there for the life of the process.
+# Its background `refreshLive()` timer still calls `state.save()` on the OLD in-memory
+# code every few minutes -- on any version before the per-route merge (state.ts), that
+# is a plain whole-file overwrite that silently erases every cooldown a freshly-started
+# process (or this install) just recorded, undoing the fix with no error anywhere.
+# Restarting OMP is therefore not optional cleanup -- skip it and the previous binary
+# keeps corrupting the very state this install just fixed.
+STALE_RPC_PIDS="$(pgrep -f 'omp .*--mode[= ]rpc-ui' 2>/dev/null || true)"
+
 cat <<MSG
 Installed adaptive-router to:
   $DEST
@@ -139,3 +150,14 @@ No OpenRouter key was copied or created. The extension reuses OMP's resolved
 Restart OMP, then run /route-status after the first routing decision.
 CodexBar serve mode is optional; the extension falls back to the CodexBar CLI.
 MSG
+
+if [[ -n "$STALE_RPC_PIDS" ]]; then
+  cat <<WARN
+
+WARNING: long-lived 'omp --mode rpc-ui' processes are still running and hold the
+PREVIOUS adaptive-router code in memory (PID(s): $(echo "$STALE_RPC_PIDS" | tr '\n' ' ')).
+Each one will keep overwriting $DEST/state.json with its stale in-memory snapshot on
+its own schedule until it is restarted -- this can silently undo this install. Restart
+or kill these processes now; do not rely on redeploying files alone.
+WARN
+fi

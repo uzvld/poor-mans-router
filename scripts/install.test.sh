@@ -22,6 +22,11 @@ if [[ "${1:-}" == "config" && "${2:-}" == "set" ]]; then
   printf '\n' >> "$TEST_OMP_LOG"
   exit 0
 fi
+if [[ "${1:-}" == "--mode" && "${2:-}" == "rpc-ui" ]]; then
+  # Stand-in for a long-lived rpc-ui session in the stale-process test below.
+  sleep 30
+  exit 0
+fi
 echo "unexpected omp invocation: $*" >&2
 exit 2
 FAKE
@@ -155,5 +160,42 @@ set -e
 [ "$FAIL_STATUS" -ne 0 ]
 printf '%s\n' "$FAIL_OUT" | grep -q 'simulated config set failure'
 [ ! -d "$FAIL_AGENT_DIR/extensions/.adaptive-router-deploy.lock" ]
+
+# --- Stale rpc-ui process warning (Follow-up 2: stale in-memory code silently
+# clobbers state.json via a plain overwrite; a redeploy alone cannot fix an
+# already-running process, so the installer must say so loudly). Shims `pgrep`
+# the same way `omp` is shimmed above: real ambient system processes (this very
+# test run has plenty) must not make these tests flaky.
+
+FAKE_BIN3="$TMP/bin3"
+mkdir -p "$FAKE_BIN3"
+cp "$FAKE_BIN/omp" "$FAKE_BIN3/omp"
+cat > "$FAKE_BIN3/pgrep" <<'FAKEPGREP'
+#!/usr/bin/env bash
+printf '%s\n' "4242"
+FAKEPGREP
+chmod +x "$FAKE_BIN3/pgrep"
+
+FAKE_BIN4="$TMP/bin4"
+mkdir -p "$FAKE_BIN4"
+cp "$FAKE_BIN/omp" "$FAKE_BIN4/omp"
+cat > "$FAKE_BIN4/pgrep" <<'FAKEPGREP2'
+#!/usr/bin/env bash
+exit 1
+FAKEPGREP2
+chmod +x "$FAKE_BIN4/pgrep"
+
+echo "test: a running 'omp --mode rpc-ui' process triggers the stale-code warning"
+WARN_AGENT_DIR="$TMP/warn agent"
+mkdir -p "$WARN_AGENT_DIR"
+WARN_OUT="$(TEST_AGENT_DIR="$WARN_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN3:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+printf '%s\n' "$WARN_OUT" | grep -q 'WARNING: long-lived'
+printf '%s\n' "$WARN_OUT" | grep -q '4242'
+
+echo "test: no running rpc-ui process means no stale-code warning"
+CLEAN2_AGENT_DIR="$TMP/warn agent clean"
+mkdir -p "$CLEAN2_AGENT_DIR"
+CLEAN2_OUT="$(TEST_AGENT_DIR="$CLEAN2_AGENT_DIR" TEST_OMP_LOG="$LOG" PATH="$FAKE_BIN4:$PATH" bash "$ROOT/scripts/install.sh" 2>&1)"
+! printf '%s\n' "$CLEAN2_OUT" | grep -q 'WARNING: long-lived'
 
 echo "install.test.sh: all checks passed"
