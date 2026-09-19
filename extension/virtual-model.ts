@@ -1,5 +1,5 @@
 /**
- * Virtual `router/*` models: the only opt-in surface for managed routing.
+ * Virtual `pmr/*` models: the only opt-in surface for managed routing.
  * See docs/spec-virtual-model-routing.md §2–§3.
  *
  * The registered provider is intentionally fake: baseUrl is the TCP discard
@@ -8,16 +8,17 @@
  * aborts the turn (spec §4) instead of burning OMP's 10 auto-retries.
  */
 
-export type RoutingMode = 'manual' | 'frontier' | 'balanced' | 'small';
+export type RoutingMode = 'manual' | 'frontier' | 'balanced' | 'small' | 'free';
 
-export const VIRTUAL_PROVIDER = 'router';
+export const VIRTUAL_PROVIDER = 'pmr';
 
 export const PLACEHOLDER_API_KEY = 'not-a-real-credential';
 
 export const VIRTUAL_MODELS = [
-  { id: 'frontier', name: 'Router: Frontier' },
-  { id: 'balanced', name: 'Router: Balanced' },
-  { id: 'small', name: 'Router: Small' },
+  { id: 'frontier', name: 'PMR: Frontier' },
+  { id: 'balanced', name: 'PMR: Balanced' },
+  { id: 'small', name: 'PMR: Small' },
+  { id: 'free', name: 'PMR: Free' },
 ] as const;
 
 export type ManagedMode = Exclude<RoutingMode, 'manual'>;
@@ -25,7 +26,7 @@ export type ManagedMode = Exclude<RoutingMode, 'manual'>;
 export function virtualModeForModelKey(key: string | undefined): ManagedMode | undefined {
   if (typeof key !== 'string' || !key.startsWith(`${VIRTUAL_PROVIDER}/`)) return undefined;
   const id = key.slice(VIRTUAL_PROVIDER.length + 1);
-  if (id === 'frontier' || id === 'balanced' || id === 'small') return id;
+  if (id === 'frontier' || id === 'balanced' || id === 'small' || id === 'free') return id;
   return undefined;
 }
 
@@ -62,6 +63,6 @@ export function registerVirtualRouterProvider(pi: unknown): void {
         supportsTools: true,
       })),
     },
-    'adaptive-router',
+    'pmr',
   );
 }

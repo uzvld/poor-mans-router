@@ -6,6 +6,8 @@ export const DEFAULT_POLICY: RouterPolicy = {
     frontier: { classes: ['fable-sub', 'astra-sub', 'opus-sub', 'opus-ish-sub', 'strong-flash-sub', 'strong-chinese', 'best-free'] },
     balanced: { classes: ['sonnet-sub', 'luna-sub', 'chinese-flash-payg', 'free-chinese-flash', 'best-available', 'healthy-free'] },
     small: { classes: ['cheap-sub', 'cheap-flash', 'healthy-free-fast'] },
+    // Free-only by contract: the selector promises no spend, so no paid rung here.
+    free: { classes: ['best-free', 'free-chinese-flash', 'healthy-free-fast', 'healthy-free'] },
   },
 };
 
@@ -92,6 +94,7 @@ export function normalizePolicy(raw: any): import('./types.ts').RouterPolicy {
     frontier: { classes: Array.isArray(raw?.tiers?.frontier?.classes) ? raw.tiers.frontier.classes.map(String) : [...DEFAULT_POLICY.tiers.frontier.classes] },
     balanced: { classes: Array.isArray(raw?.tiers?.balanced?.classes) ? raw.tiers.balanced.classes.map(String) : [...DEFAULT_POLICY.tiers.balanced.classes] },
     small: { classes: Array.isArray(raw?.tiers?.small?.classes) ? raw.tiers.small.classes.map(String) : [...DEFAULT_POLICY.tiers.small.classes] },
+    free: { classes: Array.isArray(raw?.tiers?.free?.classes) ? raw.tiers.free.classes.map(String) : [...DEFAULT_POLICY.tiers.free.classes] },
   };
   return { tiers };
 }

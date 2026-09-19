@@ -38,12 +38,12 @@ const sonnet = (id: string) => ({ provider: 'anthropic', id, cost: { input: 2, o
 
 test('before_agent_start keeps the current same-family model instead of switching to an equal sibling', async () => {
   // I8: affinity is a tie-break only, and it applies to the model the session is
-  // actually on. Turn 1 opts in via router/balanced with only the OLDER sibling
+  // actually on. Turn 1 opts in via pmr/balanced with only the OLDER sibling
   // available, so the router lands there and owns the selection. The newer, equal
   // sibling then appears in the registry: without affinity wiring the generation
   // tie-break picks claude-sonnet-5 and forces a needless setModel(); with it we
   // stay put.
-  const balanced = { provider: 'router', id: 'balanced', cost: {} };
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
   const older = sonnet('claude-sonnet-4-6');
   const models = [balanced, older];
   const { handlers, ctx, setModelCalls, setCurrent } = harness(models, balanced);

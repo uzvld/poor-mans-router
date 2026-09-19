@@ -17,14 +17,7 @@ Deferred until BUG C. Includes verifying that a native fallback request carries 
 ### 4. Docs drift
 `docs/design.md` §"DRAINING", lines describing "CodexBar `willLastToReset=false` → DRAINING" and the worked example `claude-sonnet-5 DRAINING quota pace`, predate the I2 policy. Update to match `health.ts`.
 
-### 5. Rename the virtual provider to `PMR`
-Requested by the owner 2026-09-19: the picker should read `PMR/balanced`, `PMR/frontier`, … instead of `router/*`. Mechanical in `virtual-model.ts` (`VIRTUAL_PROVIDER`, model `name`s) plus the `[omp:router]` marker tag, README/AGENTS wording, and `docs/spec-virtual-model-routing.md`. Two things to settle first:
-- **Tier naming.** The request listed `PMR/balanced`, `PMR/free`, `PMR/frontier`. Today the third tier is `small` (`cheap-sub → cheap-flash → healthy-free-fast`), i.e. cheap-and-fast, not free-only. Either rename `small` → `free` (then its ladder should drop the paid `cheap-sub`/`cheap-flash` rungs, which changes routing) or keep `small` and treat `free` as a wording slip. Needs the owner's answer before touching the ladder.
-- **Provider-id casing — RESOLVED 2026-09-19.** An upper-case runtime provider id survives: a probe extension registering `PMR` resolved at cold start (`omp --model PMR/balanced`) and the outgoing payload carried `"provider":"PMR","model":"balanced"`. No lower-case fallback needed.
-
-Migration note: any session or Multica agent pinned to `router/*` stops resolving after the rename — ship it with the selectors documented in one place.
-
-### 6. Host integration — MOSTLY ANSWERED, one row open
+### 5. Host integration — MOSTLY ANSWERED, one row open
 See `docs/investigations/host-integration-matrix.md`. Established: `omp` directly, `multica → omp` and `paseo → omp` all run a real OMP agent session, so the contract governs them; the Multica shape (fresh process per run, same session file, `--model`) was live-probed twice and rebuilt managed mode from `current()` both times.
 
 **`multica → hermes → omp` is not governed and cannot be:** Hermes uses OMP as a model *provider* over RPC (`model.provider: omp` via `~/.hermes/plugins/model-providers/omp/`), so no OMP agent process and no extension exist on that path. Agents routed through Hermes are selected by Hermes' own model config; `pmr/*` selectors are meaningless there. If adaptive routing is wanted for them it belongs in Hermes' provider layer.
@@ -45,10 +38,11 @@ Deliverable per row of item 8: the outgoing provider payload and the route decis
 
 ## Done
 
+- **`pmr/*` selectors** — the virtual provider is `pmr`, and the picker offers four tiers: `pmr/frontier`, `pmr/balanced`, `pmr/small` (cheap and fast, paid rungs included) and `pmr/free` (free-only by contract, never spends). Switch markers read `[omp:pmr]`. Upper-case ids were verified to resolve, but lower case matches every other OMP provider id, with `PMR: …` as the display name.
 - **First managed turn no longer waits for telemetry** — `before_agent_start` used to await `omp usage` + the CodexBar CLI (28–31 s live). Refreshes are scheduled instead, and the normalized snapshot is persisted in `state.json` (15-minute bound) so a fresh process — every Multica run — routes from last-known data. Live: 7 s including the answer. `first-turn-latency.test.ts`.
 
 - **CodexBar window scope** — allowance windows (with a reset) no longer veto a provider whose prepaid balance still has capacity, a spent balance no longer borrows an allowance's reset date, and a pace forecast only counts for the window that carries capacity. Closes FOLLOWUP-T1 and the exhaustion half found live on kilo. Invariants N5/N6; `codexbar-windows.test.ts`, `codexbar-pace-scope.test.ts`. See `docs/investigations/finding-codexbar-window-collapse.md`.
 
 - **BUG D** — healthy Sonnet subscription bypassed by CodexBar weekly pace forecast. Root cause proven with counterfactual replay; fixed in `health.ts` precedence; in-class winner fixed (neutral cold-start prior, family-scoped affinity, generation tie-break). 67/67 tests; live-verified. See `docs/investigations/`.
-- **Virtual-model routing contract** — the router no longer guesses which sessions it owns. Three registered virtual models (`router/frontier|balanced|small`) are the only opt-in; selecting any concrete model is a permanent per-session opt-out; `agentTiers`/`modelRole`/agent-name tier guessing deleted. A fail-closed `before_provider_request` guard aborts the turn if a request ever reaches the virtual provider (live-verified: 0 auto-retries vs 10 unguarded). 85/85 unit tests + differential replay; live-verified managed cold start and manual opt-out. Spec: `docs/spec-virtual-model-routing.md`; plan: `docs/superpowers/plans/2026-09-19-virtual-model-routing.md`.
-- **Visible model-switch marker** (was open item 3) — router-initiated switches emit `[omp:router] <from> -> <to> (<reason>)` through `ctx.ui.notify`. Guarded by `switch-marker.test.ts`.
+- **Virtual-model routing contract** — the router no longer guesses which sessions it owns. Three registered virtual models (`pmr/frontier|balanced|small`) are the only opt-in; selecting any concrete model is a permanent per-session opt-out; `agentTiers`/`modelRole`/agent-name tier guessing deleted. A fail-closed `before_provider_request` guard aborts the turn if a request ever reaches the virtual provider (live-verified: 0 auto-retries vs 10 unguarded). 85/85 unit tests + differential replay; live-verified managed cold start and manual opt-out. Spec: `docs/spec-virtual-model-routing.md`; plan: `docs/superpowers/plans/2026-09-19-virtual-model-routing.md`.
+- **Visible model-switch marker** (was open item 3) — router-initiated switches emit `[omp:pmr] <from> -> <to> (<reason>)` through `ctx.ui.notify`. Guarded by `switch-marker.test.ts`.

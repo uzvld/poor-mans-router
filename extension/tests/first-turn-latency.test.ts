@@ -11,7 +11,7 @@ import { RouterStateStore } from '../state.ts';
 // whatever telemetry is already known and refresh in the background. Multica makes
 // this load-bearing: it spawns a fresh OMP process per run, so an in-memory-only
 // cache is always empty and every run would route blind.
-const virtualBalanced = { provider: 'router', id: 'balanced', cost: {} };
+const virtualBalanced = { provider: 'pmr', id: 'balanced', cost: {} };
 const sonnet = { provider: 'anthropic', id: 'claude-sonnet-5', cost: { input: 3, output: 15 } };
 const kiloFree = { provider: 'kilo', id: 'deepseek/deepseek-v4-flash-0731:free', cost: { input: 0, output: 0 } };
 

@@ -1,4 +1,4 @@
-export type Tier = 'frontier' | 'balanced' | 'small';
+export type Tier = 'frontier' | 'balanced' | 'small' | 'free';
 export type RouteState = 'AVAILABLE' | 'DRAINING' | 'COOLDOWN';
 export type Freshness = 'FRESH' | 'STALE' | 'UNKNOWN';
 
