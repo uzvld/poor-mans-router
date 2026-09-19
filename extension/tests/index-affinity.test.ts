@@ -37,9 +37,16 @@ const sonnet = (id: string) => ({ provider: 'anthropic', id, cost: { input: 2, o
 test('before_agent_start keeps the current same-family model instead of switching to an equal sibling', async () => {
   // Current = the OLDER sibling. Without affinity wiring, the generation tie-break
   // picks claude-sonnet-5 and forces a needless setModel(); with it, we stay put.
-  const models = [sonnet('claude-sonnet-4-6'), sonnet('claude-sonnet-5')];
-  const { handlers, ctx, setModelCalls } = harness(models, sonnet('claude-sonnet-4-6'));
+  // The session starts on router/balanced: opt-in to managed routing, the router
+  // then switches to the older sibling (its ladder pick) and must stay there on
+  // the next turn instead of bouncing to the equal newer sibling.
+  const balanced = { provider: 'router', id: 'balanced', cost: {} };
+  const models = [balanced, sonnet('claude-sonnet-4-6'), sonnet('claude-sonnet-5')];
+  const { handlers, ctx, setModelCalls } = harness(models, balanced);
   for (const h of handlers.get('session_start')!) await h({}, ctx);
   for (const h of handlers.get('before_agent_start')!) await h({}, ctx);
-  assert.deepEqual(setModelCalls, [], `expected no switch away from current model, got ${JSON.stringify(setModelCalls.map((m) => m.id))}`);
+  assert.equal(setModelCalls.length, 1, 'precondition: the router bootstrapped to the ladder winner');
+  assert.equal(setModelCalls[0].id, 'claude-sonnet-4-6');
+  for (const h of handlers.get('before_agent_start')!) await h({}, ctx);
+  assert.equal(setModelCalls.length, 1, `expected no switch away from current model, got ${JSON.stringify(setModelCalls.map((m) => m.id))}`);
 });

@@ -25,6 +25,7 @@ import {
   retryRoutingPolicy,
 } from './runtime.ts';
 import { formatRouteStatus } from './status.ts';
+import { registerVirtualRouterProvider, resolveModeTransition, type RoutingMode } from './virtual-model.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
 const STATE_FILE = join(EXTENSION_DIR, 'state.json');
@@ -72,6 +73,7 @@ function sortStatusRoutes(routes: any[], selected?: string) {
 
 export default function adaptiveRouter(pi: ExtensionAPI) {
   pi.setLabel('Adaptive Model Router');
+  registerVirtualRouterProvider(pi);
 
   const logger: any = (pi as any).logger ?? { info() {}, warn() {}, debug() {} };
   const state = new RouterStateStore(STATE_FILE);
@@ -85,7 +87,8 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   let liveRefresh: Promise<void> | undefined;
   let historyRefresh: Promise<void> | undefined;
   let lastRoutedSelector: string | undefined;
-  let lastRetryFrom: string | undefined;
+  let routingMode: RoutingMode = 'manual';
+  let lastRouterSelected: string | undefined;
   let retryActive = false;
   let nativeFallbackAppliedForRetry = false;
   let lastDecision: {
@@ -209,6 +212,13 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   }
 
   pi.on('before_agent_start', async (_event: any, ctx: any) => {
+    const currentKey = modelKey(ctx.models.current());
+    const previousMode = routingMode;
+    routingMode = resolveModeTransition(previousMode, currentKey, lastRouterSelected);
+    if (previousMode !== 'manual' && routingMode === 'manual') {
+      logger.info('adaptive-router opt-out: manual model selection', { currentKey });
+    }
+    if (routingMode === 'manual') return undefined;
     if (!shouldRouteBeforeAgentStart(retryActive)) return undefined;
     try {
       await refreshLive(false);
@@ -216,15 +226,21 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       ctx.setTimeout(() => refreshHistory(false), 0);
       ctx.setTimeout(() => refreshIntel(ctx), 0);
 
+      // Task 5 passes the mode down; until then chooseForCurrentWork keeps its
+      // internal tierForSession guess — do NOT change its signature here.
       const { selection } = chooseForCurrentWork(ctx);
       if (selection) {
         const target = ctx.models.resolve(selection.route.selector);
-        const current = ctx.models.current();
-        const currentKey = modelKey(current);
         if (target && currentKey !== selection.route.key) {
           const changed = await pi.setModel(target);
-          if (!changed) logger.warn('adaptive-router could not switch model', { selector: selection.route.selector });
-          else announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
+          if (!changed) {
+            logger.warn('adaptive-router could not switch model', { selector: selection.route.selector });
+            // A failed switch must not claim the target: the next turn retries.
+            lastRouterSelected = undefined;
+          } else {
+            announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
+            lastRouterSelected = selection.route.key;
+          }
         }
         lastRoutedSelector = selection.route.key;
       }

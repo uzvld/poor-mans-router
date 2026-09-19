@@ -36,11 +36,13 @@ function harness(models: any[], currentModel: any) {
 
 const sonnet = { provider: 'anthropic', id: 'claude-sonnet-5', cost: { input: 2, output: 10 } };
 const kiloFree = { provider: 'kilo', id: 'deepseek/deepseek-v4-flash-0731:free', cost: { input: 0, output: 0 } };
+const balanced = { provider: 'router', id: 'balanced', cost: { input: 0, output: 0 } };
 
 test('router-initiated switch emits an [omp:router] from -> to marker with the reason', async () => {
   // No telemetry (pi.exec yields nothing): sonnet has no live quota evidence, so the
-  // ladder prefers the free kilo route. Starting on sonnet therefore forces a switch.
-  const { handlers, ctx, setModelCalls, notifications } = harness([sonnet, kiloFree], sonnet);
+  // ladder prefers the free kilo route. Starting on router/balanced enters managed
+  // mode and the bootstrap switch to kilo must be announced.
+  const { handlers, ctx, setModelCalls, notifications } = harness([sonnet, kiloFree, balanced], balanced);
   for (const h of handlers.get('session_start')!) await h({}, ctx);
   for (const h of handlers.get('before_agent_start')!) await h({}, ctx);
 
@@ -48,14 +50,16 @@ test('router-initiated switch emits an [omp:router] from -> to marker with the r
   assert.equal(setModelCalls[0].id, kiloFree.id);
   const marker = notifications.find((n) => n.text.startsWith('[omp:router] '));
   assert.ok(marker, `expected an [omp:router] notification, got ${JSON.stringify(notifications)}`);
-  assert.match(marker!.text, /^\[omp:router\] anthropic\/claude-sonnet-5 -> kilo\/deepseek\/deepseek-v4-flash-0731:free \(.+\)$/);
+  assert.match(marker!.text, /^\[omp:router\] router\/balanced -> kilo\/deepseek\/deepseek-v4-flash-0731:free \(.+\)$/);
 });
 
 test('no switch means no marker', async () => {
-  // Already on the route the ladder would pick: nothing to switch, nothing to announce.
-  const { handlers, ctx, setModelCalls, notifications } = harness([sonnet, kiloFree], kiloFree);
+  // Already on the route the ladder would pick (kilo free, entered via router/balanced
+  // opt-in and the router's own switch): nothing to switch, nothing to announce.
+  const { handlers, ctx, setModelCalls, notifications } = harness([sonnet, kiloFree, balanced], kiloFree);
   for (const h of handlers.get('session_start')!) await h({}, ctx);
   for (const h of handlers.get('before_agent_start')!) await h({}, ctx);
   assert.deepEqual(setModelCalls, []);
   assert.deepEqual(notifications.filter((n) => n.text.startsWith('[omp:')), []);
 });
+
