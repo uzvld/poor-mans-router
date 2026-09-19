@@ -9,7 +9,7 @@
 |---|---|---|---|
 | `omp` directly (TUI / `-p`) | yes | **yes** | live: managed cold start switches and announces; manual sessions untouched |
 | `multica → omp` | yes | **yes** | daemon log: `omp base_url=rpc-ui://omp model=cursor/cursor-grok-4.6`; live probe of the same argv shape below |
-| `paseo → omp` | yes | **yes (by construction, live proof pending)** | `~/.paseo/*-daemon.log` carries stack frames from `/$bunfs/root/omp-darwin-arm64`, i.e. Paseo runs the OMP binary as an agent |
+| `paseo → omp` | yes | **yes** | live: an agent started as `omp/pmr/balanced` was reported by Paseo as `omp/anthropic/claude-sonnet-5` after the router switched, and answered |
 | `multica → hermes → omp` | **no** | **no** | Hermes uses OMP as a *model provider* over RPC (`~/.hermes/config.yaml`: `model.provider: omp`), through the bridge plugin `~/.hermes/plugins/model-providers/omp/`. No OMP agent process exists on this path, so no extension is loaded and `pmr/*` selectors do not exist for it. |
 
 **Consequence to know:** agents that run through Hermes are routed by *Hermes'* model configuration, not by this router. Pointing a Hermes agent at `pmr/balanced` cannot work — the virtual models are registered by an extension inside an OMP agent process, and the bridge talks to OMP as a completion backend. If adaptive routing is wanted there, it has to live in Hermes' provider layer (or Hermes must spawn a real OMP agent session).
@@ -32,9 +32,21 @@ Both runs routed the virtual selector to a concrete model, and the second run �
 
 Not yet checked on this path: whether Multica ever passes `--no-extensions` (the flag string exists in the binary). If it does for some runtime, the router is silently absent there.
 
-## Paseo path
+## Paseo path — live probe
 
-Paseo runs the OMP binary (stack frames in its daemon log prove an OMP agent process, not a gateway call), so the extension loads and the contract applies. Still to capture as live proof: a Paseo agent configured with a virtual selector, showing the switch marker and the outgoing provider payload.
+Paseo runs the OMP binary (stack frames in its daemon log prove an OMP agent process, not a gateway call), and `paseo run` accepts the selector directly:
+
+```bash
+paseo run --provider omp/pmr/balanced --background "Reply with exactly: PASEO_PMR_OK"
+```
+
+The agent answered, and `paseo ls --json` then reported it as:
+
+```json
+{ "name": "pmr-live-check", "provider": "omp/anthropic/claude-sonnet-5", "status": "idle" }
+```
+
+It was started as `omp/pmr/balanced` and Paseo reports the concrete model the router switched to — the contract holds end to end on this path, and Paseo's own UI reflects the switch. Probe agent deleted afterwards.
 
 ## Hermes bridge — separate concern
 

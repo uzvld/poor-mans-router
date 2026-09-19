@@ -38,7 +38,6 @@ See `docs/investigations/host-integration-matrix.md`. Established: `omp` directl
 **`multica → hermes → omp` is not governed and cannot be:** Hermes uses OMP as a model *provider* over RPC (`model.provider: omp` via `~/.hermes/plugins/model-providers/omp/`), so no OMP agent process and no extension exist on that path. Agents routed through Hermes are selected by Hermes' own model config; `pmr/*` selectors are meaningless there. If adaptive routing is wanted for them it belongs in Hermes' provider layer.
 
 Still open:
-- Paseo: capture one live agent run with a virtual selector (marker + outgoing payload), not just the structural proof.
 - Multica: confirm no runtime passes `--no-extensions` (the flag string exists in the binary); if one does, the router is silently absent there.
 
 ### 9. Hermes ⇄ OMP bridge: verify translation fidelity
