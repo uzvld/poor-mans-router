@@ -25,8 +25,8 @@ See `docs/investigations/host-integration-matrix.md`. Established: `omp` directl
 Still open:
 - Multica: confirm no runtime passes `--no-extensions` (the flag string exists in the binary); if one does, the router is silently absent there.
 
-### 7. Hermes ⇄ OMP bridge: verify translation fidelity
-The bridge works (owner's report) — what is unverified is whether it translates OMP's stream faithfully into Hermes' OpenAI-shaped stream. Reading `~/.hermes/plugins/model-providers/omp/omp_rpc_client.py`, three places where a wrong mapping would hide:
+### 6. Hermes ⇄ OMP bridge: verify translation fidelity
+The bridge works (owner's report) — what is unverified is whether it translates OMP's stream faithfully into Hermes' OpenAI-shaped stream. Reading `~/.hermes/plugins/model-providers/omp/omp_rpc_client.py`, four places where a wrong mapping would hide:
 - **Streaming.** `text_delta → delta.content`; check chunk boundaries, ordering against tool activity, and that an interrupted OMP stream surfaces as an error rather than a clean end.
 - **Reasoning.** `thinking_delta` is written to **both** `delta.reasoning_content` and `delta.reasoning` with the same text; confirm Hermes does not double-count or double-render it, and that reasoning never leaks into `content`.
 - **Tool calls.** `delta.tool_calls` is hard-coded `None` in both chunk builders while OMP emits `tool_execution_start` / `tool_end` / `tool_call_start`; OMP executes the tools itself (thin host). Confirm Hermes' loop is not waiting for structured tool calls, that tool activity is rendered rather than injected as assistant prose, and that `<tool_call>` text parsing cannot double-execute.
