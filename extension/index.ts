@@ -352,6 +352,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   pi.registerCommand('route-status', {
     description: 'Show adaptive model routing state',
     handler: async (_args: string, ctx: any) => {
+      if (routingMode === 'manual') {
+        ctx.ui.notify('adaptive-router: mode manual (opt-out — select router/* to re-enable)', 'info');
+        return;
+      }
       if (!lastDecision) {
         ctx.ui.notify('adaptive-router: no routing decision yet', 'info');
         return;
@@ -360,6 +364,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       const selected = lastDecision.selection?.route.key;
       const text = formatRouteStatus({
         tier: lastDecision.tier,
+        mode: routingMode,
         selected,
         reason: lastDecision.selection?.reason,
         routes: sortStatusRoutes(lastDecision.routes, selected),

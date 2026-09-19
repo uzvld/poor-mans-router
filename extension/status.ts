@@ -9,6 +9,8 @@ export interface StatusSources {
 
 export interface RouteStatusInput {
   tier: Tier;
+  /** Routing mode; omitted by callers that only render a decision. */
+  mode?: string;
   selected?: string;
   reason?: string;
   routes: Pick<NormalizedRoute, 'key' | 'health'>[];
@@ -24,6 +26,7 @@ function age(ms: number | undefined): string {
 
 export function formatRouteStatus(input: RouteStatusInput): string {
   const lines = [
+    ...(input.mode !== undefined ? [`mode: ${input.mode}`] : []),
     `tier: ${input.tier}`,
     `selected: ${input.selected ?? '(none)'}`,
     `reason: ${input.reason ?? '(none)'}`,

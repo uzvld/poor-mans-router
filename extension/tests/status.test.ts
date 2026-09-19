@@ -18,3 +18,20 @@ test('route status is operational and never needs account identity or secrets', 
   assert.doesNotMatch(text, /@/);
   assert.doesNotMatch(text, /sk-or-/);
 });
+
+test('mode line renders first when provided', () => {
+  const text = formatRouteStatus({
+    tier: 'balanced',
+    mode: 'manual (opt-out — select router/* to re-enable)',
+    routes: [],
+    sources: {},
+  });
+  const lines = text.split('\n');
+  assert.match(lines[0], /^mode: manual \(opt-out/);
+  assert.match(lines[1], /^tier: balanced$/);
+});
+
+test('mode line is absent when the caller does not supply one', () => {
+  const text = formatRouteStatus({ tier: 'small', routes: [], sources: {} });
+  assert.match(text.split('\n')[0], /^tier: small$/);
+});
