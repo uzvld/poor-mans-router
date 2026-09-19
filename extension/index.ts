@@ -19,12 +19,14 @@ import {
   pressureForSelection,
   pressureMessage,
   switchMarker,
+  holdMarker,
   normalizeRuntimeSelector,
   shouldRouteBeforeAgentStart,
   retryRoutingPolicy,
 } from './runtime.ts';
 import { formatRouteStatus } from './status.ts';
 import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, type ManagedMode, type RoutingMode } from './virtual-model.ts';
+import { holdForRemoteCompaction } from './compaction-guard.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
 const STATE_FILE = join(EXTENSION_DIR, 'state.json');
@@ -90,6 +92,8 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   let lastRouterSelected: string | undefined;
   let retryActive = false;
   let nativeFallbackAppliedForRetry = false;
+  // One notice per session: the hold is re-evaluated every turn, the human needs telling once.
+  let remoteCompactionHoldAnnounced = false;
   let lastDecision: {
     tier: Tier;
     selection?: SelectionResult;
@@ -223,6 +227,16 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     }
   }
 
+  // Same transcript channel as a switch: the user must see WHY the router stopped
+  // routing this session, otherwise a held session looks like a broken router.
+  function announceHold(ctx: any, current: string | undefined, wanted: string, reason?: string): void {
+    try {
+      ctx.ui?.notify?.(holdMarker(current ?? 'current model', wanted, reason), 'warn');
+    } catch (error) {
+      logger.warn('pmr could not announce the switch hold', { error: String(error) });
+    }
+  }
+
   pi.on('before_agent_start', async (_event: any, ctx: any) => {
     const currentKey = modelKey(ctx.models.current());
     const previousMode = routingMode;
@@ -244,6 +258,20 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       if (selection) {
         const target = ctx.models.resolve(selection.route.selector);
         if (target && currentKey !== selection.route.key) {
+          // BUG C guard: a remote compaction is provider-native. Switching away from the
+          // provider that produced it replaces the whole conversation with a ~933-char
+          // placeholder, so hold the session where it is and let the human decide.
+          const held = holdForRemoteCompaction(ctx.sessionManager?.getBranch?.(), ctx.models.current(), target);
+          if (held.hold) {
+            if (!remoteCompactionHoldAnnounced) {
+              remoteCompactionHoldAnnounced = true;
+              announceHold(ctx, currentKey, selection.route.key, held.reason);
+            }
+            logger.info('pmr held a switch to preserve remote-compacted context', {
+              from: currentKey, to: selection.route.key,
+            });
+            return undefined;
+          }
           const changed = await pi.setModel(target);
           if (!changed) {
             logger.warn('pmr could not switch model', { selector: selection.route.selector });

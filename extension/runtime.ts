@@ -38,6 +38,15 @@ export function switchMarker(from: string, to: string, reason?: string): string 
   return `[omp:pmr] ${from} -> ${to} (${reason && reason.length > 0 ? reason : 'routing decision'})`;
 }
 
+/**
+ * Held-switch marker, same `[omp:pmr]` channel as `switchMarker` so RPC hosts opt it
+ * into the transcript. A silent hold is indistinguishable from a dead router.
+ */
+export function holdMarker(current: string, wanted: string, reason?: string): string {
+  const why = reason && reason.length > 0 ? reason : 'context would not survive the switch';
+  return `[omp:pmr] switch held: staying on ${current} instead of ${wanted} (${why})`;
+}
+
 export function allowDrainingForTier(tier: Tier): boolean {
   // Frontier is the first class of new work denied access to scarce/degraded capacity.
   // Balanced can keep using degraded routes long enough to finish useful work; small lasts longest.

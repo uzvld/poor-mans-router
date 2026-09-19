@@ -289,11 +289,28 @@ No hard block is known and quota/runway looks normal.
 
 Route still works, but it should not receive new expensive work if a healthier substitute exists.
 
-Triggers include:
+`evaluateRouteHealth` (`health.ts`) reaches `DRAINING` exactly two ways, and CodexBar's pace
+forecast is consulted for a given provider only when OMP has no usage report for it at all:
 
-- CodexBar `willLastToReset=false`;
-- remaining quota below reserve;
-- simple burn-rate projection says the quota will exhaust materially before reset.
+- **OMP scoped reserve pressure (I3).** A fresh OMP report exists for the route's provider, at
+  least one credential is usable, but every known `remainingFraction` across the relevant windows
+  is at or below `reservePct` (`reportQuality`; the `DRAINING` branch of `evaluateRouteHealth`,
+  reason `"OMP quota within <reservePct>% reserve"`). This fires with or without CodexBar
+  telemetry present.
+- **CodexBar pace forecast, OMP-fallback path only (I2 / I6 / N6).** When the provider has *no*
+  OMP report, health falls through to `combineCodexBar`, where a matching row with `draining=true`
+  marks the route `DRAINING`, scoped to whichever window actually carries capacity — the prepaid
+  balance when the provider has one, otherwise the refilling allowance (`drainingScope`; see
+  `codexbar-pace-scope.test.ts`).
+
+A fresh OMP report that shows any usable window as healthy short-circuits straight to `AVAILABLE`
+without ever calling `combineCodexBar`. The code says so directly: CodexBar's
+`pace.*.willLastToReset` is "a burn-rate FORECAST, not a capacity measurement" and "must not
+convert a route that OMP reports as healthy into DRAINING" (comment above the `AVAILABLE` branch
+in `evaluateRouteHealth`). A pessimistic weekly CodexBar pace forecast on a provider OMP already
+reports healthy therefore leaves the route `AVAILABLE`, never `DRAINING`
+(`bug-d-sonnet-subscription.test.ts`, "healthy OMP Sonnet 5 subscription stays AVAILABLE despite
+pessimistic CodexBar weekly pace").
 
 Existing work can continue unless OMP itself needs to switch.
 
@@ -729,7 +746,7 @@ selected: openrouter/z-ai/glm-5.3-flash
 reason: cheapest healthy in chinese-flash-payg
 
 health:
-  anthropic/claude-sonnet-5   DRAINING   quota pace
+  anthropic/claude-sonnet-5   AVAILABLE  OMP 5h/7d ok (CodexBar weekly pace pessimistic, overridden — I2)
   openai-codex/gpt-5.6-luna  COOLDOWN   reset 2026-09-19...
   openrouter/...              AVAILABLE  $ balance + fresh success
 
@@ -738,6 +755,11 @@ intel:
   CodexBar: fresh (age 20s)
   OMP usage: fresh (age 8s)
 ```
+
+Sonnet 5 above stays `AVAILABLE` even though CodexBar's weekly window forecasts
+`willLastToReset=false`: a fresh OMP report with at least one healthy window is authoritative and
+`combineCodexBar` is never called in that case (`evaluateRouteHealth`, `health.ts`). See
+`bug-d-sonnet-subscription.test.ts` for the live-snapshot regression this guards.
 
 Do not show credentials or unredacted account identifiers.
 
