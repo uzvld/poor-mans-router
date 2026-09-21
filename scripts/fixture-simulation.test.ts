@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { normalizeOmpUsage, parseCodexBarRows } from '../extension/telemetry.ts';
+import { normalizeOmpUsage, parseCodexBarRows, type OmpCredentialUsage } from '../extension/telemetry.ts';
 import { normalizeHistory, parseOmpStatsText } from '../extension/history.ts';
 import { buildRoutes, selectForTier } from '../extension/ranking.ts';
 import { DEFAULT_POLICY } from '../extension/policy.ts';
@@ -78,4 +78,51 @@ test('snapshot: with Anthropic removed, the ladder degrades gracefully to the fr
   assert.equal(frontier?.route.free, true);
   assert.equal(balanced?.route.free, true);
   assert.equal(small?.route.free, true);
+});
+
+function selectSubscriptionFrontier(reports: OmpCredentialUsage[], now: number) {
+  const routes = buildRoutes(read('models.json').models, {
+    ompReports: reports,
+    codexbar: [],
+    localState: {},
+    history: {},
+    intel: {},
+    reservePct: 10,
+    now,
+  });
+  return selectForTier(routes, DEFAULT_POLICY.tiers.frontier.classes, { allowDraining: false });
+}
+
+test('frontier keeps Fable on a healthy sibling account, then selects Astra at the 10% reserve boundary', () => {
+  const raw = read('frontier-two-subscriptions-2026-09-21.json');
+  const reports = normalizeOmpUsage(raw);
+  const accounts = reports.filter((report) => report.provider === 'anthropic');
+  assert.equal(accounts.length, 2);
+  const windows = accounts.map((account) => account.windows.find((window) => window.tier === 'fable')!);
+  windows[0].remainingFraction = 0;
+  windows[0].status = 'exhausted';
+  windows[1].remainingFraction = 0.11;
+  windows[1].status = 'ok';
+
+  assert.equal(selectSubscriptionFrontier(reports, raw.generatedAt)?.className, 'fable-sub');
+  windows[1].remainingFraction = 0.10;
+  windows[1].status = 'warning';
+  assert.equal(selectSubscriptionFrontier(reports, raw.generatedAt)?.route.key, 'openai-codex/gpt-6-astra');
+});
+
+test('frontier keeps Astra while either Codex account is healthy, then leaves Astra when both reach reserve', () => {
+  const raw = read('frontier-two-subscriptions-2026-09-21.json');
+  const reports = normalizeOmpUsage(raw);
+  const accounts = reports.filter((report) => report.provider === 'openai-codex');
+  assert.equal(accounts.length, 2);
+  const windows = accounts.map((account) => account.windows[0]);
+
+  windows[0].remainingFraction = 0;
+  windows[0].status = 'exhausted';
+  windows[1].remainingFraction = 0.11;
+  windows[1].status = 'ok';
+  assert.equal(selectSubscriptionFrontier(reports, raw.generatedAt)?.route.key, 'openai-codex/gpt-6-astra');
+  windows[1].remainingFraction = 0.10;
+  windows[1].status = 'warning';
+  assert.equal(selectSubscriptionFrontier(reports, raw.generatedAt)?.className, 'opus-sub');
 });

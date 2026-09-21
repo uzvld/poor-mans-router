@@ -174,6 +174,18 @@ cd hermes/omp-bridge && ~/.hermes/hermes-agent/venv/bin/python -m unittest \
 bash hermes/omp-bridge/test_launcher_wrapper.sh
 ```
 
+Native fallback investigation (from the repo root, requires OMP 18.2.6):
+
+```bash
+bash scripts/native-fallback-probe.sh
+```
+
+This credential-free probe runs OMP's real fallback resolver and settings-cloning
+logic in a temporary environment, then exits before inference. It reproduces the
+Frontier wildcard conflict and the isolation limitations of a settings-only fix;
+it is **not** a live routing test or an installed workaround. See
+[`docs/design.md`](docs/design.md#managed-tier-fallback-incident-2026-09-21).
+
 Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines the invariants every change must keep and the evidence a PR must carry. Every fix here has been a *proven* root cause first and a failing test second; keep it that way.
 
 ## Status
