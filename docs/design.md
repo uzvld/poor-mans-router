@@ -168,6 +168,37 @@ Broad provider wildcards should not be the main policy because exact model/provi
 
 Prefer role-oriented fallback chains as the last-resort reactive safety net. The extension remains responsible for choosing the best route before a request; OMP fallback chains exist so an unexpected mid-turn 429/outage can still recover.
 
+#### Managed-tier fallback incident (2026-09-21)
+
+The observed session selected `pmr/frontier`, ran Fable, and then recorded a
+`model_change` to Sonnet with `role: fallback`. Its effective native configuration
+contained `anthropic/*: [anthropic/claude-sonnet-5]`. Re-selecting `pmr/frontier`
+subsequently selected Astra, with successful Codex responses in the transcript.
+This is a native fallback / PMR ownership mismatch, not an in-class ranking error.
+
+The agreed contract preserves the **10% reserve**. OMP must consider every usable
+subscription for the current model before changing models: Fable across both
+Anthropic accounts, then Astra across both Codex accounts, then the remaining
+frontier ladder. Accounts inside reserve are not healthy new-work candidates.
+At inspection, both Fable-scoped windows had 10% remaining; one Codex account
+had 85% remaining and the other was exhausted. These are inspection-time values,
+not reconstructed quota values at the earlier fallback.
+
+| Hypothesis | Evidence | Verdict |
+|---|---|---|
+| PMR ranks Sonnet above Astra in frontier | Installed frontier ladder starts `fable-sub`, `astra-sub`; transcript marks Sonnet as native fallback | Disproved |
+| Only one subscription is visible | Redacted OMP usage reports include two accounts per provider | Disproved |
+| One depleted account blocks a healthy sibling in PMR | Installed-module replay: either healthy sibling keeps the route `AVAILABLE`; both exhausted yield `COOLDOWN` | Disproved |
+| Native wildcard bypasses the selected tier | Effective wildcard points to Sonnet; native model-change record identifies fallback | Confirmed |
+
+The fix boundary is session-local fallback configuration and managed-mode event
+handling. Do not rewrite global provider wildcards, change `selectForTier`, remove
+credential rotation, weaken local runtime cooldowns, or consume the reserve.
+Native fallback must use the managed tier's route order while PMR owns a session,
+and relinquish that override on manual model selection. Verification must include
+account rotation, tier changes, manual opt-out, real OMP fallback execution, and
+an unchanged all-tier/all-class differential replay.
+
 A first-pass static shape is:
 
 ```yaml
