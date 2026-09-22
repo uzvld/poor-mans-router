@@ -24,6 +24,10 @@ export function classifyModelId(selector: string): string[] {
   if (s.includes('astra')) out.add('astra');
   if (s.includes('opus')) out.add('opus');
   if (s.includes('mythos')) out.add('opus-ish');
+  // `sol` / `terra` (OpenAI code names) are word-bounded: the catalog really contains
+  // `upstage/solar-pro-*` and `alfredpros/codellama-7b-instruct-solidity`, which a bare
+  // `includes('sol')` would drag into a frontier rung.
+  if (/(?:^|[-_/])(?:sol|terra)(?![a-z0-9])/.test(s)) out.add('opus-ish');
   if (s.includes('sonnet')) out.add('sonnet');
   if (s.includes('haiku') || s.includes('spark')) out.add('cheap');
   if (s.includes('luna')) {
