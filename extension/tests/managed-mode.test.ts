@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import adaptiveRouter from '../index.ts';
+
+// A developer's own routing state must not decide a unit test: `state.json` is per-machine
+// runtime state, so the store is pointed at a scratch file (AGENTS.md: tests never read state.json).
+const SCRATCH_STATE = join(tmpdir(), `pmr-test-state-managed-${process.pid}.json`);
+rmSync(SCRATCH_STATE, { force: true });
 
 // Same harness shape as tests/switch-marker.test.ts. Telemetry is empty (pi.exec
 // yields nothing) so the ladder's stable pick for a sonnet+free-kilo registry is:
@@ -42,6 +50,9 @@ function harness(models: unknown[], currentModel: unknown) {
     modelRegistry: { getApiKeyForProvider: async () => undefined },
     ui: { notify(text: string, level = 'info') { notifications.push({ text, level }); } },
   };
+  // The store resolves its path when the extension is constructed; the harness owns that path
+  // so the suite never reads the developer's own state.json (AGENTS.md).
+  process.env.PMR_STATE_FILE = SCRATCH_STATE;
   adaptiveRouter(pi);
   return { handlers, ctx, setModelCalls, notifications, providerCalls, setCurrent: (m: unknown) => { current = m; } };
 }

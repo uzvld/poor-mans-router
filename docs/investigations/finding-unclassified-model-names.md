@@ -232,3 +232,135 @@ for (const t of ["frontier","balanced","small","free"]) { const s=selectForTier(
 # small     cheap-sub  anthropic/claude-3-haiku-20240307
 # free      best-free  kilo/arcee-ai/trinity-large-preview:free
 ```
+
+## Prototype: rungs from a snapshot (branch `finding/unclassified-model-names`)
+
+The token fix in *Draft patch* above answers "which class does a new name get". This prototype answers the
+next question, which is the one that made the first one necessary: **why is the order inside a tier a
+hand-written list at all?** Rung order is now derived from the last benchmark snapshot, once per refresh,
+with the shipped ladder as the fallback. Nothing is installed, `policy.yml` is untouched, and
+`selectForTier` semantics are unchanged — it still walks the class list it is handed, in order.
+
+| File | Change |
+|---|---|
+| `extension/rungs.ts` | new: `benchmarkPower()`, `profileClasses()`, `orderLadder()`, `computeLadders()`, `RUNG_HYSTERESIS` |
+| `extension/ranking.ts` | every route carries `benchmarkPower` — the raw capability signal the order needs (it was previously folded into `qualityScore` and lost) |
+| `extension/index.ts` | derives all four ladders when a snapshot lands, and walks `ladders[tier].order ?? policy.tiers[tier].classes` |
+| `extension/status.ts` | `/route-status` prints `ladder: computed from snapshot — fable-sub > opus-sub > …` |
+| `extension/tests/rungs.test.ts` | 10 tests: 5 on the ordering rules directly, 4 through the real `buildRoutes()` / `selectForTier()` pipeline, 1 through the extension's own `before_agent_start` |
+
+**Five rules decide what the data may move, and nothing else moves.**
+
+1. Capability rungs are ordered by measured power.
+2. An unmeasured class keeps the index the shipped policy gave it; measured classes fill the slots around
+   it (I7). This is the fallback rule as much as the fairness rule: no snapshot, no movement.
+3. A **catch-all** class — one whose members are a superset of another class in the same ladder — is a tail,
+   not a rung, and keeps its shipped index. `best-available` holds every paid route, so its best member is
+   the strongest paid model in the catalog *by construction*: ordering it by that member puts the most
+   expensive model in the catalog at the top of `balanced`. Measured: `best-available=0.728` against
+   `chinese-flash-payg=0.639` — the rule is what keeps `balanced` identical to its shipped ladder.
+4. Rungs that sell differently never cross on power alone: subscription stays ahead of paid ahead of free.
+   Economics is first order in this router (subscription-first, `package.json`), and a capability signal
+   must not silently re-price a turn. A mixed class (members on both sides) is a capability class and
+   crosses freely.
+5. `RUNG_HYSTERESIS = 0.02` — a rung climbs past its neighbour only by at least 2 points of power, so a
+   snapshot-to-snapshot wobble cannot reorder the ladder. Measured gaps between neighbouring capability
+   classes on the 2026-09-22 snapshot are 2–10 points, so the floor admits every real difference in the
+   data. It is a policy constant, not a fitted one: calibrating it needs two snapshots of the same day.
+
+**Every guard is red-capable** (AGENTS.md step 4). Each mutation was applied to a clean tree, the suite run,
+and the file restored byte-for-byte:
+
+| Mutation | Red |
+|---|---|
+| I7 slot pinning disabled | 2 tests (I7 index, I1/I7 handover) |
+| `RUNG_HYSTERESIS = 0` | hysteresis test |
+| previous order discarded (insertion starts from the shipped list) | hysteresis test |
+| catch-all detection never fires | catch-all tail test |
+| economics gate removed (any rung crosses any other) | economics test |
+| coding:agentic blend flattened to 50:50 | `benchmarkPower` test |
+| `buildRoutes` stops recording `benchmarkPower` | 3 tests (both ladder tests + the wiring test) |
+| `index.ts` stops walking the computed ladder | wiring test |
+
+**Differential replay** (`bun run tools/rung-replay/replay.ts`, both arms fed the *same* snapshot — so a
+line that differs can only come from the ladder; frontier is where the shipped order was demonstrably wrong):
+
+```
+shipped : fable-sub > astra-sub > opus-sub > opus-ish-sub > strong-flash-sub > strong-chinese > best-free
+computed: fable-sub > opus-sub > astra-sub > strong-chinese > opus-ish-sub > strong-flash-sub > best-free
+powers  : opus-sub=0.700 astra-sub=0.673 strong-chinese=0.668 opus-ish-sub=0.643 strong-flash-sub=0.639 best-free=0.598
+pinned  : fable-sub
+```
+
+- `opus-sub` passes `astra-sub` on 2.7 points (Opus 5 at 78.0/56.5 vs GPT-6 Astra at 76.9/51.0).
+- `strong-chinese` passes `opus-ish-sub` (2.5) and `strong-flash-sub` (2.9).
+- `fable-sub` stays first because nothing measured its members — rule 2, not a judgement about Fable.
+- The chain is where it becomes visible: with the account's Anthropic and Codex windows inside the 10 %
+  reserve (measured, `fixtures/live-omp-usage-2026-09-22.json`: anthropic 7d 6 % and codex 7d 5 % remaining,
+  both `DRAINING`), frontier's first *healthy* rung decides the turn. Shipped order falls to
+  `strong-flash-sub` (cheapest flashes), computed order to `strong-chinese` (`glm-5.3`, `glm-5.2`,
+  `deepseek-v4-pro`, `qwen-max`). Every one of those winners is still an `opencode-go` subscription route
+  where one exists, so subscription-first is preserved and no run becomes PAYG.
+- `balanced`, `small` and `free` are byte-identical to their shipped ladders on this snapshot — `balanced`
+  because of rule 3 (see above), `small` and `free` because their measured classes are within the margin or
+  are tails.
+
+**What the snapshot says about the question that started this** (Artificial Analysis, 2026-09-22, saved as
+`fixtures/aa-bench-2026-09-22.json`):
+
+- **Opus 5.5, GPT-6 Sol and GPT-6 Luna are absent** from the payload — no measurement exists yet, so no
+  data-driven rule can place them. Under rule 2 their classes keep their shipped rungs (`opus-sub`, and
+  `opus-ish-sub` for Sol/Terra). `benchmarkPower` stays `undefined` for them; they are never "scored 0".
+- **Opus 5 is measured below Fable 5.1 on all three indices** (78.0/56.5/50.8 vs 81.6/57.9/53.4, 97th vs
+  98th percentile). The shipped "Fable before Opus" order is therefore *not* contradicted by the only
+  measurements that exist; the earlier hypothesis that data would lift Opus above Fable is disproved for
+  Opus 5, and unmeasurable for Opus 5.5.
+- **GPT-6 Astra is measured** (76.9/51.0/52.7 → 0.63·0.769 + 0.37·0.510 = **0.673** in the replay's units, 96th/93rd percentile) and would be frontier rung 2 today. Its
+  `openai-codex` route is `DRAINING` at ~5 % of the weekly window, which is exactly the state the first
+  `fallback` line above describes.
+
+**Three intel coverage gaps found while doing this** (each makes a route look *unmeasured*, and rule 2 then
+pins its rung — safe, but it means the data silently never arrives for those routes). None is fixed here;
+each changes intel coverage and therefore ranking, so it belongs in its own finding:
+
+1. **Bare-id providers.** `canonicalModelSlug('opencode-go', 'grok-4.6')` is `opencode-go/grok-4.6`, while the
+   snapshot keys the same model as `x-ai/grok-4.6`. Measured through `buildRoutes`: the same model scores
+   `qualityScore 0.6750` on `opencode-go` and `0.7365` on `openrouter` (`x-ai/grok-4.6`), purely because the
+   subscription copy never sees the intel. Same for `hy*`, `mimo`, `longcat`, `omen`, `ox`, `kat`, `minimax`
+   ids on `opencode-go`.
+2. **Dot vs dash in Claude versions.** OMP ships `anthropic/claude-opus-5-5`; the snapshot and OpenRouter key
+   `anthropic/claude-opus-5.5`. `claude-fable-5-1` has the same problem, which is why `fable-sub` reads as
+   unmeasured in this replay despite Fable 5.1 being the top measured model in the catalog.
+3. **Dated slugs.** `stripVariants()` removes `:free`/`:batch` but not the `-YYYYMMDD` suffix, so
+   `openai/gpt-6-astra-20260903` cannot match the undated `openai/gpt-6-astra` that `canonicalModelSlug()`
+   produces. Both the page payload and `fixtures/aa-bench-2026-09-22.json` carry dated and undated keys, so
+   today this one is masked; whether the Data API payload does too is what the 02:00 capture decides
+   (`tools/rung-replay` accepts `PMR_INTEL` for exactly that check).
+
+**Adjacent fix shipped with this prototype: the unit suite is machine-dependent no longer.** `RouterStateStore`
+was constructed with a fixed `EXTENSION_DIR/state.json`, so every harness driving `session_start` read the
+developer's own routing history. On this machine that made two tests fail for reasons unrelated to the code:
+`managed-mode.test.ts` "cold start on pmr/balanced…" and `switch-marker.test.ts` "router-initiated switch
+emits…" (`mv extension/state.json /tmp && bun test tests/managed-mode.test.ts tests/switch-marker.test.ts` →
+8/8 pass; with it in place, 1/2). `index.ts` now resolves the path through `stateFilePath()` and honours
+`PMR_STATE_FILE`, and the five harnesses that depend on that file point it at a per-process scratch path.
+138/138 unit tests pass on a machine whose `state.json` holds history, which was not true before.
+
+**Gates on this prototype:** `bun test $(ls tests/*.test.ts | grep -v '/\._')` → **138 pass / 0 fail**;
+`bun run test:sim` → 5/5; `bash scripts/install.test.sh` → all checks passed; `bash scripts/bootstrap.test.sh`
+→ all checks passed; mutation proofs above → 8/8 red. Nothing installed.
+
+**Decision required** — this prototype is a proposal, not a shipped change:
+
+1. **Margin.** `RUNG_HYSTERESIS = 0.02` admits `opus-sub > astra-sub` (2.7) and `strong-chinese` above
+   `strong-flash-sub` (2.9), and refuses every sub-2-point move. Raising it to 0.05 would also refuse those
+   two, leaving the ladder nearly static; lowering it admits noise. Calibrating needs a second snapshot of
+   the same models.
+2. **Should economics stay frozen across rungs (rule 4)?** If a paid rung should be able to displace a
+   subscription rung on power, that is a one-line change and a policy decision about spending.
+3. **Should catch-all tails stay pinned (rule 3)?** The alternative is allowing `best-available` to climb,
+   which repairs the "unrecognised name is only ever balanced" complaint from the other direction — at the
+   cost of putting the most expensive model in the catalog at the top of `balanced`.
+4. **Coverage gaps first?** Items 1–3 above mean several premium subscription routes are permanently
+   "unmeasured" and therefore permanently pinned. Fixing them may be worth more than this prototype, and it
+   is the prerequisite for the data to mean anything for `anthropic/*` frontier ids at all.

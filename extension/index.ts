@@ -11,6 +11,7 @@ import {
   type IntelCache,
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
+import { computeLadders, type ComputedLadder } from './rungs.ts';
 import { cooldownFromPermanentModelError, cooldownFromRetry, isPermanentModelError, isRateOrQuotaError } from './health.ts';
 import { RouterStateStore } from './state.ts';
 import {
@@ -30,8 +31,15 @@ import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition,
 import { holdForRemoteCompaction } from './compaction-guard.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
-const STATE_FILE = join(EXTENSION_DIR, 'state.json');
 const POLICY_FILE = join(EXTENSION_DIR, 'policy.yml');
+
+/**
+ * Per-machine runtime state. `PMR_STATE_FILE` lets a test point it at a scratch path, so a
+ * developer's own routing history can never decide a unit test (AGENTS.md: tests never read it).
+ */
+function stateFilePath(): string {
+  return process.env.PMR_STATE_FILE ?? join(EXTENSION_DIR, 'state.json');
+}
 const LIVE_TTL_MS = 2 * 60_000;
 const LIVE_STALE_IF_ERROR_MS = 5 * 60_000;
 const HISTORY_TTL_MS = 5 * 60_000;
@@ -78,7 +86,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   registerVirtualRouterProvider(pi);
 
   const logger: any = (pi as any).logger ?? { info() {}, warn() {}, debug() {} };
-  const state = new RouterStateStore(STATE_FILE);
+  const state = new RouterStateStore(stateFilePath());
   const probeGate = new FreeProbeGate();
 
   let policy: RouterPolicy = DEFAULT_POLICY;
@@ -86,6 +94,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   let codexbar: Timestamped<CodexBarUsage[]> = { value: [], fetchedAt: 0 };
   let history: Timestamped<HistoryMap> = { value: {}, fetchedAt: 0 };
   let intel: IntelCache = { ...EMPTY_INTEL_CACHE };
+  // Rung order per tier, derived from the last snapshot that landed (see rungs.ts). Undefined
+  // until a snapshot exists: the shipped ladder in policy.yml is the fallback, by contract.
+  let ladders: Record<Tier, ComputedLadder> | undefined;
+  let laddersIntelAt = 0;
   let liveRefresh: Promise<void> | undefined;
   let historyRefresh: Promise<void> | undefined;
   let lastRoutedSelector: string | undefined;
@@ -161,6 +173,17 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   const refreshIntel = async (ctx: any): Promise<void> => {
     try {
       intel = await refreshOpenRouterIntel(ctx, intel);
+      // Rung order is derived once per snapshot, never per turn: a refresh that returned the
+      // cached map must not re-derive anything, and what it does derive is sticky (the margin
+      // in rungs.ts only lets a rung climb when the snapshot says so by more than noise).
+      if (laddersIntelAt === intel.fetchedAt) return;
+      ladders = computeLadders(policy, currentRoutes(ctx), ladders ? {
+        frontier: ladders.frontier.order,
+        balanced: ladders.balanced.order,
+        small: ladders.small.order,
+        free: ladders.free.order,
+      } : {});
+      laddersIntelAt = intel.fetchedAt;
     } catch (error) {
       logger.warn('pmr OpenRouter intelligence refresh failed', { error: String(error) });
     }
@@ -182,9 +205,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
 
   const chooseForCurrentWork = (ctx: any, mode: ManagedMode) => {
     const routes = currentRoutes(ctx);
+    const classOrder = ladders?.[mode]?.order ?? policy.tiers[mode].classes;
     const selection = selectForTier(
       routes,
-      policy.tiers[mode].classes,
+      classOrder,
       {
         allowDraining: allowDrainingForTier(mode),
         preference: mode === 'small' ? 'speed' : mode === 'free' ? 'value' : 'quality',
@@ -198,6 +222,10 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
 
   pi.on('session_start', async (_event: any, ctx: any) => {
     policy = await loadPolicy();
+    // policy.yml may have changed the class sets, so any ladder derived from the previous
+    // policy is void; the next snapshot rebuilds it.
+    ladders = undefined;
+    laddersIntelAt = 0;
     state.load();
     const keys = new Set(ctx.models.list().map(modelKey).filter((x: string | undefined): x is string => !!x));
     state.garbageCollect(keys);
@@ -477,6 +505,9 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       const text = formatRouteStatus({
         tier: lastDecision.tier,
         mode: routingMode,
+        ladder: ladders?.[lastDecision.tier]
+          ? { source: ladders[lastDecision.tier].source, order: ladders[lastDecision.tier].order }
+          : undefined,
         selected,
         reason: lastDecision.selection?.reason,
         routes: sortStatusRoutes(lastDecision.routes, selected),

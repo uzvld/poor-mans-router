@@ -35,3 +35,26 @@ test('mode line is absent when the caller does not supply one', () => {
   const text = formatRouteStatus({ tier: 'small', routes: [], sources: {} });
   assert.match(text.split('\n')[0], /^tier: small$/);
 });
+
+test('route status shows which ladder the tier was walked in, and where it came from', () => {
+  const computed = formatRouteStatus({
+    tier: 'frontier',
+    ladder: { source: 'snapshot', order: ['fable-sub', 'opus-sub', 'astra-sub'] },
+    routes: [],
+    sources: {},
+  });
+  assert.match(computed, /ladder: computed from snapshot — fable-sub > opus-sub > astra-sub/);
+
+  const shipped = formatRouteStatus({
+    tier: 'frontier',
+    ladder: { source: 'static', order: ['fable-sub', 'astra-sub', 'opus-sub'] },
+    routes: [],
+    sources: {},
+  });
+  assert.match(shipped, /ladder: shipped policy — fable-sub > astra-sub > opus-sub/);
+});
+
+test('route status carries no ladder line when the caller omits one', () => {
+  const text = formatRouteStatus({ tier: 'balanced', routes: [], sources: {} });
+  assert.doesNotMatch(text, /ladder:/);
+});

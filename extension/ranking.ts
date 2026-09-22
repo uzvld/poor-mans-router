@@ -5,6 +5,7 @@ import type { HistoryMap } from './history.ts';
 import type { IntelMap } from './openrouter-intel.ts';
 import { canonicalModelSlug } from './openrouter-intel.ts';
 import { classifyModelId, decorateClasses } from './policy.ts';
+import { benchmarkPower } from './rungs.ts';
 import { evaluateRouteHealth } from './health.ts';
 
 const MIX = { input: 1.0, output: 0.35, cacheRead: 4.0, cacheWrite: 0.05 };
@@ -293,6 +294,7 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
       health,
       qualityScore: qualityFromIntel(intel, reliabilityScore),
       agenticScore: intel?.agentic ?? 0.5,
+      benchmarkPower: benchmarkPower(intel),
       reliabilityScore,
       latencyMs: history?.ttftMs,
       throughput: history?.throughput,

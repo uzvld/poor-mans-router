@@ -18,6 +18,8 @@ DROP_KEYS = {
     'details',  # CodexBar free-text detail rows (may carry account-specific labels)
     'description', 'resetdescription',  # human-readable strings; not consumed by router
     'identity', 'plan', 'planname', 'subscription', 'workspaces', 'organization',
+    # Account-scoped reset-credit state (grant/expiry bookkeeping); no router code reads it.
+    'resetcredits',
 }
 # CodexBar `usage.details` carries the OpenRouter "Credits" balance the router reads
 # (telemetry.ts balanceFromUsage). Keep ONLY that title; drop everything else.
@@ -56,13 +58,14 @@ def load(p):
     return json.loads(t[start:])
 
 for name in ('omp-usage.json', 'codexbar-usage.json', 'omp-stats.json', 'models.json',
-             'live-omp-usage-2026-09-19.json', 'live-codexbar-2026-09-19.json', 'live-omp-stats-2026-09-19.json'):
+             'live-omp-usage-2026-09-19.json', 'live-codexbar-2026-09-19.json', 'live-omp-stats-2026-09-19.json',
+             'live-omp-models-2026-09-22.json', 'live-omp-usage-2026-09-22.json', 'live-codexbar-2026-09-22.json'):
     src = SRC / name
     if not src.exists(): print(f'skip {name} (absent)'); continue
     data = load(src)
     clean = scrub(data)
     # models.json: keep only routing-relevant model fields
-    if name == 'models.json':
+    if name in ('models.json', 'live-omp-models-2026-09-22.json'):
         clean = {'models': [{k: m.get(k) for k in ('provider', 'id', 'selector', 'name', 'cost', 'contextWindow') if k in m} for m in clean['models']]}
     # omp-stats: byModel only (byFolder leaks local project paths)
     if name.endswith('omp-stats.json') or name.endswith('omp-stats-2026-09-19.json'):
