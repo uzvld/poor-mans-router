@@ -22,6 +22,11 @@
 
 **Generations are irrelevant; product names are everything.** The token is matched against the name, never the version, so a whole new generation of a known name classifies itself with zero code change — `gpt-6-luna`, `gpt-7-luna`, `gpt-5.6-luna` and the real `gpt-6-astra` in the catalog all land exactly like their predecessors. The failing case is a **new NAME** (`sol`, `terra`), not a new generation. That distinction is the finding; it also means the fix must be a name-token rule and never a generation rule.
 
+**Opus 5.5 needs nothing (measured).** `opus` is already a token, so `anthropic/claude-opus-5.5` → `["opus","best-available","opus-sub"]` → `frontier` rung 3 on arrival, and it *wins* that rung: added to the live catalog as an Anthropic subscription route it beats all 10 real `opus-sub` members, and the family-scoped generation tie-break prefers it over `claude-opus-5` and `claude-opus-4.8`. Two measured caveats, both latent today:
+
+- a **suffixed** variant is a different family (`modelFamily('claude-opus-5.5-fast')` is `claude-opus-fast`, not `claude-opus`), so generation ordering does not relate it to 5.5 and, on a full tie, the lexical fallback puts plain `anthropic/claude-opus-5` ahead of `anthropic/claude-opus-5.5-fast`. No Anthropic-provider `-fast` variant exists in the catalog today (0 of 37 opus routes) — the 8 `-fast` ids are all kilo/openrouter, i.e. PAYG, so they never enter `opus-sub`;
+- `opus` is the largest single instance of limb 2: of the **37** opus routes in the catalog only **10** are OMP-reported subscription routes with an `opus-sub` rung. The other **27** are per-token sellers (`kilo/stealth/*`, `kilo/anthropic/*`, `openrouter/anthropic/*`) and cannot reach `frontier` at all — including `kilo/anthropic/claude-opus-4.6-fast` at 96.375, the single most expensive route in the whole catalog.
+
 So: **automatic** for names the whitelist already knows (`luna`, `astra`, `fable`, `opus`, `mythos`, `sonnet`, `haiku`/`spark`, `flash`, Chinese vendors, `:free`); **silent demotion to the paid tail** for anything else. This is not hypothetical and not about "new": `gpt-5.6-sol` is *already in today's catalog* and has never had a tier.
 
 ## Evidence
