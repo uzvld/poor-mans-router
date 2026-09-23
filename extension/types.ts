@@ -31,6 +31,8 @@ export interface NormalizedRoute {
   health: RouteHealth;
   qualityScore: number;
   agenticScore: number;
+  /** Measured benchmark power of the model (0..1); undefined when no snapshot covers it. */
+  benchmarkPower?: number;
   reliabilityScore: number;
   latencyMs?: number;
   throughput?: number;

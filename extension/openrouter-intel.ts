@@ -42,6 +42,96 @@ function boundedScore(value: unknown): number | undefined {
   return Math.min(1, Math.max(0, normalized));
 }
 
+// --- Intel key matching -------------------------------------------------------------------------
+// The snapshot keys a model by its OpenRouter release slug, the catalog by its OMP id, and the two
+// disagree in three measured ways: the snapshot carries a release date the catalog usually does not
+// (`anthropic/claude-fable-5.1-20260831` vs `anthropic/claude-fable-5-1`), a Claude version is
+// dotted on one side and dashed on the other (`claude-opus-5.5` vs `claude-opus-5-5`), and some
+// providers ship bare ids whose vendor OpenRouter names differently (`opencode-go/grok-4.6` vs
+// `x-ai/grok-4.6`). Measured on the live catalog 2026-09-23: the coding index reached 87 of 1203
+// routes while 331 were reachable. These aliases bridge the three without rewriting the stored
+// keys, so every existing consumer keeps the key shape it already reads.
+
+const VERSION_SEPARATOR = /(?<=\d)[.-](?=\d)/g;
+
+/** Key spellings a snapshot row and a catalog route may disagree on, most specific first. */
+export function intelAliases(slug: string): string[] {
+  const stripped = stripVariants(slug.toLowerCase());
+  const undated = stripped.replace(/-\d{8}$/, '');
+  // `-discounted` is the dash spelling of the `:discounted` variant `stripVariants` already folds:
+  // same model, different price. `-pro`/`-mini`/`-fast` are distinct SKUs and are never folded.
+  const base = undated.replace(/-(?:discounted|extended)$/, '');
+  const out: string[] = [];
+  for (const candidate of [stripped, undated, base]) {
+    for (const spelling of [
+      candidate,
+      candidate.replace(VERSION_SEPARATOR, '.'),
+      candidate.replace(VERSION_SEPARATOR, '-'),
+    ]) {
+      if (!out.includes(spelling)) out.push(spelling);
+    }
+  }
+  return out;
+}
+
+function releaseDate(slug: string): string {
+  const match = stripVariants(slug.toLowerCase()).match(/-(\d{8})$/);
+  return match?.[1] ?? '';
+}
+
+export interface IntelLookup {
+  /** Keyed by every alias above, newest release wins when two keys describe one model. */
+  exact: IntelMap;
+  /** Basename of a unique model name, for providers that ship no vendor prefix. */
+  byBasename: Record<string, string>;
+}
+
+export function buildIntelLookup(intel: IntelMap): IntelLookup {
+  const exact: IntelMap = {};
+  const dates: Record<string, string> = {};
+  const sources: Record<string, Set<string>> = {};
+
+  for (const [rawKey, value] of Object.entries(intel)) {
+    const aliases = intelAliases(rawKey);
+    const date = releaseDate(rawKey);
+    for (const alias of aliases) {
+      const known = dates[alias];
+      if (known === undefined || date >= known) {
+        exact[alias] = { ...(exact[alias] ?? {}), ...value };
+        if (date) dates[alias] = date;
+      }
+    }
+    const first = aliases[0];
+    for (const alias of aliases) {
+      const basename = alias.split('/').pop();
+      if (basename && first) (sources[basename] ??= new Set()).add(first);
+    }
+  }
+
+  const byBasename: Record<string, string> = {};
+  for (const [basename, keys] of Object.entries(sources)) {
+    // Two different models sharing a bare name would make the fallback a guess; it is not one.
+    if (keys.size === 1) byBasename[basename] = [...keys][0] as string;
+  }
+  return { exact, byBasename };
+}
+
+/** Intel for one catalog route, or undefined when nothing measured it. */
+export function intelForRoute(lookup: IntelLookup, provider: string, modelId: string): ModelIntel | undefined {
+  const canonical = canonicalModelSlug(provider, modelId);
+  for (const alias of intelAliases(canonical)) {
+    const hit = lookup.exact[alias];
+    if (hit) return hit;
+  }
+  const basename = stripVariants(canonical.toLowerCase()).split('/').pop();
+  if (!basename) return undefined;
+  for (const alias of intelAliases(basename)) {
+    const key = lookup.byBasename[alias];
+    if (key) return lookup.exact[key];
+  }
+  return undefined;
+}
+
 export function normalizeBenchmarkRows(payload: any, kind: 'coding' | 'agentic'): IntelMap {
   const out: IntelMap = {};
   for (const row of payload?.data ?? []) {

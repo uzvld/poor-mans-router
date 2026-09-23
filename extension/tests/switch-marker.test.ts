@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import adaptiveRouter from '../index.ts';
+
+// Same scratch-state rule as tests/managed-mode.test.ts: the per-machine state.json must never
+// decide what this harness routes to.
+const SCRATCH_STATE = join(tmpdir(), `pmr-test-state-switch-marker-${process.pid}.json`);
+rmSync(SCRATCH_STATE, { force: true });
 
 // A router-initiated model switch must be visible in the session output the way tool
 // calls are: an `[omp:pmr] <from> -> <to> (<reason>)` line. OMP delivers
@@ -31,6 +39,7 @@ function harness(models: any[], currentModel: any) {
     modelRegistry: { getApiKeyForProvider: async () => undefined },
     ui: { notify(text: string, level = 'info') { notifications.push({ text, level }); } },
   };
+  process.env.PMR_STATE_FILE = SCRATCH_STATE;
   adaptiveRouter(pi);
   return { handlers, ctx, setModelCalls, notifications };
 }

@@ -7,10 +7,17 @@ export interface StatusSources {
   historyAgeMs?: number;
 }
 
+export interface LadderStatus {
+  source: 'snapshot' | 'static';
+  order: string[];
+}
+
 export interface RouteStatusInput {
   tier: Tier;
   /** Routing mode; omitted by callers that only render a decision. */
   mode?: string;
+  /** Class order the tier was actually walked in, and where it came from. */
+  ladder?: LadderStatus;
   selected?: string;
   reason?: string;
   routes: Pick<NormalizedRoute, 'key' | 'health'>[];
@@ -28,6 +35,9 @@ export function formatRouteStatus(input: RouteStatusInput): string {
   const lines = [
     ...(input.mode !== undefined ? [`mode: ${input.mode}`] : []),
     `tier: ${input.tier}`,
+    ...(input.ladder
+      ? [`ladder: ${input.ladder.source === 'snapshot' ? 'computed from snapshot' : 'shipped policy'} — ${input.ladder.order.join(' > ')}`]
+      : []),
     `selected: ${input.selected ?? '(none)'}`,
     `reason: ${input.reason ?? '(none)'}`,
     '',

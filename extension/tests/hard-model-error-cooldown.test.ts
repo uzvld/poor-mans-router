@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import adaptiveRouter from '../index.ts';
 
@@ -34,7 +35,11 @@ import adaptiveRouter from '../index.ts';
 // the failed route down so the second process's ladder picks a different candidate --
 // currently it does not.
 
-const STATE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'state.json');
+// The store resolves its path when the extension is constructed, so the harness owns it: a
+// scratch file keeps the developer's own state.json out of the suite (AGENTS.md) while keeping
+// the property this test needs — two independent extension instances sharing one on-disk file.
+const SCRATCH_STATE = path.join(os.tmpdir(), `pmr-test-state-hard-model-error-${process.pid}.json`);
+const STATE_FILE = SCRATCH_STATE;
 
 function harness(models: unknown[], currentModel: unknown) {
   const handlers = new Map<string, Array<(event: unknown, ctx: unknown) => Promise<unknown>>>();
@@ -70,6 +75,7 @@ function harness(models: unknown[], currentModel: unknown) {
     modelRegistry: { getApiKeyForProvider: async () => undefined },
     ui: { notify(text: string, level = 'info') { notifications.push({ text, level }); } },
   };
+  process.env.PMR_STATE_FILE = SCRATCH_STATE;
   adaptiveRouter(pi);
   return { handlers, ctx, setModelCalls, notifications };
 }
@@ -90,6 +96,7 @@ const primaryFree = { provider: 'kilo', id: 'arcee-ai/trinity-large-preview:free
 const secondaryFree = { provider: 'openrouter', id: 'nvidia/nemotron:free', cost: { input: 0, output: 0 } };
 
 test.beforeEach(() => {
+  fs.rmSync(SCRATCH_STATE, { force: true });
   fs.writeFileSync(STATE_FILE, JSON.stringify({ routes: {} }));
 });
 
