@@ -10,12 +10,15 @@
 //
 // Snapshots default to the sanitised fixtures captured 2026-09-22. Override with:
 //   PMR_MODELS, PMR_USAGE, PMR_CODEXBAR  — raw `omp models` / `omp usage` / `codexbar usage` JSON
-//   PMR_INTEL                            — Artificial Analysis payload (coding/agentic arrays)
-import { readFileSync } from 'node:fs';
+//   PMR_INTEL                            — a Data API capture directory (benchmarks-coding.json,
+//                                          benchmarks-agentic.json, classifications-task.json,
+//                                          rankings-daily.json) or a single AA page payload
+import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { buildRoutes, selectForTier } from '../../extension/ranking.ts';
 import { DEFAULT_POLICY } from '../../extension/policy.ts';
 import { computeLadders } from '../../extension/rungs.ts';
+import { mergeOpenRouterIntel, normalizeBenchmarkRows, normalizeRankingRows, normalizeTaskClassifications } from '../../extension/openrouter-intel.ts';
 import { normalizeOmpUsage, parseCodexBarRows } from '../../extension/telemetry.ts';
 import type { IntelMap } from '../../extension/openrouter-intel.ts';
 import type { OmpModelLike } from '../../extension/ranking.ts';
@@ -55,6 +58,20 @@ function benchmarkRows(raw: unknown, kind: 'coding' | 'agentic'): BenchmarkRow[]
   return Array.isArray(rows) ? (rows as BenchmarkRow[]) : [];
 }
 
+/**
+ * Intel from the captured Data API directory (the production shape, run through the production
+ * normalisers) or from the single-file Artificial Analysis page payload.
+ */
+function loadIntel(path: string): IntelMap {
+  if (!statSync(path).isDirectory()) return intelFromPayload(readJson(path));
+  return mergeOpenRouterIntel(
+    normalizeBenchmarkRows(readJson(`${path}/benchmarks-coding.json`), 'coding'),
+    normalizeBenchmarkRows(readJson(`${path}/benchmarks-agentic.json`), 'agentic'),
+    normalizeTaskClassifications(readJson(`${path}/classifications-task.json`)),
+    normalizeRankingRows(readJson(`${path}/rankings-daily.json`)),
+  );
+}
+
 // The Data API normaliser (openrouter-intel.ts normalizeBenchmarkRows) stores a benchmark index
 // as a 0..1 fraction keyed by the model's OpenRouter slug; this mirrors that shape.
 function intelFromPayload(raw: unknown): IntelMap {
@@ -75,7 +92,7 @@ function intelFromPayload(raw: unknown): IntelMap {
 const models = modelCatalog(readJson(MODELS_FILE));
 const ompReports = normalizeOmpUsage(readJson(USAGE_FILE));
 const codexbar = parseCodexBarRows(readJson(CODEXBAR_FILE) as unknown[]);
-const intel = intelFromPayload(readJson(INTEL_FILE));
+const intel = loadIntel(INTEL_FILE);
 
 const routes = buildRoutes(models, { ompReports, codexbar, localState: {}, history: {}, intel, reservePct: 10, now: NOW });
 const ladders = computeLadders(DEFAULT_POLICY, routes);

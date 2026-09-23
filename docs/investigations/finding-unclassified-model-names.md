@@ -320,8 +320,8 @@ pinned  : fable-sub
   `fallback` line above describes.
 
 **Three intel coverage gaps found while doing this** (each makes a route look *unmeasured*, and rule 2 then
-pins its rung — safe, but it means the data silently never arrives for those routes). None is fixed here;
-each changes intel coverage and therefore ranking, so it belongs in its own finding:
+pins its rung — safe, but it means the data silently never arrives for those routes). All three are bridged
+in *Coverage fix* below; the reasoning that made them separate findings is kept here:
 
 1. **Bare-id providers.** `canonicalModelSlug('opencode-go', 'grok-4.6')` is `opencode-go/grok-4.6`, while the
    snapshot keys the same model as `x-ai/grok-4.6`. Measured through `buildRoutes`: the same model scores
@@ -364,10 +364,10 @@ emits…" (`mv extension/state.json /tmp && bun test tests/managed-mode.test.ts 
 4. **Coverage gaps first?** Items 1–3 above mean several premium subscription routes are permanently
    "unmeasured" and therefore permanently pinned. Fixing them may be worth more than this prototype, and it
    is the prerequisite for the data to mean anything for `anthropic/*` frontier ids at all.
-5. **The dated-slug mismatch** (`Data API capture` below): 87 of a possible 331 routes receive a coding
-   index today. Stripping `-YYYYMMDD` on the intel key side is one line and multiplies coverage by ~3.8×,
-   but it collapses snapshot generations of one family into a single key — so it needs a rule for which
-   measurement wins (newest date, or the row order the API returns), and it is a ranking change of its own.
+5. **~~The dated-slug mismatch~~ — implemented in this branch; see *Coverage fix* below.** The rule for two
+   releases collapsing into one key is **newest release date wins**, order-independent (both payload orders
+   tested). That choice is mine, not yours: "newest wins" is right when a release date means a newer model,
+   and wrong for a family that ships dated *evaluations* rather than dated *versions*. One line to change.
 
 ## Data API capture, 2026-09-23T00:24Z — the quota reset, and the coverage it revealed
 
@@ -408,3 +408,56 @@ OMP id has no release date.
 one family (`claude-3-5-sonnet-20240620` vs `-20241022` become one key, and last-row-wins decides which
 measurement survives), and it changes intel coverage for ~244 routes — a ranking change that needs its own
 finding and its own decision. It is now decision 5 below.
+
+## Coverage fix: intel keys are matched by shape, not by spelling
+
+The *Data API capture* above showed the snapshot knows far more models than the lookup could reach:
+`intel[canonicalModelSlug(provider, id)]` was an exact-string match, and the two sides spell the same model
+differently in three measured ways. `openrouter-intel.ts` now resolves intel through `buildIntelLookup()` +
+`intelForRoute()`; `ranking.ts` builds that index once per `buildRoutes()` call and resolves every route
+through it. **Stored keys are untouched** (`stripVariants()` is unchanged), so every existing consumer reads
+exactly the shape it read before — only the lookup got richer.
+
+| Disagreement | Snapshot key | Catalog route | Bridge |
+|---|---|---|---|
+| release date | `anthropic/claude-fable-5.1-20260831` | `anthropic/claude-fable-5-1` | trailing `-YYYYMMDD` dropped on both sides |
+| version punctuation | `anthropic/claude-opus-5.5-20260723` | `anthropic/claude-opus-5-5` | `.` ↔ `-` between digits, both directions |
+| bare id, prefix-less provider | `x-ai/grok-4.6-20260810` | `opencode-go/grok-4.6` | basename index, used only when exactly one model carries that name |
+| price variant | `openai/gpt-5.6-sol-20260709` | `kilo/openai/gpt-5.6-sol-discounted` | dash spelling of the `:discounted` variant already folded |
+
+`-pro`, `-mini`, `-fast` and `-latest` are **not** folded: they are distinct SKUs, and a test pins that a
+different SKU stays unmeasured rather than inheriting the base model's numbers.
+
+**Measured, live catalog (1203 routes) against the production capture** (`/tmp/or-intel3`, 2026-09-23T00:24Z):
+
+| | before | after |
+|---|---|---|
+| routes reaching *any* intel | 95 | **412** |
+| … of those, with a coding or agentic index | 87 | **347** |
+| measured routes in the 1113-route replay | 244 | **329** |
+
+The replay now shows the frontier ladder with **no pinned rung at all**, and `fable-sub` first *by
+measurement* (0.728) rather than by the I7 pin:
+
+```
+shipped : fable-sub > astra-sub > opus-sub > opus-ish-sub > strong-flash-sub > strong-chinese > best-free
+computed: fable-sub > opus-sub > astra-sub > opus-ish-sub > strong-chinese > strong-flash-sub > best-free
+powers  : fable-sub=0.728 opus-sub=0.700 opus-ish-sub=0.679 astra-sub=0.673 strong-chinese=0.668 strong-flash-sub=0.639 best-free=0.598
+pinned  : -
+```
+
+Two swaps, both explained by the numbers: `opus-sub` over `astra-sub` (2.7 points) and `strong-chinese` over
+`strong-flash-sub` (2.9). `opus-ish-sub` (0.679) does **not** pass `astra-sub` (0.673) — 0.6 points is inside
+the margin. The fallback chain changes the same way as before the fix and for the same reason: with the
+Anthropic and Codex windows inside reserve, frontier's first healthy rung decides the turn, and it is now
+`strong-chinese` (`deepseek-v4-pro`, `glm-5.3`) instead of the cheapest flashes.
+
+**Guards.** 8 tests in `extension/tests/intel-slug-coverage.test.ts` (dated key, dot/dash both ways, bare id,
+ambiguity refusal, newest-wins in both payload orders, alias spelling, price variant vs distinct SKU, and the
+bare-id route through the real `buildRoutes()` pipeline). 5 mutations, each applied to a clean tree and
+restored byte-for-byte, all red: date strip removed (2 tests), version folding removed (2), basename index
+emptied (2), ambiguity allowed to guess (1), oldest-wins instead of newest (1).
+
+**Tooling.** `tools/rung-replay/replay.ts` accepts either a single Artificial Analysis page payload or a Data
+API capture directory (`PMR_INTEL=/tmp/or-intel3`), the latter run through the production normalisers.
+

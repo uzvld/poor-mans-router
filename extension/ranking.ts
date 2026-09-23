@@ -3,7 +3,7 @@ import type { OmpCredentialUsage, CodexBarUsage } from './telemetry.ts';
 import type { LocalRouteState } from './health.ts';
 import type { HistoryMap } from './history.ts';
 import type { IntelMap } from './openrouter-intel.ts';
-import { canonicalModelSlug } from './openrouter-intel.ts';
+import { buildIntelLookup, canonicalModelSlug, intelForRoute } from './openrouter-intel.ts';
 import { classifyModelId, decorateClasses } from './policy.ts';
 import { benchmarkPower } from './rungs.ts';
 import { evaluateRouteHealth } from './health.ts';
@@ -256,6 +256,9 @@ function qualityFromIntel(intel: IntelMap[string] | undefined, reliability: numb
 
 export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): NormalizedRoute[] {
   const subscriptionProviders = new Set(input.ompReports.map((r) => r.provider));
+  // One index per call: the snapshot is shared by every route, and resolving per route would repeat
+  // the alias expansion 1200 times for no reason.
+  const intelLookup = buildIntelLookup(input.intel);
 
   return models.filter((model) => !/:batch$/i.test(model.selector ?? model.id)).map((model) => {
     const selector = model.selector ?? `${model.provider}/${model.id}`;
@@ -278,8 +281,7 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
 
     const history = input.history[key];
     const reliabilityScore = smoothedReliability(history);
-    const slug = canonicalModelSlug(model.provider, model.id);
-    const intel = input.intel[slug];
+    const intel = intelForRoute(intelLookup, model.provider, model.id);
 
     return {
       key,
