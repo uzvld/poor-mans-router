@@ -15,9 +15,9 @@ import type { NormalizedRoute, RouterPolicy, Tier } from './types.ts';
 //      catalog jump the queue of every tier it appears in;
 //   4. rungs that sell the way the user pays differently never cross on power alone: a paid rung
 //      does not displace a subscription rung, and neither displaces a free one. Economics stays
-//      the first-order policy (this router is subscription-first); capability orders what
-//      economics has already grouped. A mixed class (members on both sides) is a capability
-//      class and crosses freely;
+//      first-order policy (this router is subscription-first); capability orders what economics
+//      has already grouped. A mixed class may cross a pure paid class, but never a pure
+//      subscription or free rung; subscription-first remains absolute.
 //   5. `selectForTier` still walks the resulting order strictly, so a lower rung never wins while
 //      a higher one has an AVAILABLE route — recomputing the order does not weaken that (I1).
 //
@@ -116,7 +116,12 @@ function catchAllClasses(base: string[], profiles: Record<string, ClassProfile>)
 }
 
 function swappable(kindA: ClassEconomics, kindB: ClassEconomics): boolean {
-  return kindA === kindB || kindA === 'mixed' || kindB === 'mixed';
+  if (kindA === kindB) return true;
+  // A mixed class may compete with paid capability classes, but it must not jump a
+  // pure subscription or free rung: subscription-first remains absolute across tiers.
+  if (kindA === 'subscription' || kindB === 'subscription') return false;
+  if (kindA === 'free' || kindB === 'free') return false;
+  return true;
 }
 
 /**

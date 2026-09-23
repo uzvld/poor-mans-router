@@ -261,8 +261,8 @@ with the shipped ladder as the fallback. Nothing is installed, `policy.yml` is u
    `chinese-flash-payg=0.639` — the rule is what keeps `balanced` identical to its shipped ladder.
 4. Rungs that sell differently never cross on power alone: subscription stays ahead of paid ahead of free.
    Economics is first order in this router (subscription-first, `package.json`), and a capability signal
-   must not silently re-price a turn. A mixed class (members on both sides) is a capability class and
-   crosses freely.
+   must not silently re-price a turn. A mixed class may compete with a pure paid class, but it cannot
+   jump a pure subscription or free rung; subscription-first remains absolute.
 5. `RUNG_HYSTERESIS = 0.02` — a rung climbs past its neighbour only by at least 2 points of power, so a
    snapshot-to-snapshot wobble cannot reorder the ladder. Measured gaps between neighbouring capability
    classes on the 2026-09-22 snapshot are 2–10 points, so the floor admits every real difference in the

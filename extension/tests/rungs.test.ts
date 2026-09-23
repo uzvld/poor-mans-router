@@ -149,13 +149,22 @@ test('economics stays first order: a paid rung does not displace a subscription 
     })).order,
     base,
   );
-  // A mixed class sells on both sides of the boundary, so it is a capability class and crosses.
+  // A mixed class may compete with paid capability classes, but cannot jump a pure
+  // subscription rung: subscription-first is absolute.
   assert.deepEqual(
     orderLadder(base, profilesOf({
       'sonnet-sub': { power: 0.6, economics: 'subscription', members: ['a/one'] },
       'flash-payg': { power: 0.8, economics: 'mixed', members: ['b/two'] },
     })).order,
-    ['flash-payg', 'sonnet-sub'],
+    base,
+  );
+  // Mixed can still move against a pure paid class.
+  assert.deepEqual(
+    orderLadder(['paid', 'mixed'], profilesOf({
+      paid: { power: 0.6, economics: 'paid', members: ['a/one'] },
+      mixed: { power: 0.8, economics: 'mixed', members: ['b/two'] },
+    })).order,
+    ['mixed', 'paid'],
   );
 });
 
