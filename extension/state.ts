@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import type { LocalRouteState } from './health.ts';
 
 interface StoredRouteState extends LocalRouteState {
@@ -77,7 +78,11 @@ export class RouterStateStore {
     if (this.gc) this.sweep(this.gc.currentRoutes, Date.now(), this.gc.maxAgeMs);
 
     fs.mkdirSync(path.dirname(this.filename), { recursive: true });
-    const tmp = `${this.filename}.tmp`;
+    // Multiple OMP processes share this file. A fixed `.tmp` lets one process rename another
+    // process's temp file and makes the loser throw ENOENT, dropping fresh telemetry entirely.
+    // Unique temp names preserve atomic rename while allowing concurrent writers to merge the
+    // current on-disk snapshot independently.
+    const tmp = `${this.filename}.${process.pid}.${randomUUID()}.tmp`;
     const state: PersistedState = { routes: this.routes };
     if (this.telemetrySnapshot) state.telemetry = this.telemetrySnapshot;
     fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
