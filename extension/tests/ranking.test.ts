@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { buildRoutes, effectiveCost, selectWithinClass, selectForTier } from '../ranking.ts';
+import type { NormalizedRoute } from '../types.ts';
 
 test('subscription and free routes have zero marginal cost', () => {
   const base: any = { free: false, subscriptionLike: true, price: { input: 10, output: 50 } };
@@ -99,6 +100,27 @@ test('within a semantic class, model quality chooses the model and route price c
   ];
   assert.equal(selectWithinClass(routes)?.key, 'openrouter/deepseek/deepseek-v4.1-flash');
 });
+test('newer same-family generation beats measured older sibling when both are available', () => {
+  const route = (key: string, modelId: string, qualityScore: number, reliabilityScore: number): NormalizedRoute => ({
+    key,
+    provider: 'openai-codex',
+    modelId,
+    selector: key,
+    classes: ['luna-sub'],
+    free: false,
+    subscriptionLike: true,
+    price: {},
+    health: { state: 'AVAILABLE', freshness: 'FRESH' },
+    qualityScore,
+    agenticScore: 0.5,
+    reliabilityScore,
+  });
+  const routes = [
+    route('openai-codex/gpt-5.6-luna', 'gpt-5.6-luna', 0.90, 0.95),
+    route('openai-codex/gpt-6-luna', 'gpt-6-luna', 0.80, 0.50),
+  ];
+  assert.equal(selectForTier(routes, ['luna-sub'])?.route.key, 'openai-codex/gpt-6-luna');
+});
 
 test('batch-priced variants are not candidates for live agent routing', () => {
   const routes = buildRoutes([
@@ -112,6 +134,7 @@ test('small-tier speed preference chooses the faster healthy model inside the sa
   const routes: any[] = [
     {
       key: 'subscription/slow-strong', provider: 'subscription', modelId: 'slow-strong', selector: 'subscription/slow-strong',
+
       classes: ['cheap-sub'], free: false, subscriptionLike: true, price: { input: 0, output: 0 },
       health: { state: 'AVAILABLE', freshness: 'FRESH' }, qualityScore: 0.95, reliabilityScore: 0.95,
       latencyMs: 1200, throughput: 40,
@@ -124,4 +147,26 @@ test('small-tier speed preference chooses the faster healthy model inside the sa
     },
   ];
   assert.equal(selectForTier(routes, ['cheap-sub'], { preference: 'speed' })?.route.key, 'subscription/fast-small');
+});
+
+test('small tier prefers a newer sibling when speed and cost measurements tie', () => {
+  const route = (key: string, modelId: string, reliabilityScore: number): NormalizedRoute => ({
+    key,
+    provider: 'openai-codex',
+    modelId,
+    selector: key,
+    classes: ['cheap-sub'],
+    free: false,
+    subscriptionLike: true,
+    price: {},
+    health: { state: 'AVAILABLE', freshness: 'FRESH' },
+    qualityScore: 0.8,
+    agenticScore: 0.5,
+    reliabilityScore,
+  });
+  const routes = [
+    route('openai-codex/gpt-5.6-luna', 'gpt-5.6-luna', 0.95),
+    route('openai-codex/gpt-6-luna', 'gpt-6-luna', 0.5),
+  ];
+  assert.equal(selectForTier(routes, ['cheap-sub'], { preference: 'speed' })?.route.key, 'openai-codex/gpt-6-luna');
 });

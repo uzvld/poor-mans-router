@@ -71,8 +71,22 @@ export function compareModelGeneration(a: string, b: string): number {
   return 0;
 }
 
+const GENERATION_QUALITY_TOLERANCE = 0.15;
+
 function bestComparator(a: NormalizedRoute, b: NormalizedRoute, currentKey?: string): number {
-  if (a.qualityScore !== b.qualityScore) return b.qualityScore - a.qualityScore;
+  const sameFamily = modelFamily(a.modelId) === modelFamily(b.modelId);
+  const generation = sameFamily ? compareModelGeneration(a.modelId, b.modelId) : 0;
+  const qualityDelta = a.qualityScore - b.qualityScore;
+  if (qualityDelta !== 0) {
+    // A modest quality lead from accumulated telemetry must not permanently pin an
+    // older sibling, but a newer model cannot win by spending more.
+    if (sameFamily && generation !== 0 && Math.abs(qualityDelta) <= GENERATION_QUALITY_TOLERANCE) {
+      const costDelta = effectiveCost(a) - effectiveCost(b);
+      if (Number.isFinite(costDelta) && costDelta !== 0) return costDelta;
+      return generation;
+    }
+    return qualityDelta < 0 ? 1 : -1;
+  }
   if (a.reliabilityScore !== b.reliabilityScore) return b.reliabilityScore - a.reliabilityScore;
   const aLatency = a.latencyMs ?? Number.POSITIVE_INFINITY;
   const bLatency = b.latencyMs ?? Number.POSITIVE_INFINITY;
@@ -80,17 +94,12 @@ function bestComparator(a: NormalizedRoute, b: NormalizedRoute, currentKey?: str
   const aCost = effectiveCost(a);
   const bCost = effectiveCost(b);
   if (aCost !== bCost) return aCost - bCost;
-  // Scoped bootstrap/current-model affinity: only once everything above ties, and only
-  // between versions of the SAME family, keep the model the session is already on.
-  // Never lets a bootstrap marker override economics, intel, or a different family.
-  if (currentKey && modelFamily(a.modelId) === modelFamily(b.modelId)) {
+  // Affinity remains a tie-break after economics, quality and reliability.
+  if (currentKey && sameFamily) {
     if (a.key === currentKey) return -1;
     if (b.key === currentKey) return 1;
   }
-  // Quality-safe deterministic tie-break: newer model generation before any lexical order,
-  // so an old dated Sonnet 3.5 cannot beat Sonnet 5 just because "3" sorts before "s".
-  const gen = compareModelGeneration(a.modelId, b.modelId);
-  if (gen !== 0) return gen;
+  if (generation !== 0) return generation;
   return a.key.localeCompare(b.key);
 }
 
@@ -119,6 +128,10 @@ function speedComparator(a: NormalizedRoute, b: NormalizedRoute): number {
 
   const costDelta = effectiveCost(a) - effectiveCost(b);
   if (Number.isFinite(costDelta) && costDelta !== 0) return costDelta;
+  const sameFamily = modelFamily(a.modelId) === modelFamily(b.modelId);
+  const generation = sameFamily ? compareModelGeneration(a.modelId, b.modelId) : 0;
+  const qualityDelta = a.qualityScore - b.qualityScore;
+  if (generation !== 0 && Math.abs(qualityDelta) <= GENERATION_QUALITY_TOLERANCE) return generation;
   if (a.reliabilityScore !== b.reliabilityScore) return b.reliabilityScore - a.reliabilityScore;
   if (a.qualityScore !== b.qualityScore) return b.qualityScore - a.qualityScore;
   return a.key.localeCompare(b.key);
