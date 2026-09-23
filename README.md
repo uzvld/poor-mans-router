@@ -64,7 +64,7 @@ Each mode owns an ordered **class ladder**; the first class with a healthy candi
 
 A class is a *semantic* bucket, not a model list: `sonnet-sub` = "any Sonnet reachable through a subscription credential". Models are classified by id pattern (`policy.ts`), then decorated by economics — `-sub` if the provider has a live subscription meter in `omp usage`, `-payg` if it's metered per token, `free` if the selector says so.
 
-Ladders live in [`extension/policy.yml`](extension/policy.yml). Change them there; no code edit required.
+The shipped class order is the fallback in [`extension/policy.yml`](extension/policy.yml). When fresh OpenRouter benchmark data is available, `extension/rungs.ts` may derive a sticky order within the same economic boundary; unmeasured classes keep their configured position, and catch-all classes remain tails. `/route-status` reports whether the selected ladder came from policy or the latest snapshot.
 
 ## What "healthy" means
 
@@ -140,15 +140,16 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 extension/          the OMP extension (TypeScript, loaded by Bun)
   index.ts            hooks: session_start · before_agent_start · before_provider_request · auto_retry_* · /route-status
   virtual-model.ts    pmr/* registration · routing-mode state machine
-  policy.ts/.yml      class ladders, model-id classification
+  policy.ts/.yml      class ladders, model-id classification, fallback order
   ranking.ts          buildRoutes · selectForTier · in-class comparators
+  rungs.ts            snapshot-derived ladder order with policy fallback
   health.ts           AVAILABLE / DRAINING / COOLDOWN from telemetry
   telemetry.ts        omp usage + CodexBar normalisation
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns (state.json, gitignored)
   compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
-  tests/              bun test — 115 tests, run from extension/
+  tests/              bun test — 146 tests, run from extension/
 hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
                     survives `hermes update`, and their tests
