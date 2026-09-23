@@ -334,8 +334,8 @@ each changes intel coverage and therefore ranking, so it belongs in its own find
 3. **Dated slugs.** `stripVariants()` removes `:free`/`:batch` but not the `-YYYYMMDD` suffix, so
    `openai/gpt-6-astra-20260903` cannot match the undated `openai/gpt-6-astra` that `canonicalModelSlug()`
    produces. Both the page payload and `fixtures/aa-bench-2026-09-22.json` carry dated and undated keys, so
-   today this one is masked; whether the Data API payload does too is what the 02:00 capture decides
-   (`tools/rung-replay` accepts `PMR_INTEL` for exactly that check).
+   today this one is masked by the page cache — and it is **not** masked on the production path; see
+   *Data API capture* below for the measured hit rate.
 
 **Adjacent fix shipped with this prototype: the unit suite is machine-dependent no longer.** `RouterStateStore`
 was constructed with a fixed `EXTENSION_DIR/state.json`, so every harness driving `session_start` read the
@@ -364,3 +364,47 @@ emits…" (`mv extension/state.json /tmp && bun test tests/managed-mode.test.ts 
 4. **Coverage gaps first?** Items 1–3 above mean several premium subscription routes are permanently
    "unmeasured" and therefore permanently pinned. Fixing them may be worth more than this prototype, and it
    is the prerequisite for the data to mean anything for `anthropic/*` frontier ids at all.
+5. **The dated-slug mismatch** (`Data API capture` below): 87 of a possible 331 routes receive a coding
+   index today. Stripping `-YYYYMMDD` on the intel key side is one line and multiplies coverage by ~3.8×,
+   but it collapses snapshot generations of one family into a single key — so it needs a rule for which
+   measurement wins (newest date, or the row order the API returns), and it is a ranking change of its own.
+
+## Data API capture, 2026-09-23T00:24Z — the quota reset, and the coverage it revealed
+
+The 500-requests/day cap (`datasets-per-account-rpd-v1`) reset at `X-RateLimit-Reset 1790121600000`
+= `2026-09-23T00:00:00Z`. Captured through the router's own path (the OpenRouter key resolved by
+`ctx.modelRegistry`, four requests, key never logged): all four endpoints **HTTP 200** —
+`benchmarks?task_type=coding` 148 rows, `benchmarks?task_type=agentic` 100 rows,
+`classifications/task?window=7d` (4 classifications), `datasets/rankings-daily` 357 rows / 63 slugs.
+
+**The router's own source confirms the answer to the motivating question.** `gpt-6-sol`, `gpt-6-luna`,
+`gpt-6-terra` and `claude-opus-5.5` are **absent** from the Data API payload too — the same 148 coding
+rows the public page carries, keyed by the same slugs. So "no data-driven rule can place them" is a
+property of the source, not of this investigation's snapshot.
+
+**Shapes verified against the normalisers** (`openrouter-intel.ts`): `coding_index`/`agentic_index` are on
+the 0–100 scale `boundedScore()` already handles; `classifications` lives at `data.classifications` as
+`normalizeTaskClassifications()` expects; `rankings-daily` rows carry `total_tokens` (string) as
+`normalizeRankingRows()` expects. No shape mismatch.
+
+**But the key form defeats the lookup.** Every `model_permaslug` in the payload is **dated**
+(`anthropic/claude-fable-5.1-20260831`, `openai/gpt-6-astra-20260903`), `stripVariants()` does not strip
+`-YYYYMMDD`, and `canonicalModelSlug()` produces undated slugs — so a dated key can only match when the OMP
+model id happens to carry the same date. Measured over the live catalog (1203 routes) with the repo's own
+functions:
+
+| Signal | Keys | Routes matched as shipped | Routes matched if the date were stripped |
+|---|---|---|---|
+| `coding_index` | 148 (88 dated) | **87** | **331** |
+| `rankings-daily` popularity | 63 | **15** | **190** |
+
+That is the real reason so many premium routes read as "unmeasured": the snapshot knows them, the lookup
+cannot reach them. `normalizeBenchmarkRows` then leaves `intel[slug]` absent and `qualityFromIntel()` falls
+back to its no-intel defaults, while **this prototype's rule 2 pins the rung** — safe, but it means the
+ladder never learns anything about `anthropic/*` frontier ids, `openai-codex` ids, or anything else whose
+OMP id has no release date.
+
+**Not fixed here, deliberately.** Normalising both sides to a dateless form collides distinct snapshots of
+one family (`claude-3-5-sonnet-20240620` vs `-20241022` become one key, and last-row-wins decides which
+measurement survives), and it changes intel coverage for ~244 routes — a ranking change that needs its own
+finding and its own decision. It is now decision 5 below.
