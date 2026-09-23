@@ -168,6 +168,77 @@ Broad provider wildcards should not be the main policy because exact model/provi
 
 Prefer role-oriented fallback chains as the last-resort reactive safety net. The extension remains responsible for choosing the best route before a request; OMP fallback chains exist so an unexpected mid-turn 429/outage can still recover.
 
+#### Managed-tier fallback incident (2026-09-21)
+
+The observed session selected `pmr/frontier`, ran Fable, and then recorded a
+`model_change` to Sonnet with `role: fallback`. Its effective native configuration
+contained `anthropic/*: [anthropic/claude-sonnet-5]`. Re-selecting `pmr/frontier`
+subsequently selected Astra, with successful Codex responses in the transcript.
+This is a native fallback / PMR ownership mismatch, not an in-class ranking error.
+
+The agreed contract preserves the **10% reserve**. OMP must consider every usable
+subscription for the current model before changing models: Fable across both
+Anthropic accounts, then Astra across both Codex accounts, then the remaining
+frontier ladder. Accounts inside reserve are not healthy new-work candidates.
+At inspection, both Fable-scoped windows had 10% remaining; one Codex account
+had 85% remaining and the other was exhausted. These are inspection-time values,
+not reconstructed quota values at the earlier fallback.
+
+| Hypothesis | Evidence | Verdict |
+|---|---|---|
+| PMR ranks Sonnet above Astra in frontier | Installed frontier ladder starts `fable-sub`, `astra-sub`; transcript marks Sonnet as native fallback | Disproved |
+| Only one subscription is visible | Redacted OMP usage reports include two accounts per provider | Disproved |
+| One depleted account blocks a healthy sibling in PMR | Installed-module replay: either healthy sibling keeps the route `AVAILABLE`; both exhausted yield `COOLDOWN` | Disproved |
+| Native wildcard bypasses the selected tier | Effective wildcard points to Sonnet; native model-change record identifies fallback | Confirmed |
+
+**Implementation is blocked on the OMP integration boundary.** The intended fix
+is a session-owned fallback policy, not an override in shared/clonable settings.
+Do not rewrite global provider wildcards, change `selectForTier`, remove credential
+rotation, weaken local runtime cooldowns, or consume the reserve.
+
+Reproduce the settings/resolver boundary with `bash scripts/native-fallback-probe.sh`
+on OMP 18.2.6. The probe uses the real OMP resolver and Settings implementation,
+an in-memory three-model inventory, an empty environment and temporary agent
+directory. It exits during session startup, before inference; it neither installs
+the extension nor exercises a live account rotation.
+
+| Probe observation | Result | Why a settings-only fix is unsafe |
+|---|---|---|
+| Native wildcard's next candidate | Sonnet | Reproduces the reported tier bypass |
+| Exact-model override's next candidate | Astra | Corrects only the immediate candidate |
+| Inherited wildcard survives the override | `true` | Maps merge rather than authoritatively replace policy |
+| Cloned Settings next candidate after parent release | Astra | Another session can inherit PMR policy |
+| Preexisting runtime override recovered after `clearOverride` | `false` | Releasing PMR's override loses another owner's state |
+| Provider requests | `0` | This is resolver/settings evidence, not a successful live fallback |
+
+Embedded native-source inspection also establishes that quota preflight runs
+before `before_agent_start`; bare `model_changed` fires before the native fallback
+acknowledgment, and cooldown restoration has no corresponding extension event.
+A registry subscription can release settings early on model changes, but cannot
+provide an atomic fallback-policy lease or reliable restoration provenance.
+
+Required upstream boundary:
+
+- A policy lease owned by an existing `AgentSession`, consulted before native
+  quota/model-fallback selection and never copied into another session's settings.
+- Authoritative candidates from the selected PMR tier, while native code retains
+  credential rotation, local cooldowns, context-fit checks and retry mechanics.
+- Manual-selection invalidation before preflight, and identified native fallback
+  and restoration transitions so asynchronous acknowledgments cannot revive
+  ownership after opt-out.
+- Owner-token release/disposal without saving or clearing another owner's config.
+
+The draft changes no production routing or installed configuration. Added snapshot
+tests prove that a healthy sibling account remains usable, and exactly 10% is
+reserve for both Fable and Astra. Both tests fail when mutated to inspect only the
+first account or to admit the reserve boundary. A sanitized fresh snapshot replay
+compared installed and draft routing across 1,088 routes and 24 tier/class decisions:
+zero selection changes. Live end-to-end rotation/fallback and installation proof
+remain blocked with the production fix; resolver evidence must not be substituted
+for that acceptance criterion.
+
+#### Static fallback example
+
 A first-pass static shape is:
 
 ```yaml

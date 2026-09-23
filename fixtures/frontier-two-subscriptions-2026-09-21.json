@@ -1,0 +1,297 @@
+{
+ "generatedAt": 1789968092217,
+ "reports": [
+  {
+   "fetchedAt": 1789967999748,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 84,
+      "remainingFraction": 0.84,
+      "unit": "percent",
+      "used": 16,
+      "usedFraction": 0.16
+     },
+     "id": "openai-codex:primary",
+     "label": "7 days",
+     "scope": {
+      "provider": "openai-codex",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 days",
+      "resetsAt": 1790411922000
+     }
+    }
+   ],
+   "provider": "openai-codex",
+   "resetCredits": {
+    "availableCount": 0
+   }
+  },
+  {
+   "fetchedAt": 1789967936433,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "openai-codex:primary",
+     "label": "7 days",
+     "scope": {
+      "provider": "openai-codex",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "exhausted",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 days",
+      "resetsAt": 1790278516000
+     }
+    }
+   ],
+   "provider": "openai-codex",
+   "resetCredits": {
+    "availableCount": 0
+   }
+  },
+  {
+   "fetchedAt": 1789967994452,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 100,
+      "remainingFraction": 1,
+      "unit": "percent",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "anthropic:5h",
+     "label": "Claude 5 Hour",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour"
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 21,
+      "remainingFraction": 0.20999999999999996,
+      "unit": "percent",
+      "used": 79,
+      "usedFraction": 0.79
+     },
+     "id": "anthropic:7d",
+     "label": "Claude 7 Day",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1790323200417
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 10,
+      "remainingFraction": 0.09999999999999998,
+      "unit": "percent",
+      "used": 90,
+      "usedFraction": 0.9
+     },
+     "id": "anthropic:7d:fable",
+     "label": "Claude 7 Day (Fable)",
+     "scope": {
+      "provider": "anthropic",
+      "tier": "fable",
+      "windowId": "7d"
+     },
+     "status": "warning",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1790323200417
+     }
+    }
+   ],
+   "provider": "anthropic"
+  },
+  {
+   "fetchedAt": 1789968062739,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 65,
+      "remainingFraction": 0.65,
+      "unit": "percent",
+      "used": 35,
+      "usedFraction": 0.35
+     },
+     "id": "anthropic:5h",
+     "label": "Claude 5 Hour",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour",
+      "resetsAt": 1789977600000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 30,
+      "remainingFraction": 0.30000000000000004,
+      "unit": "percent",
+      "used": 70,
+      "usedFraction": 0.7
+     },
+     "id": "anthropic:7d",
+     "label": "Claude 7 Day",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1790240400000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 10,
+      "remainingFraction": 0.09999999999999998,
+      "unit": "percent",
+      "used": 90,
+      "usedFraction": 0.9
+     },
+     "id": "anthropic:7d:fable",
+     "label": "Claude 7 Day (Fable)",
+     "scope": {
+      "provider": "anthropic",
+      "tier": "fable",
+      "windowId": "7d"
+     },
+     "status": "warning",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1790240400416
+     }
+    }
+   ],
+   "provider": "anthropic"
+  },
+  {
+   "fetchedAt": 1789967994612,
+   "limits": [
+    {
+     "amount": {
+      "remainingFraction": 1,
+      "unit": "percent",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "rolling-5h",
+     "label": "5 Hour limit",
+     "scope": {
+      "provider": "opencode-go",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour",
+      "resetsAt": 1789984830580
+     }
+    },
+    {
+     "amount": {
+      "remainingFraction": 1,
+      "unit": "percent",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "weekly",
+     "label": "Weekly limit",
+     "scope": {
+      "provider": "opencode-go",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "Weekly",
+      "resetsAt": 1790553600580
+     }
+    },
+    {
+     "amount": {
+      "remainingFraction": 0.5,
+      "unit": "percent",
+      "used": 50,
+      "usedFraction": 0.5
+     },
+     "id": "monthly",
+     "label": "Monthly limit",
+     "scope": {
+      "provider": "opencode-go",
+      "shared": true,
+      "windowId": "monthly"
+     },
+     "status": "ok",
+     "window": {
+      "id": "monthly",
+      "label": "Monthly",
+      "resetsAt": 1792135905580
+     }
+    }
+   ],
+   "provider": "opencode-go"
+  }
+ ]
+}
