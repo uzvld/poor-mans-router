@@ -83,21 +83,37 @@ When several routes share the winning class:
 
 ```mermaid
 flowchart TD
-    Start[Routes tied on health] --> Pref{preference}
-    Pref -- "value: free tier" --> V0[agentic completion score ↓]
+    Start["Candidates in first winning class<br/>health filtering already applied"] --> Pref{preference}
+    Pref -- "value: free tier" --> V0["agentic completion score ↓"]
     V0 --> Q0
-    Pref -- "quality: frontier / balanced" --> Q0[explicit quality / OpenRouter intel ↓]
-    Q0 --> Q1["measured reliability ↓<br/>(unmeasured = neutral 0.5, never a bonus)"]
-    Q1 --> Q2[latency ↑]
-    Q2 --> Q3["effective cost ↑<br/>(subscription/free routes = 0)"]
-    Q3 --> Q4["same-family affinity:<br/>keep the model already running"]
-    Q4 --> Q5["newer generation<br/>(same family only)"]
-    Q5 --> Q6[lexical id — last resort]
-    Pref -- "speed: small tier" --> S0[latency ↑] --> S1[throughput ↓] --> S2[cost ↑] --> S3[reliability ↓] --> S4[quality ↓] --> S5[lexical id]
-    Q6 --> Done[winning model]
-    S5 --> Done
-    Done --> Seller["cheapest seller for that model<br/>(Anthropic direct vs OpenRouter vs Kilo)"]
+    Pref -- "quality: frontier / balanced" --> Q0["explicit quality / benchmark intel"]
+    Q0 --> Override{"Same family, newer generation,<br/>nonzero quality gap ≤ 0.15?"}
+    Override -- yes --> CostCheck{"Newer route costs no more?"}
+    CostCheck -- yes --> Newer["Prefer newer generation"]
+    CostCheck -- no --> Older["Prefer lower effective cost"]
+    Override -- no --> QualityTie{"Quality scores tie?"}
+    QualityTie -- no --> Quality["Higher quality wins"]
+    QualityTie -- yes --> ReliabilityTie{"Reliability ties?"}
+    ReliabilityTie -- no --> Reliability["Higher measured reliability wins"]
+    ReliabilityTie -- yes --> Latency["Lower latency wins"]
+    Latency --> Cost["Lower effective cost wins"]
+    Cost --> Affinity["Same-family current-model affinity"]
+    Affinity --> Generation["Generation, then lexical id"]
+    Pref -- "speed: small tier" --> S0["Latency, then throughput"]
+    S0 --> S1["Effective cost"]
+    S1 --> S2{"Same family and quality gap ≤ 0.15?"}
+    S2 -- yes --> S3["Prefer newer generation"]
+    S2 -- no --> S4["Reliability, then quality"]
+    S3 --> Done["Winning model"]
+    S4 --> Done
+    Newer --> Done
+    Older --> Done
+    Quality --> Done
+    Generation --> Done
+    Done --> Seller["Cheapest seller for that model<br/>(Anthropic direct vs OpenRouter vs Kilo)"]
 ```
+
+Within each class, this makes the router less conservative about new versions without treating catalog presence as proof of health. For quality/value selection, a newer same-family generation can overcome a **nonzero quality-score gap up to `0.15`**, provided it costs no more; larger gaps still favor the higher-scored model. In the small tier, latency, throughput and cost remain first, then a newer same-family generation can win when the quality-score gap is at most `0.15`. Cooldowns still exclude a route, and no generation preference crosses model families or class/economic boundaries.
 
 The seller step is decided by effective cost; subscription and free routes cost 0.
 
