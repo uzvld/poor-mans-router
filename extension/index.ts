@@ -1,4 +1,4 @@
-import type { ExtensionAPI } from '@oh-my-pi/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext } from '@oh-my-pi/pi-coding-agent';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RouterPolicy, Tier } from './types.ts';
@@ -12,7 +12,7 @@ import {
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
 import { computeLadders, type ComputedLadder } from './rungs.ts';
-import { cooldownFromPermanentModelError, cooldownFromRetry, isPermanentModelError, isRateOrQuotaError } from './health.ts';
+import { cooldownFromPermanentModelError, cooldownFromRetry, isPaidBalanceError, isPermanentModelError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
 import { RouterStateStore } from './state.ts';
 import {
   FreeProbeGate,
@@ -191,7 +191,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
 
   const currentRoutes = (ctx: any) => {
     state.clearExpired();
-    const models = ctx.models.list().map(asModelLike);
+    const models = ctx.models.list().filter((model: { provider: string }) => model.provider !== VIRTUAL_PROVIDER).map(asModelLike);
     return buildRoutes(models, {
       ompReports: ompUsage.value,
       codexbar: codexbar.value,
@@ -219,6 +219,23 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     lastDecision = { tier: mode, selection, routes, at: Date.now() };
     return { routes, selection };
   };
+
+  function markErrorCooldown(ctx: ExtensionContext, key: string, message: string, cooldown: LocalRouteState): void {
+    if (!cooldown.cooldownUntil) return;
+    const reason = cooldown.reason ?? 'provider error';
+    state.markCooldown(key, cooldown.cooldownUntil, reason, cooldown.lastFailureAt);
+    if (!isPaidBalanceError(message)) return;
+    const routes = currentRoutes(ctx);
+    const failed = routes.find((route) => route.key === key);
+    // Do not broaden model-scoped quota failures or independent subscriptions.
+    if (!failed || failed.free || failed.subscriptionLike) return;
+    for (const route of routes) {
+      if (route.provider === failed.provider && !route.free && route.key !== key) {
+        if ((state.get(route.key)?.cooldownUntil ?? 0) > cooldown.cooldownUntil) continue;
+        state.markCooldown(route.key, cooldown.cooldownUntil, reason, cooldown.lastFailureAt);
+      }
+    }
+  }
 
   pi.on('session_start', async (_event: any, ctx: any) => {
     policy = await loadPolicy();
@@ -397,6 +414,11 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       typeof event?.delayMs === 'number' ? event.delayMs : undefined,
       nativeFallbackAppliedForRetry,
     );
+    const recoverVirtualFallback = nativeFallbackAppliedForRetry
+      && routingMode !== 'manual'
+      && lastRetryFrom === lastRouterSelected
+      && lastRoutedSelector?.startsWith(`${VIRTUAL_PROVIDER}/`)
+      && modelKey(ctx.models.current()) === lastRoutedSelector;
     nativeFallbackAppliedForRetry = false;
 
     const routeKey = lastRetryFrom ?? lastRoutedSelector ?? modelKey(ctx.models.current());
@@ -406,12 +428,12 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     if (permanentModelError) {
       const cooldown = cooldownFromPermanentModelError(message, Date.now());
       if (cooldown?.cooldownUntil) {
-        state.markCooldown(routeKey, cooldown.cooldownUntil, cooldown.reason ?? 'model does not exist', cooldown.lastFailureAt);
+        markErrorCooldown(ctx, routeKey, message, cooldown);
       }
     } else if (retryDecision.markRouteCooldown) {
       const cooldown = cooldownFromRetry(message, event?.delayMs, Date.now());
       if (cooldown?.cooldownUntil) {
-        state.markCooldown(routeKey, cooldown.cooldownUntil, cooldown.reason ?? 'rate/quota retry', cooldown.lastFailureAt);
+        markErrorCooldown(ctx, routeKey, message, cooldown);
       } else {
         state.recordFailure(routeKey);
       }
@@ -437,6 +459,31 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
             });
           }, 0);
         }
+      }
+    }
+
+    // Native role chains prepend their primary, which can itself be pmr/*.
+    // Repair that managed transition before OMP schedules its continuation;
+    // never rewrite shared settings, restart the turn, or intercept credential rotation.
+    if (recoverVirtualFallback && routingMode !== 'manual') {
+      const from = modelKey(ctx.models.current());
+      const { selection } = chooseForCurrentWork(ctx, routingMode);
+      if (!selection) return;
+      const target = ctx.models.resolve(selection.route.selector);
+      if (!target) return; // The existing transport guard remains fail-closed.
+      const held = holdForRemoteCompaction(ctx.sessionManager?.getBranch?.(), ctx.models.resolve(routeKey), target);
+      if (held.hold) {
+        announceHold(ctx, routeKey, selection.route.key, held.reason);
+        return;
+      }
+      try {
+        if (await pi.setModel(target)) {
+          lastRouterSelected = selection.route.key;
+          lastRoutedSelector = selection.route.key;
+          announceSwitch(ctx, from, selection.route.key, 'recovering virtual native fallback');
+        }
+      } catch (error) {
+        logger.warn('pmr could not recover virtual native fallback', { error: String(error) });
       }
     }
   });
@@ -474,7 +521,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     const now = Date.now();
     const cooldown = cooldownFromPermanentModelError(message, now) ?? cooldownFromRetry(message, undefined, now);
     if (cooldown?.cooldownUntil) {
-      state.markCooldown(key, cooldown.cooldownUntil, cooldown.reason ?? 'provider error', cooldown.lastFailureAt);
+      markErrorCooldown(ctx, key, message, cooldown);
     } else {
       state.recordFailure(key, now);
     }

@@ -237,6 +237,25 @@ zero selection changes. Live end-to-end rotation/fallback and installation proof
 remain blocked with the production fix; resolver evidence must not be substituted
 for that acceptance criterion.
 
+#### Virtual fallback recovery (2026-09-24)
+
+The general candidate-policy boundary above remains unresolved. A narrower failure
+is recoverable through the existing session-scoped `pi.setModel`: OMP can select
+the virtual `pmr/*` role primary as a native fallback, which would otherwise trip
+the virtual-transport abort guard.
+
+Only an already-managed session falling back from its own last PMR pick may be
+repaired during `auto_retry_start`. After learning the error, PMR selects a concrete
+route from the original tier and switches before OMP continues. Concrete native
+fallbacks and same-provider credential rotation remain untouched. Manual opt-out,
+an intervening selection and the remote-compaction guard veto recovery.
+
+Explicit empty-wallet errors cool the provider's known paid PAYG routes, preserving
+free routes and stronger existing cooldowns. Subscription and request-size errors
+remain route-scoped. No ladder, shared Settings or session-history changes.
+See [the incident report](investigations/pmr-native-fallback-2026-09-24.md) and
+`bun scripts/native-fallback-recovery-probe.ts` (OMP 18.2.10, localhost transport).
+
 #### Static fallback example
 
 A first-pass static shape is:
@@ -771,9 +790,9 @@ Suggested hooks:
 - observe OMP `auto_retry_*` / fallback events and response errors;
 - record hard cooldown only for explicit rate/quota/retry signals;
 - a zero-delay quota retry without a model fallback is treated as likely native credential rotation/banked-reset recovery: record the failed attempt but do **not** blacklist the whole provider/model route;
-- when OMP applies a model fallback, cooldown only the failed concrete route;
-- provider retries do not run `before_agent_start`, so the current in-flight turn always remains owned by OMP's native retry/fallback engine; the extension's new cooldown affects later work;
-- do not fight the in-flight native retry engine.
+- when OMP applies a model fallback, cool the failed concrete route; an explicit empty-wallet error from a PAYG route also cools that provider's known paid routes, never its free routes or independent subscription failures;
+- provider retries do not run `before_agent_start`; OMP still owns retry scheduling and continuation;
+- only a managed native fallback onto a virtual `pmr/*` model is repaired before continuation, using the original tier and session-scoped `pi.setModel`; concrete native fallbacks are not intercepted and the virtual transport guard remains fail-closed.
 
 ### `session_shutdown`
 

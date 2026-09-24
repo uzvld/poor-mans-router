@@ -85,7 +85,7 @@ export class FreeProbeGate {
 }
 
 export function normalizeRuntimeSelector(selector: string): string {
-  return selector.replace(/:(auto|low|medium|high|max|xhigh)$/i, '');
+  return selector.replace(/:(off|auto|low|medium|high|max|xhigh)$/i, '');
 }
 
 export interface RetryRoutingDecision {

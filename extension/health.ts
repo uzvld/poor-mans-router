@@ -181,8 +181,14 @@ export function evaluateRouteHealth(route: RouteDescriptor, input: HealthInputs)
   };
 }
 
+// These messages reject continued paid use, not merely an oversized request.
+// A bare 402 or "requires more credits" is not evidence of an empty shared wallet.
+export function isPaidBalanceError(message: string): boolean {
+  return /\badd credits to continue\b|\binsufficient account (?:funds|balance)\b/i.test(message);
+}
+
 export function isRateOrQuotaError(message: string): boolean {
-  return /(429|rate.?limit|quota|usage.?limit|too many requests|resource exhausted|credits? exhausted)/i.test(message);
+  return isPaidBalanceError(message) || /(429|rate.?limit|quota|usage.?limit|too many requests|resource exhausted|credits? exhausted|payment required|insufficient credits?)/i.test(message);
 }
 
 function retryHintMs(message: string): number | undefined {
