@@ -112,6 +112,20 @@ Everything that lets the router act **without** a `pmr/*` selection:
 
 `manual` means "adaptive-router doesn't switch models". It does **not** disable OMP's own retry/`modelFallback` for the active turn — that's OMP core behavior (`retry.fallbackChains`), untouched by this change. Cooldowns recorded by `auto_retry_start` handling remain per-route state used only when the router is active.
 
+**Virtual fallback exception (2026-09-24):** an already-managed session may receive
+an OMP fallback from its own last selected concrete route to a virtual `pmr/*`
+role primary. During `auto_retry_start`, before the next provider request, PMR
+may replace that virtual target with the original tier's concrete winner.
+This does not opt a manual session in, adopt the fallback's tier, override an
+intervening selection, or bypass the remote-compaction guard. Virtual models are
+never routing candidates. No eligible safe target means the existing §4 abort
+guard still applies; no repair is attempted inside the provider-request hook.
+
+Empty-wallet errors from paid PAYG routes also cool the provider's known paid
+routes, preserving free routes and longer cooldowns. Subscription failures and
+errors about a request needing more credits remain route-scoped. Native concrete
+fallbacks, credential rotation and shared settings remain untouched.
+
 ## 7. Multica mapping
 
 - Frontier agent → `model: pmr/frontier`

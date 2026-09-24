@@ -187,6 +187,17 @@ Frontier wildcard conflict and the isolation limitations of a settings-only fix;
 it is **not** a live routing test or an installed workaround. See
 [`docs/design.md`](docs/design.md#managed-tier-fallback-incident-2026-09-21).
 
+Native virtual-fallback recovery regression (verified on OMP 18.2.10):
+
+```bash
+bun scripts/native-fallback-recovery-probe.ts
+```
+
+Runs two isolated OMP processes against a localhost provider. The first recovers
+from `402 → pmr/balanced` without losing the user context; the second avoids both
+paid routes sharing the rejected wallet. Temporary config/state are removed.
+No live provider inference, installation, or live configuration changes.
+
 Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines the invariants every change must keep and the evidence a PR must carry. Every fix here has been a *proven* root cause first and a failing test second; keep it that way.
 
 ## Status
