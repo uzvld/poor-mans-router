@@ -1,7 +1,7 @@
 # FINDING — New model names get no tier (GPT-6 Sol / Terra are unreachable from `frontier`)
 
 **Found:** 2026-09-22, answering "GPT-6 Sol just shipped — which of our tiers does it land in, and does it land at all?"
-**Status:** OPEN — **rung decision required** (see *Decision required*). The investigation itself is evidence-only; the recommended fix is drafted and red-then-green on branch `finding/unclassified-model-names` (see *Draft patch*).
+**Status:** PARTIALLY OPEN. Sol/Terra token-set/rung/PAYG-limb decision (below, *Decision required*) is still **OPEN**. The rung-ordering prototype's decision (*Prototype: rungs from a snapshot* → *Decision required*, further down) is **RESOLVED 2026-09-27** — see that section. The recommended sol/terra patch and the rung-ordering prototype are both merged to `main` (via PR #14): `extension/rungs.ts`, `extension/index.ts` wiring, and the `policy.ts` sol/terra token line are all present on `main` today. "Merged to `main`" is a git-history fact, distinct from "installed" (deployed to a live running router) — the latter is a separate, later operational step.
 **Layer:** `policy.ts` `classifyModelId()` / `decorateClasses()` (class membership) + `policy.yml` / `DEFAULT_POLICY` (per-tier ladders). Nothing in `telemetry.ts`, `health.ts`, `ranking.ts` selection logic, or `index.ts` wiring is implicated.
 **Snapshot:** `fixtures/models.json` (1166 models → 1083 live routes) + `fixtures/live-omp-usage-2026-09-19.json` + `fixtures/live-codexbar-2026-09-19.json`, at `LIVE_NOW = 2026-09-19T02:56:09.916Z`.
 
@@ -350,24 +350,25 @@ emits…" (`mv extension/state.json /tmp && bun test tests/managed-mode.test.ts 
 `bun run test:sim` → 5/5; `bash scripts/install.test.sh` → all checks passed; `bash scripts/bootstrap.test.sh`
 → all checks passed; mutation proofs above → 8/8 red. Nothing installed.
 
-**Decision required** — this prototype is a proposal, not a shipped change:
+**Decision — RESOLVED 2026-09-27:**
 
-1. **Margin.** `RUNG_HYSTERESIS = 0.02` admits `opus-sub > astra-sub` (2.7) and `strong-chinese` above
-   `strong-flash-sub` (2.9), and refuses every sub-2-point move. Raising it to 0.05 would also refuse those
-   two, leaving the ladder nearly static; lowering it admits noise. Calibrating needs a second snapshot of
-   the same models.
-2. **Should economics stay frozen across rungs (rule 4)?** If a paid rung should be able to displace a
-   subscription rung on power, that is a one-line change and a policy decision about spending.
-3. **Should catch-all tails stay pinned (rule 3)?** The alternative is allowing `best-available` to climb,
-   which repairs the "unrecognised name is only ever balanced" complaint from the other direction — at the
-   cost of putting the most expensive model in the catalog at the top of `balanced`.
-4. **Coverage gaps first?** Items 1–3 above mean several premium subscription routes are permanently
-   "unmeasured" and therefore permanently pinned. Fixing them may be worth more than this prototype, and it
-   is the prerequisite for the data to mean anything for `anthropic/*` frontier ids at all.
-5. **~~The dated-slug mismatch~~ — implemented in this branch; see *Coverage fix* below.** The rule for two
-   releases collapsing into one key is **newest release date wins**, order-independent (both payload orders
-   tested). That choice is mine, not yours: "newest wins" is right when a release date means a newer model,
-   and wrong for a family that ships dated *evaluations* rather than dated *versions*. One line to change.
+1. **Margin.** Confirmed: `RUNG_HYSTERESIS = 0.02`, as drafted. Admits `opus-sub > astra-sub` (2.7) and
+   `strong-chinese` above `strong-flash-sub` (2.9); refuses every sub-2-point move. No code change (the
+   shipped constant already reads `0.02`).
+2. **Economics stays frozen across rungs (rule 4).** Confirmed: a paid rung may never displace a
+   subscription rung on power alone; subscription-first remains absolute. No code change (`swappable()`
+   already enforces this).
+3. **Catch-all tails stay pinned (rule 3).** Confirmed: `best-available` (and any class that is a superset
+   of another class in the same ladder) keeps its shipped index rather than competing on its most
+   expensive member's power. No code change (`catchAllClasses()` already implements this).
+4. **Coverage gaps.** Already fixed, not deferred — see *Coverage fix: intel keys are matched by shape, not
+   by spelling* below (routes reaching intel: 95 → 412; measured routes in the replay: 244 → 329).
+5. **Dated-slug mismatch.** Already implemented in this branch (newest-release-date-wins, order-independent
+   — see *Coverage fix* below).
+
+All five items match the values already shipped on `main`; this section closes the decision gate the
+prototype's commit message left open. No `rungs.ts`, `policy.ts`, or `policy.yml` change follows from this
+decision — it is a documentation-only confirmation that the shipped defaults are the decided ones.
 
 ## Data API capture, 2026-09-23T00:24Z — the quota reset, and the coverage it revealed
 
