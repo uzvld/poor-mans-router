@@ -27,8 +27,9 @@ export function normalizeHistory(stats: any): HistoryMap {
       reliability: 1 - errorRate,
       errorRate,
       requests: typeof row?.totalRequests === 'number' ? row.totalRequests : 0,
-      ttftMs: typeof row?.avgTtft === 'number' ? row.avgTtft : undefined,
-      throughput: typeof row?.avgTokensPerSecond === 'number' ? row.avgTokensPerSecond : undefined,
+      // 0 means "no successful output" (a route that only ever failed), not a measured speed.
+      ttftMs: typeof row?.avgTtft === 'number' && row.avgTtft > 0 ? row.avgTtft : undefined,
+      throughput: typeof row?.avgTokensPerSecond === 'number' && row.avgTokensPerSecond > 0 ? row.avgTokensPerSecond : undefined,
     };
   }
   return out;
