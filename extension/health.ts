@@ -225,7 +225,9 @@ export function cooldownFromRetry(message: string, delayMs: number | undefined, 
 export function isPermanentModelError(message: string): boolean {
   // The quoted model id sits between "model" and the verdict and has no length bound
   // (`bytedance-seed/dola-seed-2.0-pro:free` is 41 chars with quotes; ids get longer).
-  return /model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id/i.test(message);
+  // Anthropic's retired-model 404 is `{"error":{"type":"not_found_error","message":"model: <id>"}}`;
+  // other not_found_error resources (files, batches) must not cool a model route.
+  return /model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id|not_found_error"[^\n]*?"message"\s*:\s*"model:/i.test(message);
 }
 
 // Catalog drift does not heal in minutes: on 2026-09-19 32 of the 52 `kilo/*:free` ids in

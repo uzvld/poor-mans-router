@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { evaluateRouteHealth, isPermanentModelError } from '../health.ts';
+import { cooldownFromPermanentModelError, evaluateRouteHealth, isPermanentModelError } from '../health.ts';
 import { normalizeOmpUsage, parseCodexBarRows } from '../telemetry.ts';
 
 test('all exhausted subscription credentials cooldown only until earliest credential becomes usable', () => {
@@ -90,4 +90,16 @@ test('a "model does not exist" rejection is permanent regardless of how long the
   }
   assert.ok(!isPermanentModelError('429 rate limit exceeded, retry after 30s'));
   assert.ok(!isPermanentModelError('400 Bad Request: messages must not be empty'));
+});
+
+// Anthropic's 404 for a retired model carries neither "does not exist" nor "not found" as
+// words: the verdict is the `not_found_error` type and the message is `model: <id>`.
+// Live 2026-10-01: `pmr/small` picked claude-3-haiku-20240307, got this 404, and the route
+// stayed AVAILABLE ("failure recorded", no cooldown) so every fresh process retried it.
+test('an Anthropic not_found_error naming a model is permanent, other not_found_error is not', () => {
+  const anthropic404 = '404 {"type":"error","error":{"type":"not_found_error","message":"model: claude-3-haiku-20240307"},"request_id":"req_011CfbeP68zEZ8gmZcBzpx8G"}';
+  assert.ok(isPermanentModelError(anthropic404));
+  assert.ok(cooldownFromPermanentModelError(anthropic404, 1000)!.cooldownUntil! > 1000);
+  const otherResource = '404 {"type":"error","error":{"type":"not_found_error","message":"file: file_abc"},"request_id":"req_x"}';
+  assert.ok(!isPermanentModelError(otherResource));
 });
