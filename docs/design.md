@@ -665,6 +665,8 @@ Use:
 
 The API is authenticated with a normal OpenRouter key and currently documents shared limits of 30 requests/minute per key and 500/day per account. The extension should poll far less frequently, e.g. every 6–12 hours, with stale-if-error caching.
 
+The budget belongs to the account, not to a process. The snapshot is therefore persisted in `state.intel.json` (beside `state.json`) and shared by every OMP process on the machine, and a 429 blocks every process until `X-RateLimit-Reset` (the next UTC day when the header is missing or not in the future). A refresh is published to peers before its requests leave. See `docs/investigations/bug-intel-data-api-quota.md`.
+
 ### 14.3 How scores are used
 
 Inside one allowed class:

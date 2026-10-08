@@ -203,13 +203,39 @@ export function mergeOpenRouterIntel(...maps: IntelMap[]): IntelMap {
   return out;
 }
 
+/** A non-2xx Data API answer; a 429 carries the quota reset the header advertised (epoch ms). */
+class DataApiHttpError extends Error {
+  constructor(readonly status: number, readonly resetAt: number | undefined) {
+    super(`OpenRouter Data API HTTP ${status}`);
+  }
+}
+
+function parseResetHeader(value: string | null): number | undefined {
+  const n = value === null ? Number.NaN : Number(value);
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  // Observed live as epoch milliseconds; accept epoch seconds too.
+  return n < 1e12 ? n * 1000 : n;
+}
+
 async function getJson<T>(url: string, apiKey: string): Promise<T> {
   const response = await fetch(url, {
     headers: buildOpenRouterHeaders(apiKey),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!response.ok) throw new Error(`OpenRouter Data API HTTP ${response.status}`);
+  if (!response.ok) throw new DataApiHttpError(response.status, parseResetHeader(response.headers.get('x-ratelimit-reset')));
   return await response.json() as T;
+}
+
+/**
+ * When a 429 lets the next request through. The Data API quota is per account per day
+ * (`datasets-per-account-rpd-v1`, 500 requests); live 2026-10-09 its reset header carried the next
+ * 00:00 UTC. A header that is missing or not in the future still means the per-day quota: next UTC day.
+ */
+function rateLimitedUntil(error: unknown, now: number): number | undefined {
+  if (!(error instanceof DataApiHttpError) || error.status !== 429) return undefined;
+  if (error.resetAt !== undefined && error.resetAt > now) return error.resetAt;
+  const day = new Date(now);
+  return Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1);
 }
 
 function yyyyMmDd(date: Date): string {
@@ -220,23 +246,49 @@ export interface IntelCache {
   data: IntelMap;
   fetchedAt: number;
   lastAttemptAt: number;
+  /** Set by a Data API 429: no request is made before this instant (epoch ms). */
+  blockedUntil?: number;
+}
+
+/**
+ * Combine this process's cache with a peer's (state.json is shared by every OMP process on the
+ * machine, and the Data API budget is shared by the whole account): the newer snapshot wins, and
+ * the latest attempt and the latest block apply to everyone.
+ */
+export function mergeIntelCache(ours: IntelCache, theirs: IntelCache): IntelCache {
+  const newer = theirs.fetchedAt > ours.fetchedAt ? theirs : ours;
+  const blockedUntil = Math.max(ours.blockedUntil ?? 0, theirs.blockedUntil ?? 0);
+  const merged: IntelCache = {
+    data: newer.data,
+    fetchedAt: newer.fetchedAt,
+    lastAttemptAt: Math.max(ours.lastAttemptAt, theirs.lastAttemptAt),
+  };
+  if (blockedUntil > 0) merged.blockedUntil = blockedUntil;
+  return merged;
 }
 
 export const EMPTY_INTEL_CACHE: IntelCache = { data: {}, fetchedAt: 0, lastAttemptAt: 0 };
 export const INTEL_TTL_MS = 6 * 60 * 60_000;
 export const INTEL_RETRY_FLOOR_MS = 15 * 60_000;
 
+/**
+ * `onAttempt` runs after the gates pass and before any request leaves, so the caller can publish
+ * the attempt to its peers first and they do not spend the same requests concurrently.
+ */
 export async function refreshOpenRouterIntel(
   ctx: any,
   cache: IntelCache,
   now = Date.now(),
+  onAttempt?: (attempted: IntelCache) => void,
 ): Promise<IntelCache> {
+  if (cache.blockedUntil && now < cache.blockedUntil) return cache;
   if (cache.fetchedAt && now - cache.fetchedAt < INTEL_TTL_MS) return cache;
   if (cache.lastAttemptAt && now - cache.lastAttemptAt < INTEL_RETRY_FLOOR_MS) return cache;
 
   const attempted = { ...cache, lastAttemptAt: now };
   const apiKey = await resolveOpenRouterKey(ctx);
   if (!apiKey) return attempted;
+  onAttempt?.(attempted);
 
   const end = new Date(now - 24 * 60 * 60_000);
   const start = new Date(end.getTime() - 6 * 24 * 60 * 60_000);
@@ -260,7 +312,8 @@ export async function refreshOpenRouterIntel(
       fetchedAt: now,
       lastAttemptAt: now,
     };
-  } catch {
-    return attempted;
+  } catch (error) {
+    const blockedUntil = rateLimitedUntil(error, now);
+    return blockedUntil === undefined ? attempted : { ...attempted, blockedUntil };
   }
 }

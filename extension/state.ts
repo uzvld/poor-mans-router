@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LocalRouteState } from './health.ts';
+import { mergeIntelCache, type IntelCache } from './openrouter-intel.ts';
 
 interface StoredRouteState extends LocalRouteState {
   updatedAt?: number;
@@ -20,6 +21,52 @@ export interface TelemetrySnapshot {
 interface PersistedState {
   routes: Record<string, StoredRouteState>;
   telemetry?: TelemetrySnapshot & { fetchedAt: number };
+}
+
+function isIntelCache(value: unknown): value is IntelCache {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>; // shape checked field by field below
+  return typeof v.fetchedAt === 'number' && typeof v.lastAttemptAt === 'number'
+    && !!v.data && typeof v.data === 'object'
+    && (v.blockedUntil === undefined || typeof v.blockedUntil === 'number');
+}
+
+/**
+ * The OpenRouter Data API snapshot and its rate-limit block, shared by every OMP process on the
+ * machine: the budget (500 requests/day) belongs to the account, not the process.
+ *
+ * Kept out of `state.json` on purpose. A long-lived `omp --mode rpc-ui` process keeps the code it
+ * started with and rewrites `state.json` with only the fields that code knows (install.sh warns
+ * about it), so an intel field there was erased within minutes of the 2026-10-09 install. This
+ * file is written by intel-aware code only.
+ */
+export class IntelStore {
+  constructor(private readonly filename: string) {}
+
+  /** The sibling of a state file: `state.json` → `state.intel.json`. */
+  static besideStateFile(stateFile: string): IntelStore {
+    return new IntelStore(`${stateFile.replace(/\.json$/, '')}.intel.json`);
+  }
+
+  read(): IntelCache | undefined {
+    try {
+      const raw: unknown = JSON.parse(fs.readFileSync(this.filename, 'utf8'));
+      return isIntelCache(raw) ? raw : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Merge with what a peer wrote since (newer snapshot, latest attempt, latest block) and replace atomically. */
+  save(cache: IntelCache): IntelCache {
+    const disk = this.read();
+    const merged = disk ? mergeIntelCache(cache, disk) : cache;
+    fs.mkdirSync(path.dirname(this.filename), { recursive: true });
+    const tmp = `${this.filename}.${process.pid}.${randomUUID()}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(merged));
+    fs.renameSync(tmp, this.filename);
+    return merged;
+  }
 }
 
 function stampOf(state: StoredRouteState): number {
