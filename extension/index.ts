@@ -7,13 +7,16 @@ import { fetchCodexBarUsage, fetchOmpUsage, type CodexBarUsage, type OmpCredenti
 import { fetchOmpHistory, type HistoryMap } from './history.ts';
 import {
   EMPTY_INTEL_CACHE,
-  refreshOpenRouterIntel,
+  fetchOpenRouterIntel,
+  intelRefreshDue,
+  mergeIntelCache,
+  resolveOpenRouterKey,
   type IntelCache,
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
 import { computeLadders, type ComputedLadder } from './rungs.ts';
 import { cooldownFromPermanentModelError, cooldownFromRetry, isPaidBalanceError, isPermanentModelError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
-import { RouterStateStore } from './state.ts';
+import { IntelStore, RouterStateStore } from './state.ts';
 import {
   FreeProbeGate,
   allowDrainingForTier,
@@ -87,6 +90,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
 
   const logger: any = (pi as any).logger ?? { info() {}, warn() {}, debug() {} };
   const state = new RouterStateStore(stateFilePath());
+  const intelStore = IntelStore.besideStateFile(stateFilePath());
   const probeGate = new FreeProbeGate();
 
   let policy: RouterPolicy = DEFAULT_POLICY;
@@ -170,9 +174,53 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     return historyRefresh;
   };
 
+  // Persisting is best-effort: an unwritable intel file costs the sharing, never the snapshot.
+  const persistIntel = (cache: IntelCache): IntelCache => {
+    try {
+      return intelStore.save(cache);
+    } catch (error) {
+      logger.warn('pmr could not persist OpenRouter intelligence', { error: String(error) });
+      return cache;
+    }
+  };
+
+  const mergeSharedIntel = (): void => {
+    const shared = intelStore.read();
+    if (shared) intel = mergeIntelCache(intel, shared);
+  };
+
+  // The Data API budget is per account (500 requests/day, four per refresh) and every OMP process on
+  // the machine shares the intel file. A refresh starts from whatever snapshot or 429 block a peer
+  // persisted, spends requests only under the machine-wide claim, and re-checks once it holds the
+  // claim: a peer may have finished since the first read, and this process's own concurrent refresh
+  // (session_start's and the first turn's timers can fire together) has already set `lastAttemptAt`
+  // in memory, so it does not spend the requests twice even when the lock is unusable.
+  const refreshIntelSnapshot = async (ctx: any): Promise<void> => {
+    mergeSharedIntel();
+    if (!intelRefreshDue(intel)) return;
+    const apiKey = await resolveOpenRouterKey(ctx);
+    if (!apiKey) return; // nothing attempted: nothing for a peer with a key to wait out
+    const release = intelStore.claim();
+    if (!release) return; // a peer is refreshing; its snapshot reaches us through the file
+    try {
+      mergeSharedIntel();
+      const now = Date.now();
+      if (!intelRefreshDue(intel, now)) return;
+      intel = persistIntel({ ...intel, lastAttemptAt: now });
+      intel = persistIntel(await fetchOpenRouterIntel(apiKey, intel, now));
+    } finally {
+      release();
+    }
+  };
+
   const refreshIntel = async (ctx: any): Promise<void> => {
     try {
-      intel = await refreshOpenRouterIntel(ctx, intel);
+      await refreshIntelSnapshot(ctx);
+      // Membership in a `*-sub` class needs OMP's subscription telemetry, and a ladder is derived
+      // once per snapshot. A persisted snapshot is available instantly while `omp usage` takes
+      // seconds, so deriving now would profile routes with no subscription class and pin the
+      // shipped order until the next snapshot: wait for the telemetry refresh already in flight.
+      if (liveRefresh) await liveRefresh;
       // Rung order is derived once per snapshot, never per turn: a refresh that returned the
       // cached map must not re-derive anything, and what it does derive is sticky (the margin
       // in rungs.ts only lets a rung climb when the snapshot says so by more than noise).
@@ -562,6 +610,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
           ompUsageAgeMs: ompUsage.fetchedAt ? now - ompUsage.fetchedAt : undefined,
           codexBarAgeMs: codexbar.fetchedAt ? now - codexbar.fetchedAt : undefined,
           openRouterIntelAgeMs: intel.fetchedAt ? now - intel.fetchedAt : undefined,
+          openRouterIntelBlockedUntil: intel.blockedUntil && intel.blockedUntil > now ? intel.blockedUntil : undefined,
           historyAgeMs: history.fetchedAt ? now - history.fetchedAt : undefined,
         },
       });

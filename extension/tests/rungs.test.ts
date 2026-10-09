@@ -338,6 +338,10 @@ async function turn(h: RungHarness): Promise<void> {
 const virtualFrontier: StubModel = { provider: 'pmr', id: 'frontier', cost: { input: 0, output: 0 } };
 
 async function routedModel(payloads: Record<string, unknown>): Promise<string | undefined> {
+  // Each call is a separate machine: the intel snapshot is now persisted beside the state file, so
+  // a leftover from the previous call would be reused instead of fetched.
+  rmSync(SCRATCH_STATE, { force: true });
+  rmSync(SCRATCH_STATE.replace(/\.json$/, '.intel.json'), { force: true });
   const restore = intelFetch(payloads);
   try {
     const h = harness([ASTRA, OPUS, virtualFrontier], virtualFrontier, usagePayload(['openai-codex', 'anthropic'], 1));

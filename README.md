@@ -147,9 +147,9 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   telemetry.ts        omp usage + CodexBar normalisation
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
-  state.ts            persisted per-route cooldowns (state.json, gitignored)
+  state.ts            persisted per-route cooldowns and telemetry (state.json) and the OpenRouter intel snapshot (state.intel.json), both gitignored
   compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
-  tests/              bun test — 146 tests, run from extension/
+  tests/              bun test — 177 tests, run from extension/
 hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
                     survives `hermes update`, and their tests
@@ -162,7 +162,9 @@ docs/               design · implementation plan · investigations (root-cause 
 ## Development
 
 ```bash
-# router: AppleDouble sidecars (`._*.test.ts`) are not tests — exclude them
+# router: AppleDouble sidecars (`._*.test.ts`) are not tests — exclude them.
+# Run from extension/: its bunfig.toml preloads a scratch PMR_STATE_FILE, so no suite touches the
+# real state.json / state.intel.json. `bun test extension/tests/…` from the repo root skips that.
 cd extension && ln -sfn ../fixtures fixtures && bun test $(ls tests/*.test.ts | grep -v '/\._')
 bun test scripts/fixture-simulation.test.ts
 bash scripts/install.test.sh

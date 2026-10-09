@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LocalRouteState } from './health.ts';
+import { boundIntelCache, mergeIntelCache, type IntelCache } from './openrouter-intel.ts';
 
 interface StoredRouteState extends LocalRouteState {
   updatedAt?: number;
@@ -20,6 +21,111 @@ export interface TelemetrySnapshot {
 interface PersistedState {
   routes: Record<string, StoredRouteState>;
   telemetry?: TelemetrySnapshot & { fetchedAt: number };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isIntelCache(value: unknown): value is IntelCache {
+  if (!isPlainObject(value) || !isPlainObject(value.data)) return false;
+  return typeof value.fetchedAt === 'number' && typeof value.lastAttemptAt === 'number'
+    && (value.blockedUntil === undefined || typeof value.blockedUntil === 'number')
+    && Object.values(value.data).every(isPlainObject);
+}
+
+/** A claim older than this belongs to a process that died mid-refresh (the four requests time out at 10 s). */
+const CLAIM_STALE_MS = 60_000;
+
+/**
+ * The OpenRouter Data API snapshot and its rate-limit block, shared by every OMP process on the
+ * machine: the budget (500 requests/day) belongs to the account, not the process.
+ *
+ * Kept out of `state.json` on purpose. A long-lived `omp --mode rpc-ui` process keeps the code it
+ * started with and rewrites `state.json` with only the fields that code knows (install.sh warns
+ * about it), so an intel field there was erased within minutes of the 2026-10-09 install. This
+ * file is written by intel-aware code only.
+ */
+export class IntelStore {
+  constructor(private readonly filename: string) {}
+
+  /** The sibling of a state file: `state.json` → `state.intel.json`. */
+  static besideStateFile(stateFile: string): IntelStore {
+    return new IntelStore(`${stateFile.replace(/\.json$/, '')}.intel.json`);
+  }
+
+  read(now = Date.now()): IntelCache | undefined {
+    try {
+      const raw: unknown = JSON.parse(fs.readFileSync(this.filename, 'utf8'));
+      return isIntelCache(raw) ? boundIntelCache(raw, now) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Merge with what a peer wrote since (newer snapshot, latest attempt, latest block) and replace
+   * atomically. Read-merge-rename is not one atomic step; refreshes hold `claim()` around it, which
+   * is what keeps two writers from racing.
+   */
+  save(cache: IntelCache, now = Date.now()): IntelCache {
+    const disk = this.read(now);
+    const merged = boundIntelCache(disk ? mergeIntelCache(cache, disk) : cache, now);
+    fs.mkdirSync(path.dirname(this.filename), { recursive: true });
+    const tmp = `${this.filename}.${process.pid}.${randomUUID()}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(merged));
+    try {
+      fs.renameSync(tmp, this.filename);
+    } catch (error) {
+      fs.rmSync(tmp, { force: true });
+      throw error;
+    }
+    return merged;
+  }
+
+  /**
+   * Machine-wide right to spend one refresh: an exclusive-create lock file, the same idea as the
+   * deploy lock. Returns the release function, or `undefined` while a live peer holds it. A peer
+   * that read the file before this process's attempt landed would otherwise refetch in the same
+   * tick (measured: three processes, 12 requests). Age comes from the lock's mtime, not its content,
+   * so a peer caught between creating and writing it still counts as live. A lock that cannot be
+   * used at all never throws: the refresh goes ahead unshared rather than not at all.
+   *
+   * The lock carries an owner token and a release removes only its own lock: a holder that stalled
+   * past the stale age (sleep, SIGSTOP) must not delete the lock of the peer that reclaimed it.
+   * Two peers reclaiming the same stale lock can still both get in; the re-check under the claim
+   * (the stalled holder persisted its attempt first) is what keeps that from spending twice.
+   */
+  claim(now = Date.now()): (() => void) | undefined {
+    const lock = `${this.filename}.lock`;
+    const token = `${process.pid}.${randomUUID()}`;
+    try {
+      fs.mkdirSync(path.dirname(lock), { recursive: true });
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          fs.writeFileSync(lock, token, { flag: 'wx' });
+          return () => {
+            try {
+              if (fs.readFileSync(lock, 'utf8') === token) fs.rmSync(lock, { force: true });
+            } catch { /* already gone, or left to go stale */ }
+          };
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+        }
+        let ageMs: number;
+        try {
+          ageMs = now - fs.statSync(lock).mtimeMs;
+        } catch {
+          continue; // released between our create and our stat: try again
+        }
+        if (ageMs < CLAIM_STALE_MS) return undefined;
+        fs.rmSync(lock, { force: true }); // a peer died mid-refresh: reclaim once
+      }
+      return undefined;
+    } catch {
+      return () => {};
+    }
+  }
 }
 
 function stampOf(state: StoredRouteState): number {

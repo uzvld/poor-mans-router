@@ -4,6 +4,8 @@ export interface StatusSources {
   ompUsageAgeMs?: number;
   codexBarAgeMs?: number;
   openRouterIntelAgeMs?: number;
+  /** Set while a Data API 429 blocks refreshes (epoch ms): why the ladder may be `static`. */
+  openRouterIntelBlockedUntil?: number;
   historyAgeMs?: number;
 }
 
@@ -53,7 +55,9 @@ export function formatRouteStatus(input: RouteStatusInput): string {
   lines.push('', 'sources:');
   lines.push(`  OMP usage: ${age(input.sources.ompUsageAgeMs)} old`);
   lines.push(`  CodexBar: ${age(input.sources.codexBarAgeMs)} old`);
-  lines.push(`  OpenRouter Data API: ${age(input.sources.openRouterIntelAgeMs)} old`);
+  const blocked = input.sources.openRouterIntelBlockedUntil;
+  const block = blocked === undefined ? '' : ` · rate-limited until ${new Date(blocked).toISOString()}`;
+  lines.push(`  OpenRouter Data API: ${age(input.sources.openRouterIntelAgeMs)} old${block}`);
   if (input.sources.historyAgeMs !== undefined) lines.push(`  OMP stats: ${age(input.sources.historyAgeMs)} old`);
   return lines.join('\n');
 }
