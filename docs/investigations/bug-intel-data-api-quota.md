@@ -97,7 +97,7 @@ Also unchanged, and out of scope: one failing endpoint still discards the other 
 
 ## Guards
 
-`extension/tests/intel-shared-cache.test.ts`, 16 tests. Two of them simulate, respectively, an
+`extension/tests/intel-shared-cache.test.ts`, 18 tests. Two of them simulate, respectively, an
 old-release process rewriting `state.json` and a peer landing a snapshot while this process resolves its
 key. Each mutation was applied to a clean tree, restored, and turned at least one test red:
 
@@ -122,9 +122,21 @@ key. Each mutation was applied to a clean tree, restored, and turned at least on
 | every 429 blocks for a day | non-daily 429 without reset |
 | expired block kept | expired block dropped |
 | loose `data` validation (twice) | file rejects data that is not a model map |
+| future `fetchedAt` kept | future-dated file does not wedge refreshes |
+| future `lastAttemptAt` kept | future-dated file does not wedge refreshes |
+| release ignores the owner token | stalled holder does not release a peer's claim |
+| claim never released | snapshot reuse · 429 stops every process (lock gone after refresh) |
 
 The same-tick test (three processes) passes with any one of claim, re-check, or attempt mark in place,
 because in one JS thread they overlap. Each of them is pinned by its own scenario above.
+
+Known limits, left as they are:
+- Two peers reclaiming the same stale lock can both get in. The re-check under the claim stops a
+  duplicate spend, because the stale holder persisted its attempt first. The reviewer's probe (8 real
+  processes, 18 rounds) spent exactly 4 requests every round.
+- A process that loses the claim derives no ladder until its next refresh (next turn, or the 15-minute
+  interval). A one-turn `omp -p` run therefore keeps the shipped order for that turn. That is no
+  regression: a cold process was static before.
 
 `rungs.test.ts` · `routedModel` now clears its scratch state and intel file per call: the snapshot is
 persisted, so the second call would otherwise reuse the first call's empty snapshot.

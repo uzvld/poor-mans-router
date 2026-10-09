@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LocalRouteState } from './health.ts';
-import { boundIntelBlock, mergeIntelCache, type IntelCache } from './openrouter-intel.ts';
+import { boundIntelCache, mergeIntelCache, type IntelCache } from './openrouter-intel.ts';
 
 interface StoredRouteState extends LocalRouteState {
   updatedAt?: number;
@@ -57,7 +57,7 @@ export class IntelStore {
   read(now = Date.now()): IntelCache | undefined {
     try {
       const raw: unknown = JSON.parse(fs.readFileSync(this.filename, 'utf8'));
-      return isIntelCache(raw) ? boundIntelBlock(raw, now) : undefined;
+      return isIntelCache(raw) ? boundIntelCache(raw, now) : undefined;
     } catch {
       return undefined;
     }
@@ -70,7 +70,7 @@ export class IntelStore {
    */
   save(cache: IntelCache, now = Date.now()): IntelCache {
     const disk = this.read(now);
-    const merged = boundIntelBlock(disk ? mergeIntelCache(cache, disk) : cache, now);
+    const merged = boundIntelCache(disk ? mergeIntelCache(cache, disk) : cache, now);
     fs.mkdirSync(path.dirname(this.filename), { recursive: true });
     const tmp = `${this.filename}.${process.pid}.${randomUUID()}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(merged));
@@ -90,16 +90,24 @@ export class IntelStore {
    * tick (measured: three processes, 12 requests). Age comes from the lock's mtime, not its content,
    * so a peer caught between creating and writing it still counts as live. A lock that cannot be
    * used at all never throws: the refresh goes ahead unshared rather than not at all.
+   *
+   * The lock carries an owner token and a release removes only its own lock: a holder that stalled
+   * past the stale age (sleep, SIGSTOP) must not delete the lock of the peer that reclaimed it.
+   * Two peers reclaiming the same stale lock can still both get in; the re-check under the claim
+   * (the stalled holder persisted its attempt first) is what keeps that from spending twice.
    */
   claim(now = Date.now()): (() => void) | undefined {
     const lock = `${this.filename}.lock`;
+    const token = `${process.pid}.${randomUUID()}`;
     try {
       fs.mkdirSync(path.dirname(lock), { recursive: true });
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          fs.writeFileSync(lock, String(now), { flag: 'wx' });
+          fs.writeFileSync(lock, token, { flag: 'wx' });
           return () => {
-            try { fs.rmSync(lock, { force: true }); } catch { /* left to go stale */ }
+            try {
+              if (fs.readFileSync(lock, 'utf8') === token) fs.rmSync(lock, { force: true });
+            } catch { /* already gone, or left to go stale */ }
           };
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;

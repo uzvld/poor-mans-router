@@ -284,11 +284,21 @@ export function mergeIntelCache(ours: IntelCache, theirs: IntelCache): IntelCach
   return merged;
 }
 
-/** Drop a block that has expired and cap one that claims more than a day (corrupt or hand-edited file). */
-export function boundIntelBlock(cache: IntelCache, now = Date.now()): IntelCache {
+/**
+ * Make a cache read from disk safe to gate on (corrupt or hand-edited file, clock stepped back):
+ * drop an expired block and cap one that claims more than a day, and treat a snapshot or attempt
+ * time ahead of now as unknown (0). A future time would otherwise read as "just now" forever and,
+ * because merges keep the maximum, survive every save.
+ */
+export function boundIntelCache(cache: IntelCache, now = Date.now()): IntelCache {
   const { blockedUntil, ...rest } = cache;
-  if (blockedUntil === undefined || !Number.isFinite(blockedUntil) || blockedUntil <= now) return rest;
-  return { ...rest, blockedUntil: Math.min(blockedUntil, now + MAX_BLOCK_MS) };
+  const bounded: IntelCache = {
+    ...rest,
+    fetchedAt: Number.isFinite(rest.fetchedAt) && rest.fetchedAt <= now ? rest.fetchedAt : 0,
+    lastAttemptAt: Number.isFinite(rest.lastAttemptAt) && rest.lastAttemptAt <= now ? rest.lastAttemptAt : 0,
+  };
+  if (blockedUntil === undefined || !Number.isFinite(blockedUntil) || blockedUntil <= now) return bounded;
+  return { ...bounded, blockedUntil: Math.min(blockedUntil, now + MAX_BLOCK_MS) };
 }
 
 export const EMPTY_INTEL_CACHE: IntelCache = { data: {}, fetchedAt: 0, lastAttemptAt: 0 };

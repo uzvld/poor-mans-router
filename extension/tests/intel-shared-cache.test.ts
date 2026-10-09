@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ExtensionAPI } from '@oh-my-pi/pi-coding-agent';
@@ -186,6 +186,7 @@ test('a process reuses the snapshot a peer fetched instead of spending the share
     await third.runScheduled();
     assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'a fresh process starts from the persisted snapshot');
     assert.equal(await third.turn(), 'anthropic/claude-opus-5');
+    assert.equal(existsSync(`${SCRATCH_INTEL}.lock`), false, 'a successful refresh releases its claim');
   } finally {
     fetchStub.restore();
     cleanScratch();
@@ -211,6 +212,7 @@ test('a Data API 429 seen by one process stops every process until the advertise
     await third.runScheduled();
     assert.equal(dataApiCalls(fetchStub.calls).length, spent, 'no process asks again before the reset');
     assert.equal(await third.turn(), 'openai-codex/gpt-6-astra', 'no snapshot: the shipped ladder still routes');
+    assert.equal(existsSync(`${SCRATCH_INTEL}.lock`), false, 'a rate-limited refresh releases its claim');
   } finally {
     fetchStub.restore();
     cleanScratch();
@@ -482,6 +484,45 @@ test('an expired block is dropped from the file instead of merged back forever',
     const saved = store.save({ data: { 'a/b': { coding: 0.5 } }, fetchedAt: now, lastAttemptAt: now });
     assert.equal(saved.blockedUntil, undefined);
     assert.equal(store.read()?.blockedUntil, undefined);
+  } finally {
+    cleanScratch();
+  }
+});
+
+test('a future-dated snapshot or attempt in the file does not wedge refreshes', async () => {
+  // A clock stepped back, or a corrupt or hand-edited file: a timestamp ahead of now has no age.
+  for (const field of ['fetchedAt', 'lastAttemptAt'] as const) {
+    cleanScratch();
+    const future = { data: {}, fetchedAt: 0, lastAttemptAt: 0, [field]: Date.now() + 3 * 3_600_000 };
+    writeFileSync(SCRATCH_INTEL, JSON.stringify(future));
+    const fetchStub = stubFetch(serveSnapshot);
+    try {
+      const solo = omProcess();
+      await solo.start();
+      await solo.runScheduled();
+      assert.equal(dataApiCalls(fetchStub.calls).length, 4, `a future ${field} is not a recent one`);
+    } finally {
+      fetchStub.restore();
+      cleanScratch();
+    }
+  }
+});
+
+test('a holder that outlived its claim does not release the claim a peer took over', () => {
+  cleanScratch();
+  try {
+    const store = IntelStore.besideStateFile(SCRATCH_STATE);
+    const releaseStalled = store.claim();
+    assert.ok(releaseStalled, 'precondition: the first claim is granted');
+    const old = new Date(Date.now() - 10 * 60_000); // the holder stalled (sleep, SIGSTOP) past the stale age
+    utimesSync(`${SCRATCH_INTEL}.lock`, old, old);
+    const releaseTakeover = store.claim();
+    assert.ok(releaseTakeover, 'precondition: the stale claim is reclaimed');
+
+    releaseStalled(); // the stalled holder wakes up and finishes
+    assert.equal(store.claim(), undefined, 'the peer still holds the claim');
+    releaseTakeover();
+    assert.ok(store.claim(), 'its own release frees it');
   } finally {
     cleanScratch();
   }
