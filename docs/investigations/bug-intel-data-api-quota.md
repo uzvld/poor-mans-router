@@ -61,20 +61,35 @@ make this budget last (6 h TTL) lived **only in each process's memory**:
 
 ## Fix boundary
 
-- `openrouter-intel.ts`: a 429 sets `blockedUntil` from `X-RateLimit-Reset` (live: the next 00:00 UTC), or
-  the next UTC day when the header is missing or not in the future. No request is made before it.
-  `mergeIntelCache` combines a process's cache with a peer's: newer snapshot wins, the latest attempt and
-  block apply. `onAttempt` lets the caller publish an attempt before its requests leave.
-- `state.ts` · `IntelStore`: the cache, including `blockedUntil`, lives in `state.intel.json` beside
-  `state.json`. Every save merges with the file and replaces it atomically. It is a separate file on
-  purpose. The first live install put it in `state.json`, and the long-lived `omp --mode rpc-ui` processes
-  that still ran the previous release (12 of them, listed by `install.sh`) rewrote `state.json` without the
-  field within minutes. Old code never touches the new file.
-- `index.ts`: `refreshIntel` starts from the shared cache, publishes the attempt, and persists the result.
-  Ladders are derived **after** an in-flight telemetry refresh. A persisted snapshot is available
-  instantly while `omp usage` takes seconds, and `*-sub` membership needs that telemetry. Deriving
-  earlier would profile routes with no subscription class and pin the shipped order until the next snapshot.
+- `openrouter-intel.ts`: a 429 sets `blockedUntil` from `X-RateLimit-Reset` (live: the next 00:00 UTC),
+  capped at one day. Without a usable reset, only a body naming the per-day quota (`…-rpd-…`) earns a
+  block until the next UTC day; any other 429 is left to the 15-minute retry floor. `intelRefreshDue` is
+  the gate (block, 6 h TTL, retry floor), and `fetchOpenRouterIntel` spends one refresh. `mergeIntelCache`
+  combines caches (newer snapshot, latest attempt, latest block). `boundIntelBlock` drops an expired block
+  and caps an implausible one.
+- `state.ts` · `IntelStore`: the cache lives in `state.intel.json` beside `state.json`. It is a separate
+  file on purpose. The first live install put it in `state.json`, and the long-lived `omp --mode rpc-ui`
+  processes still running the previous release (12 of them, listed by `install.sh`) rewrote `state.json`
+  without the field within minutes. Old code never touches the new file.
+  - Every save merges with the file, bounds the block, and replaces the file atomically.
+  - `read()` rejects anything other than a map of model objects and bounds the block, so a corrupt file
+    can neither block forever nor crash `/route-status`.
+  - `claim()` is an exclusive-create lock file (`state.intel.json.lock`, aged by mtime, reclaimed after
+    60 s) that gives one process at a time the right to spend a refresh. When the lock cannot be used at
+    all, the refresh goes ahead unshared.
+- `index.ts`:
+  - `refreshIntel` reads the shared file, resolves the key, takes the claim, then re-reads and
+    re-checks before it spends anything. The re-check catches a peer that finished in between, and also
+    this process's own concurrent refresh, because the session-start and first-turn timers can fire
+    together.
+  - A process without a key records nothing.
+  - Persistence is best-effort: an unwritable file costs the sharing, never the snapshot.
+  - Ladders are derived **after** an in-flight telemetry refresh. A persisted snapshot is available
+    instantly while `omp usage` takes seconds, and `*-sub` membership needs that telemetry.
 - `status.ts`: `/route-status` shows `rate-limited until <ISO>` while a block applies.
+- `tests/preload.ts` (via `extension/bunfig.toml`) points `PMR_STATE_FILE` at a per-process scratch
+  path. Suites that never set it used to read and write the developer's real `extension/state.json`;
+  with the default removed, running `index-wiring` and `first-turn-latency` alone created that file.
 
 Unchanged: ladder semantics, class membership, `selectForTier`, the 6 h TTL, the 15-minute retry floor, and
 the key handling (I12: the key is still resolved from `ctx.modelRegistry` per refresh and never persisted).
@@ -82,20 +97,34 @@ Also unchanged, and out of scope: one failing endpoint still discards the other 
 
 ## Guards
 
-`extension/tests/intel-shared-cache.test.ts`, 6 tests. One of them also simulates an old-release process
-rewriting `state.json` between two refreshes. Each mutation was applied to a clean tree, restored, and
-turned at least one test red:
+`extension/tests/intel-shared-cache.test.ts`, 16 tests. Two of them simulate, respectively, an
+old-release process rewriting `state.json` and a peer landing a snapshot while this process resolves its
+key. Each mutation was applied to a clean tree, restored, and turned at least one test red:
 
 | Mutation | Red test |
 |---|---|
 | block gate removed | 429 blocks until reset |
 | reset header ignored | 429 blocks until reset |
-| past reset trusted | next UTC day |
+| past reset trusted | daily quota → next UTC day |
 | peer cache not read | snapshot reuse · 429 stops every process · refresh in flight |
 | fetched snapshot not persisted | snapshot reuse |
 | `IntelStore.save` without merge | stale view keeps the newer snapshot and block |
 | ladder derived before telemetry | snapshot reuse |
-| attempt not published before requests | refresh in flight not duplicated |
+| claim ignored | live claim holds a process off |
+| stale claim never reclaimed | stale claim reclaimed · unusable lock |
+| unusable lock blocks instead of proceeding | session-start + first-turn together |
+| no re-check after the claim | snapshot landed during key resolution |
+| attempt not marked before fetching | session-start + first-turn together |
+| keyless process publishes an attempt | keyless process does not hold back a keyed one |
+| persistence throws | unwritable intel file |
+| header block uncapped | implausible block bounded |
+| file block uncapped | implausible block bounded |
+| every 429 blocks for a day | non-daily 429 without reset |
+| expired block kept | expired block dropped |
+| loose `data` validation (twice) | file rejects data that is not a model map |
+
+The same-tick test (three processes) passes with any one of claim, re-check, or attempt mark in place,
+because in one JS thread they overlap. Each of them is pinned by its own scenario above.
 
 `rungs.test.ts` · `routedModel` now clears its scratch state and intel file per call: the snapshot is
 persisted, so the second call would otherwise reuse the first call's empty snapshot.
@@ -120,3 +149,15 @@ OpenRouter Data API: unknown old · rate-limited until 2026-10-09T00:00:00.000Z
 
 Before the fix, each of these processes would have spent four requests, and each live process another
 four every 15 minutes.
+
+### After the quota reset (review fixes installed, 2026-10-09 07:29Z)
+
+- One snapshot landed in `state.intel.json` at 07:29:23Z: 182 models, no block.
+- A fresh process started 15 s later reused it, and `fetchedAt` stayed unchanged.
+- Ladders replayed from that snapshot with the live catalog and quota:
+  - `frontier`: `snapshot`, `fable-sub > opus-sub > astra-sub > opus-ish-sub`, pick `claude-fable-5-1`.
+  - `balanced` and `small`: `snapshot`.
+  - `free`: `static`.
+- Frontier powers: `fable-sub` 0.728, `opus-sub` 0.700, `astra-sub` 0.674.
+- `anthropic/claude-opus-5.5-20260921` is in the snapshot with **no** coding or agentic index. `opus-sub` is
+  therefore measured by Opus 5, and Fable 5.1 ranks first on measurement, not by default.

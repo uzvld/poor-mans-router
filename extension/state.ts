@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LocalRouteState } from './health.ts';
-import { mergeIntelCache, type IntelCache } from './openrouter-intel.ts';
+import { boundIntelBlock, mergeIntelCache, type IntelCache } from './openrouter-intel.ts';
 
 interface StoredRouteState extends LocalRouteState {
   updatedAt?: number;
@@ -23,13 +23,19 @@ interface PersistedState {
   telemetry?: TelemetrySnapshot & { fetchedAt: number };
 }
 
-function isIntelCache(value: unknown): value is IntelCache {
-  if (!value || typeof value !== 'object') return false;
-  const v = value as Record<string, unknown>; // shape checked field by field below
-  return typeof v.fetchedAt === 'number' && typeof v.lastAttemptAt === 'number'
-    && !!v.data && typeof v.data === 'object'
-    && (v.blockedUntil === undefined || typeof v.blockedUntil === 'number');
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
+
+function isIntelCache(value: unknown): value is IntelCache {
+  if (!isPlainObject(value) || !isPlainObject(value.data)) return false;
+  return typeof value.fetchedAt === 'number' && typeof value.lastAttemptAt === 'number'
+    && (value.blockedUntil === undefined || typeof value.blockedUntil === 'number')
+    && Object.values(value.data).every(isPlainObject);
+}
+
+/** A claim older than this belongs to a process that died mid-refresh (the four requests time out at 10 s). */
+const CLAIM_STALE_MS = 60_000;
 
 /**
  * The OpenRouter Data API snapshot and its rate-limit block, shared by every OMP process on the
@@ -48,24 +54,69 @@ export class IntelStore {
     return new IntelStore(`${stateFile.replace(/\.json$/, '')}.intel.json`);
   }
 
-  read(): IntelCache | undefined {
+  read(now = Date.now()): IntelCache | undefined {
     try {
       const raw: unknown = JSON.parse(fs.readFileSync(this.filename, 'utf8'));
-      return isIntelCache(raw) ? raw : undefined;
+      return isIntelCache(raw) ? boundIntelBlock(raw, now) : undefined;
     } catch {
       return undefined;
     }
   }
 
-  /** Merge with what a peer wrote since (newer snapshot, latest attempt, latest block) and replace atomically. */
-  save(cache: IntelCache): IntelCache {
-    const disk = this.read();
-    const merged = disk ? mergeIntelCache(cache, disk) : cache;
+  /**
+   * Merge with what a peer wrote since (newer snapshot, latest attempt, latest block) and replace
+   * atomically. Read-merge-rename is not one atomic step; refreshes hold `claim()` around it, which
+   * is what keeps two writers from racing.
+   */
+  save(cache: IntelCache, now = Date.now()): IntelCache {
+    const disk = this.read(now);
+    const merged = boundIntelBlock(disk ? mergeIntelCache(cache, disk) : cache, now);
     fs.mkdirSync(path.dirname(this.filename), { recursive: true });
     const tmp = `${this.filename}.${process.pid}.${randomUUID()}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(merged));
-    fs.renameSync(tmp, this.filename);
+    try {
+      fs.renameSync(tmp, this.filename);
+    } catch (error) {
+      fs.rmSync(tmp, { force: true });
+      throw error;
+    }
     return merged;
+  }
+
+  /**
+   * Machine-wide right to spend one refresh: an exclusive-create lock file, the same idea as the
+   * deploy lock. Returns the release function, or `undefined` while a live peer holds it. A peer
+   * that read the file before this process's attempt landed would otherwise refetch in the same
+   * tick (measured: three processes, 12 requests). Age comes from the lock's mtime, not its content,
+   * so a peer caught between creating and writing it still counts as live. A lock that cannot be
+   * used at all never throws: the refresh goes ahead unshared rather than not at all.
+   */
+  claim(now = Date.now()): (() => void) | undefined {
+    const lock = `${this.filename}.lock`;
+    try {
+      fs.mkdirSync(path.dirname(lock), { recursive: true });
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          fs.writeFileSync(lock, String(now), { flag: 'wx' });
+          return () => {
+            try { fs.rmSync(lock, { force: true }); } catch { /* left to go stale */ }
+          };
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+        }
+        let ageMs: number;
+        try {
+          ageMs = now - fs.statSync(lock).mtimeMs;
+        } catch {
+          continue; // released between our create and our stat: try again
+        }
+        if (ageMs < CLAIM_STALE_MS) return undefined;
+        fs.rmSync(lock, { force: true }); // a peer died mid-refresh: reclaim once
+      }
+      return undefined;
+    } catch {
+      return () => {};
+    }
   }
 }
 

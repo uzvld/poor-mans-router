@@ -149,7 +149,7 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   openrouter-intel.ts OpenRouter Data API → quality scores
   state.ts            persisted per-route cooldowns and telemetry (state.json) and the OpenRouter intel snapshot (state.intel.json), both gitignored
   compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
-  tests/              bun test — 165 tests, run from extension/
+  tests/              bun test — 175 tests, run from extension/
 hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
                     survives `hermes update`, and their tests

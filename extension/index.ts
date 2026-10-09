@@ -7,8 +7,10 @@ import { fetchCodexBarUsage, fetchOmpUsage, type CodexBarUsage, type OmpCredenti
 import { fetchOmpHistory, type HistoryMap } from './history.ts';
 import {
   EMPTY_INTEL_CACHE,
+  fetchOpenRouterIntel,
+  intelRefreshDue,
   mergeIntelCache,
-  refreshOpenRouterIntel,
+  resolveOpenRouterKey,
   type IntelCache,
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
@@ -172,16 +174,48 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     return historyRefresh;
   };
 
+  // Persisting is best-effort: an unwritable intel file costs the sharing, never the snapshot.
+  const persistIntel = (cache: IntelCache): IntelCache => {
+    try {
+      return intelStore.save(cache);
+    } catch (error) {
+      logger.warn('pmr could not persist OpenRouter intelligence', { error: String(error) });
+      return cache;
+    }
+  };
+
+  const mergeSharedIntel = (): void => {
+    const shared = intelStore.read();
+    if (shared) intel = mergeIntelCache(intel, shared);
+  };
+
+  // The Data API budget is per account (500 requests/day, four per refresh) and every OMP process on
+  // the machine shares the intel file. A refresh starts from whatever snapshot or 429 block a peer
+  // persisted, spends requests only under the machine-wide claim, and re-checks once it holds the
+  // claim: a peer may have finished since the first read, and this process's own concurrent refresh
+  // (session_start's and the first turn's timers can fire together) has already set `lastAttemptAt`
+  // in memory, so it does not spend the requests twice even when the lock is unusable.
+  const refreshIntelSnapshot = async (ctx: any): Promise<void> => {
+    mergeSharedIntel();
+    if (!intelRefreshDue(intel)) return;
+    const apiKey = await resolveOpenRouterKey(ctx);
+    if (!apiKey) return; // nothing attempted: nothing for a peer with a key to wait out
+    const release = intelStore.claim();
+    if (!release) return; // a peer is refreshing; its snapshot reaches us through the file
+    try {
+      mergeSharedIntel();
+      const now = Date.now();
+      if (!intelRefreshDue(intel, now)) return;
+      intel = persistIntel({ ...intel, lastAttemptAt: now });
+      intel = persistIntel(await fetchOpenRouterIntel(apiKey, intel, now));
+    } finally {
+      release();
+    }
+  };
+
   const refreshIntel = async (ctx: any): Promise<void> => {
     try {
-      // The Data API budget is per account (500 requests/day, four per refresh) and every OMP
-      // process on the machine shares the intel file: start from whatever snapshot or 429 block a
-      // peer persisted, publish the attempt before the requests leave, and persist what came back.
-      const shared = intelStore.read();
-      if (shared) intel = mergeIntelCache(intel, shared);
-      const before = intel;
-      intel = await refreshOpenRouterIntel(ctx, intel, Date.now(), (attempted) => { intelStore.save(attempted); });
-      if (intel !== before) intel = intelStore.save(intel);
+      await refreshIntelSnapshot(ctx);
       // Membership in a `*-sub` class needs OMP's subscription telemetry, and a ladder is derived
       // once per snapshot. A persisted snapshot is available instantly while `omp usage` takes
       // seconds, so deriving now would profile routes with no subscription class and pin the

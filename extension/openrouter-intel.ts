@@ -203,9 +203,12 @@ export function mergeOpenRouterIntel(...maps: IntelMap[]): IntelMap {
   return out;
 }
 
-/** A non-2xx Data API answer; a 429 carries the quota reset the header advertised (epoch ms). */
+/**
+ * A non-2xx Data API answer. A 429 carries the reset the header advertised (epoch ms) and whether
+ * the body names the per-day account quota (`datasets-per-account-rpd-v1`, observed live).
+ */
 class DataApiHttpError extends Error {
-  constructor(readonly status: number, readonly resetAt: number | undefined) {
+  constructor(readonly status: number, readonly resetAt: number | undefined, readonly dailyQuota: boolean) {
     super(`OpenRouter Data API HTTP ${status}`);
   }
 }
@@ -222,20 +225,34 @@ async function getJson<T>(url: string, apiKey: string): Promise<T> {
     headers: buildOpenRouterHeaders(apiKey),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!response.ok) throw new DataApiHttpError(response.status, parseResetHeader(response.headers.get('x-ratelimit-reset')));
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new DataApiHttpError(
+      response.status,
+      parseResetHeader(response.headers.get('x-ratelimit-reset')),
+      /\brpd\b|-rpd-|per[- ]day|requests\/day/i.test(body),
+    );
+  }
   return await response.json() as T;
 }
 
+/** No block outlives the per-day quota it stands for, whatever a header or a file claims. */
+const MAX_BLOCK_MS = 24 * 60 * 60_000;
+
+function nextUtcDay(now: number): number {
+  const day = new Date(now);
+  return Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1);
+}
+
 /**
- * When a 429 lets the next request through. The Data API quota is per account per day
- * (`datasets-per-account-rpd-v1`, 500 requests); live 2026-10-09 its reset header carried the next
- * 00:00 UTC. A header that is missing or not in the future still means the per-day quota: next UTC day.
+ * When a 429 lets the next request through: the advertised reset (live 2026-10-09: the next 00:00
+ * UTC), bounded to a day. Without a usable reset only the named per-day quota earns a block until
+ * the next UTC day; any other 429 (a per-minute burst) is left to the 15-minute retry floor.
  */
 function rateLimitedUntil(error: unknown, now: number): number | undefined {
   if (!(error instanceof DataApiHttpError) || error.status !== 429) return undefined;
-  if (error.resetAt !== undefined && error.resetAt > now) return error.resetAt;
-  const day = new Date(now);
-  return Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1);
+  if (error.resetAt !== undefined && error.resetAt > now) return Math.min(error.resetAt, now + MAX_BLOCK_MS);
+  return error.dailyQuota ? nextUtcDay(now) : undefined;
 }
 
 function yyyyMmDd(date: Date): string {
@@ -251,7 +268,7 @@ export interface IntelCache {
 }
 
 /**
- * Combine this process's cache with a peer's (state.json is shared by every OMP process on the
+ * Combine this process's cache with a peer's (the intel file is shared by every OMP process on the
  * machine, and the Data API budget is shared by the whole account): the newer snapshot wins, and
  * the latest attempt and the latest block apply to everyone.
  */
@@ -267,29 +284,31 @@ export function mergeIntelCache(ours: IntelCache, theirs: IntelCache): IntelCach
   return merged;
 }
 
+/** Drop a block that has expired and cap one that claims more than a day (corrupt or hand-edited file). */
+export function boundIntelBlock(cache: IntelCache, now = Date.now()): IntelCache {
+  const { blockedUntil, ...rest } = cache;
+  if (blockedUntil === undefined || !Number.isFinite(blockedUntil) || blockedUntil <= now) return rest;
+  return { ...rest, blockedUntil: Math.min(blockedUntil, now + MAX_BLOCK_MS) };
+}
+
 export const EMPTY_INTEL_CACHE: IntelCache = { data: {}, fetchedAt: 0, lastAttemptAt: 0 };
 export const INTEL_TTL_MS = 6 * 60 * 60_000;
 export const INTEL_RETRY_FLOOR_MS = 15 * 60_000;
 
+/** Whether a refresh may spend Data API requests now: not blocked, snapshot stale, retry floor passed. */
+export function intelRefreshDue(cache: IntelCache, now = Date.now()): boolean {
+  if (cache.blockedUntil && now < cache.blockedUntil) return false;
+  if (cache.fetchedAt && now - cache.fetchedAt < INTEL_TTL_MS) return false;
+  if (cache.lastAttemptAt && now - cache.lastAttemptAt < INTEL_RETRY_FLOOR_MS) return false;
+  return true;
+}
+
 /**
- * `onAttempt` runs after the gates pass and before any request leaves, so the caller can publish
- * the attempt to its peers first and they do not spend the same requests concurrently.
+ * Spend one refresh (four Data API requests). The caller has checked `intelRefreshDue` and owns
+ * the machine-wide claim; this only fetches and records the outcome.
  */
-export async function refreshOpenRouterIntel(
-  ctx: any,
-  cache: IntelCache,
-  now = Date.now(),
-  onAttempt?: (attempted: IntelCache) => void,
-): Promise<IntelCache> {
-  if (cache.blockedUntil && now < cache.blockedUntil) return cache;
-  if (cache.fetchedAt && now - cache.fetchedAt < INTEL_TTL_MS) return cache;
-  if (cache.lastAttemptAt && now - cache.lastAttemptAt < INTEL_RETRY_FLOOR_MS) return cache;
-
+export async function fetchOpenRouterIntel(apiKey: string, cache: IntelCache, now = Date.now()): Promise<IntelCache> {
   const attempted = { ...cache, lastAttemptAt: now };
-  const apiKey = await resolveOpenRouterKey(ctx);
-  if (!apiKey) return attempted;
-  onAttempt?.(attempted);
-
   const end = new Date(now - 24 * 60 * 60_000);
   const start = new Date(end.getTime() - 6 * 24 * 60 * 60_000);
   const base = 'https://openrouter.ai/api/v1';

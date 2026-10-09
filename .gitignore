@@ -22,6 +22,7 @@ state.json
 *.state.json
 state.intel.json
 *.intel.json
+*.intel.json.lock
 
 # Raw (unsanitised) telemetry captures — only sanitised copies belong in fixtures/
 fixtures/raw/
