@@ -682,7 +682,7 @@ qualityScore =
 
 Public rankings/popularity are weak tie-breakers only.
 
-Exception: when a candidate set contains a route with no coding index but with an intelligence index, every route in that set is scored on `0.35 + 0.38 * intelligence + 0.10 * reliability` instead, and a route with no index at all scores strictly below the weakest measured one. The basis is chosen per candidate set.
+Exception: Artificial Analysis publishes only the overall Intelligence Index for a brand-new model (coding and agentic follow later). A route with an intelligence index and no coding index is scored from a measured model of its own lineage (same vendor, same model family; the closest in intelligence, read from the snapshot): the reference's benchmark quality, plus `min(0.10, 0.38 * (intelligence - reference intelligence))`, plus `0.10 * reliability` of the route itself. Between two such routes of one vendor the higher intelligence index ranks first. A route with no measured lineage keeps the neutral priors. Only these routes' scores change: the coding/agentic score of every other route is untouched, and the score is fixed by the model catalog and the snapshot alone, so it never depends on which routes are in a candidate set or healthy. The one comparator change: on an exact score tie a route with a published index ranks above one with none (I7). See `docs/investigations/finding-intelligence-only-benchmarks.md`.
 
 ### 14.4 Safety boundaries
 

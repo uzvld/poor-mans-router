@@ -34,13 +34,10 @@ export interface NormalizedRoute {
   /** Measured benchmark power of the model (0..1); undefined when no snapshot covers it. */
   benchmarkPower?: number;
   /**
-   * Quality with the overall Intelligence Index standing in for coding+agentic; undefined when the
-   * snapshot has no intelligence index. Only used to compare a set that includes a route whose
-   * coding index is not published yet (see ranking.ts `bestModelThenCheapestSeller`).
+   * Whether the snapshot carries any Artificial Analysis index (coding, agentic or intelligence) for
+   * this model. Breaks an exact `qualityScore` tie in favour of the route with evidence (I7).
    */
-  intelligenceQualityScore?: number;
-  /** Whether the snapshot carries a coding index for this model. */
-  codingMeasured?: boolean;
+  benchmarked?: boolean;
   reliabilityScore: number;
   latencyMs?: number;
   throughput?: number;
