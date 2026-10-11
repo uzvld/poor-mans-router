@@ -361,6 +361,10 @@ interface ScoredAnchor {
   intelligence: number;
   score: number;
   ceiling: number;
+  /** The route's own `0.10 x reliability`, already inside `score` and `ceiling`. */
+  reliabilityTerm: number;
+  /** The route has request history; an unmeasured one carries only the neutral prior. */
+  measured: boolean;
 }
 
 /** Smallest rise between two distinct index values within a vendor; far below any real score gap. */
@@ -372,15 +376,24 @@ const ENVELOPE_STEP = 1e-6;
  * higher estimate (a weak predecessor caps one successor's credit, a strong one lifts another):
  * opus-5.5 at 57.6 against sonnet-5.5 at 56.0 differ by 0.008 only because sonnet-5's coding sits far
  * above its index. A route is raised to one step above the highest score of the vendor's routes with a
- * lower index. It is applied to the scores with reliability already added, so a reliability gap cannot
- * turn the order back (opus-5.5 at 0.995 against sonnet-5.5 at 1.0). The raise stops at the route's
- * `ceiling`, reference quality + MAX_INTELLIGENCE_CREDIT: where the estimates disagree by more than
- * the credit cap the index no longer decides, the same limit that stops a large index gap from
- * carrying a route over measured routes (mistral-medium-3 was lifted by 0.131 onto another lineage's
- * anchor). Scoped to the vendor because nothing ties one vendor's index scale to another's: lifting
- * across vendors dragged deepseek-v4.1-flash above glm-5.3-flash on gpt-6-luna's estimate (measured on
- * the 2026-10-11 snapshot). Returns one entry per input, undefined where the route is not anchored; it
- * depends on the catalog, the snapshot and the reliability history, never on health.
+ * lower index, and the raise is made on the scores with reliability already added, so a reliability gap
+ * between two measured routes cannot turn the order back (opus-5.5 at 0.995 against sonnet-5.5 at 1.0).
+ *
+ * A route never takes a reliability term that is not its own, unless both routes are measured (I7: an
+ * unmeasured route never gets a reliability bonus over a measured one). Against any route that is
+ * unmeasured, on either side, the order is held on the reliability-free level: the lower route's score
+ * minus its own term, plus the raised route's own term. Held on final scores, an unmeasured seller of
+ * opus-5.5 took the measured 1.0 of sonnet-5-5 and outranked it, and outranked the measured opus-5, once
+ * those cooled down. The ordering depends on the catalog and the history, never on health, so it cannot
+ * know which routes are down.
+ *
+ * The raise stops at the route's `ceiling`, reference quality + MAX_INTELLIGENCE_CREDIT (plus its own
+ * term): where the estimates disagree by more than the credit cap the route is lifted to the ceiling and
+ * no further, the same limit that stops a large index gap from carrying a route over measured routes
+ * (mistral-medium-3 was lifted by 0.131 onto another lineage's anchor). Scoped to the vendor because
+ * nothing ties one vendor's index scale to another's: lifting across vendors dragged deepseek-v4.1-flash
+ * above glm-5.3-flash on gpt-6-luna's estimate (measured on the 2026-10-11 snapshot). Returns one entry
+ * per input, undefined where the route is not anchored.
  */
 function orderByIntelligence(anchors: (ScoredAnchor | undefined)[]): (number | undefined)[] {
   const byVendor = new Map<string, number[]>();
@@ -394,15 +407,30 @@ function orderByIntelligence(anchors: (ScoredAnchor | undefined)[]): (number | u
       const intelligence = (anchors[i] as ScoredAnchor).intelligence;
       byIndex.set(intelligence, [...(byIndex.get(intelligence) ?? []), i]);
     }
-    let reached = Number.NEGATIVE_INFINITY;
+    // Highest lifted score of the measured routes below the group, their level without the reliability
+    // term, and the same level for the unmeasured ones.
+    let measuredScore = Number.NEGATIVE_INFINITY;
+    let measuredLevel = Number.NEGATIVE_INFINITY;
+    let unmeasuredLevel = Number.NEGATIVE_INFINITY;
     for (const [, group] of [...byIndex].sort(([a], [b]) => a - b)) {
-      const floor = reached + ENVELOPE_STEP;
-      for (const i of group) {
+      const lifted = group.map((i) => {
         const anchor = anchors[i] as ScoredAnchor;
-        const lifted = Math.max(anchor.score, Math.min(floor, anchor.ceiling));
-        ordered[i] = lifted;
-        reached = Math.max(reached, lifted);
-      }
+        const reached = anchor.measured
+          ? Math.max(measuredScore, unmeasuredLevel + anchor.reliabilityTerm)
+          : Math.max(measuredLevel, unmeasuredLevel) + anchor.reliabilityTerm;
+        return Math.max(anchor.score, Math.min(reached + ENVELOPE_STEP, anchor.ceiling));
+      });
+      group.forEach((i, k) => {
+        const anchor = anchors[i] as ScoredAnchor;
+        const level = (lifted[k] as number) - anchor.reliabilityTerm;
+        ordered[i] = lifted[k];
+        if (anchor.measured) {
+          measuredScore = Math.max(measuredScore, lifted[k] as number);
+          measuredLevel = Math.max(measuredLevel, level);
+        } else {
+          unmeasuredLevel = Math.max(unmeasuredLevel, level);
+        }
+      });
     }
   }
   return ordered;
@@ -428,11 +456,19 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
   const catalog = models.filter((model) => !/:batch$/i.test(model.selector ?? model.id));
   const catalogMatches = catalog.map((model) => intelMatchForRoute(intelLookup, model.provider, model.id));
   const catalogReliability = catalog.map((model) => smoothedReliability(input.history[`${model.provider}/${model.id}`]));
+  const catalogMeasured = catalog.map((model) => (input.history[`${model.provider}/${model.id}`]?.requests ?? 0) > 0);
   const anchoredScores = orderByIntelligence(
     catalogMatches.map((match, i) => {
       const anchor = anchoredBase(match, referencePools);
-      const own = 0.10 * (catalogReliability[i] as number);
-      return anchor && { ...anchor, score: anchor.base + own, ceiling: anchor.ceiling + own };
+      const reliabilityTerm = 0.10 * (catalogReliability[i] as number);
+      const measured = catalogMeasured[i] as boolean;
+      return anchor && {
+        ...anchor,
+        score: anchor.base + reliabilityTerm,
+        ceiling: anchor.ceiling + reliabilityTerm,
+        reliabilityTerm,
+        measured,
+      };
     }),
   );
 

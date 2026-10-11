@@ -131,10 +131,12 @@ so one response could feed all three normalisers; not verified that it is a supe
 
 ## Follow-ups (review round 2, branch `fix/intelligence-anchor-followups`)
 
-Four deferred findings on the anchor above. Tests: `intelligence-anchor-followups.test.ts` (9 tests; 7 red on
-the code of `c7929a3`, the other two pass there by design: the equidistant tie, whose guard is a
-mutation, and the in-bound lift, a regression guard) plus two fixtures of `intelligence-fallback.test.ts` moved
-inside the new ceiling (see 3).
+Four deferred findings on the anchor above, then a third round of review (PR #21) that found a hole in the fix for
+finding 2 (section 5). Tests: `intelligence-anchor-followups.test.ts` (12 tests) and `intelligence-anchor-replay.test.ts`
+(4 tests; a replay of the claude slice of the live snapshot, `fixtures/intel-anchor-claude-2026-10-11.json`), plus two
+fixtures of `intelligence-fallback.test.ts` moved inside the new ceiling (see 3). On the code of `bf9da81` 7 of the 16 are
+red (the unmeasured-route tests and the two replays); the others are regression guards or are guarded by a mutation (the
+equidistant tie, the in-bound lift, the three-route chain, the measured-pair reliability gap).
 
 | # | finding | layer | verdict |
 |---|---|---|---|
@@ -151,17 +153,14 @@ takes that key for both vendor and `modelFamily`, the same form `buildReferenceP
 The catalog slug stays in `bestModelThenCheapestSeller` (it groups sellers of a model; the intel is not involved).
 The same model through two sellers now has the same score before reliability.
 
-### 2. The ordering runs on the final score (decision: apply it after reliability)
+### 2. The ordering runs on the final score, with each route's own reliability term (decision revised in section 5)
 
 Stating that reliability may override was the other option. It was rejected because the documented intent
 is that the index decides within a vendor, and a 0.005 reliability difference between two proven routes
-should not pick between opus-5.5 and sonnet-5.5. `orderByIntelligence` now works on `base + 0.10 x
-reliability` (each route's own), raising a route to one step above the highest final score of the vendor's
-routes with a lower index. Cost, stated: an unproven higher-index route is raised to the proven lower-index
-route's score, so `kilo/anthropic/claude-opus-5.5` (no history) moves 0.8116 -> 0.8616, to the level of
-the proven `anthropic/claude-opus-5-5`; among sellers of one model the proven one is never ranked below
-the unproven one (the raise is a maximum, and ties fall to reliability in `bestComparator`). No class
-winner moves (see the replay).
+should not pick between opus-5.5 and sonnet-5.5. The first fix ran `orderByIntelligence` on `base + 0.10 x
+reliability` for every route, raising a route to one step above the highest final score of the vendor's routes
+with a lower index. Cost, stated then and understated: an unproven higher-index route was raised onto the proven
+lower-index route's score, so it borrowed a reliability term it had not earned (I7). Section 5 is the corrected rule.
 
 ### 3. The lift is bounded by the credit cap (decision: ceiling = reference quality + 0.10 + own reliability)
 
@@ -170,12 +169,14 @@ one path that went round it. A route's raise now stops at `reference.quality + M
 its own reliability term, so no anchored route scores more than 0.10 over its measured reference (plus
 reliability), credit and raise together. The reliability term is in the ceiling, not a fixed constant,
 because without it a reliability gap again overrides the order inside the bound (mutation M3b).
-Where two lineages' estimates differ by more than the cap the estimates stand and the index does not decide; this
+Where two lineages' estimates differ by more than the cap the route is lifted to its ceiling and no further (mistral-medium-3
+goes 0.5361 -> 0.6369, +0.1008, not the +0.131 the other lineage's anchor would give); the index decides up to the cap, not past it. This
 narrows the claim of the previous version ("the index decides") to "decides up to the cap".
 On the snapshot only `mistral-medium-3` is bound: its lift of 0.131 (onto `mistral-large-2407`, 1.4 index points
 lower, whose anchor `mistral-large-2512` has agentic 1.0) becomes about 0.100. The others (glm-4.7-flash 0.022,
 gemini-2.5-flash-lite 0.017, opus-5.5 0.008) are inside the bound and unchanged. opus-5.5 stays
-above sonnet-5.5, sonnet-5.5 stays the `sonnet-sub` winner and opus-5.5 the `opus-sub`/`best-available` winner.
+above sonnet-5.5 where both have history (the all-healthy state), sonnet-5.5 stays the `sonnet-sub` winner and opus-5.5 the
+`opus-sub`/`best-available` winner.
 A tighter bound (lift at most the index gap supports, `0.38 x gap`) was rejected: the 0.008 opus-5.5 needs
 over a 1.6-point index gap is more than 0.38 x 0.016 = 0.006.
 
@@ -184,42 +185,106 @@ over a 1.6-point index gap is more than 0.38 x 0.016 = 0.006.
 Two references the same distance from the route: the smaller key is the reference, whatever order the
 snapshot lists them. One test (both listing orders, indexes 0.25 / 0.5 / 0.75, exact in binary) pins it.
 
+### 5. Review round 3 (PR #21): an unmeasured route borrowed a measured route's reliability
+
+Finding (I7). The ordering of section 2 ran on final scores, so an unmeasured higher-index route was raised onto a
+measured lower-index route's final score and gained that route's measured reliability term in place of its own neutral
+0.05. Layer: in-class comparator (anchor ordering). The ordering depends on the catalog and the history, never on health,
+so the raise is in place when the measured routes it borrowed from are cooling down, which is exactly when the unmeasured
+seller is picked. Reproduced on the live 2026-10-11 snapshot (`/tmp/pmr/scen.ts`, main `c7929a3` against `bf9da81`):
+
+| scenario | main | `bf9da81` |
+|---|---|---|
+| (a) only `anthropic/claude-opus-5-5` cooling down, `best-available`/quality | `anthropic/claude-sonnet-5-5` (free subscription, reliability 1.0, 0.8616) | `kilo/anthropic/claude-opus-5.5` (paid, no history; 0.8116 -> 0.8616054 against 0.8616044) |
+| (b) sonnet-sub, luna-sub, chinese-flash-payg, free-chinese-flash and opus-5-5 down, balanced tier and `best-available`/quality | `anthropic/claude-opus-5` (free, measured, 0.8278) | `kilo/anthropic/claude-opus-5.5` (paid, unmeasured) |
+
+The earlier statement "no class winner moves" held only in the all-healthy state. The test that pinned the behaviour
+(an unproven higher-index route winning against a proven lower-index one) asserted the defect and is replaced.
+
+Rule chosen. A route has history when its history entry has requests (`smoothedReliability` already treats an entry with
+none as the neutral prior). Within one vendor, in ascending index, a route i is raised to one step above:
+
+| i | lower route j | bound |
+|---|---|---|
+| measured | measured | `final(j)` (both reliability terms are earned, so a small gap cannot turn the index order) |
+| measured | unmeasured | `final(j) - term(j) + term(i)` (i's own term, never j's neutral prior) |
+| unmeasured | any | `final(j) - term(j) + term(i)` (i's own neutral term, never a measured term) |
+
+capped as before at the route's ceiling. `orderByIntelligence` keeps three running maxima per vendor (measured final, measured
+reliability-free level, unmeasured level). The reviewer's one-line fix (borrow only if the raised route has history; else
+floor on the lower route's base plus own term) agrees with this on every row but the second, where it floors a measured route
+on an unmeasured route's final score: its neutral 0.05 is borrowed by a route whose own measured term is lower, and not
+credited as its own to one whose term is higher. The rule above never lets a route take a term but its own, and the measured
+pair is the single exception, which is the original goal (opus-5.5 at 0.995 against sonnet-5.5 at 1.0, both measured).
+It is the same arithmetic as before for every route whose neighbours are all measured or all unmeasured, and on the live snapshot
+changes no route score against `bf9da81` other than the unmeasured sellers of opus-5.5, `kilo/` and `openrouter/` (0.8616 -> 0.8116, back to main).
+Same-model sellers stay ordered by cost first; among them the measured seller is never scored below an unmeasured one.
+
+### 6. Three-route chain
+
+`reached = Math.max(reached, lifted)` mutated to `Math.max(reached, anchor.score)` left every test green: the strictly
+increasing chain was only checked between two routes. One test now has three routes (`a-2 < b-2 < c-2`, `0.699000 / 0.699001 /
+0.699002` unmeasured; 0.05 higher measured) and is red under that mutation in the measured and the unmeasured accumulator.
+
 ### Differential replay
 
-Modules: `origin/main` (`c7929a3`, before) against this branch (after), same live 2026-10-11 snapshot,
-`/tmp/pmr/classes.ts <moduleDir>`.
+Modules: `origin/main` (`c7929a3`, before) against this branch (after), same frozen copy of the live 2026-10-11 intel snapshot,
+`/tmp/pmr/scen.ts <moduleDir> <scenario>`; each run is 52 selections (16 classes x quality/speed/value, plus the 4 tier winners).
+Health is overridden after the build, which is exact for this change: the ordering never reads health.
 
-**0 of 16 classes change, 0 of 48 selections** (every class x quality/speed/value). Tier winners unchanged:
-frontier `fable-5-1`, balanced `sonnet-5-5`, small `haiku-5-5`, free `kilo/qwen/qwen3.8-27b:free`.
+| state | selections changed (of 52) | tier winners |
+|---|---|---|
+| (i) live, all healthy | 0 | frontier `fable-5-1`, balanced `sonnet-5-5`, small `haiku-5-5`, free `kilo/qwen/qwen3.8-27b:free` (unchanged) |
+| (ii-a) `anthropic/claude-opus-5-5` cooling down | 0 (`best-available`/quality `sonnet-5-5`, same as main; `bf9da81` moved it) | unchanged |
+| (ii-b) sonnet-sub, luna-sub, chinese-flash-payg, free-chinese-flash, opus-5-5 down | 0 (`best-available`/quality `claude-opus-5`, balanced `claude-opus-5`, same as main; `bf9da81` moved both) | unchanged |
+| (iii) all 46 `opencode-go` routes forced AVAILABLE | 2 | unchanged |
+| (iii) with (ii-a) / (ii-b) | the same 2 | unchanged |
 
-Route scores (1166 routes, 9 change; reliability 0.5 unless stated):
+The all-healthy replay is identical to `/tmp/pmr/cls-final.txt`, the baseline of merged main.
+
+(iii) is the only state with flips: `strong-flash-sub` under quality and under speed goes from `opencode-go/glm-5.3-flash`
+(0.7237) to `opencode-go/mimo-v2.6-flash` (0.7334, anchored on `xiaomi/mimo-v2-flash`, finding 1). That is the intended effect of finding 1,
+not disclosed before: it is hidden on the live snapshot only because every opencode-go route is cooling down (the weekly window is spent). No
+other class or preference changes with opencode-go available.
+
+Route scores (1166 routes, 7 change against main; reliability 0.5 unless stated):
 
 | route | before | after | why |
 |---|---|---|---|
-| `opencode-go/mimo-v2.6-flash` | 0.6710 | 0.7334 | finding 1: now anchored on `xiaomi/mimo-v2-flash`, equals `openrouter/xiaomi/mimo-v2.6-flash` (0.7334) |
-| `opencode-go/mimo-v2.6-pro` | 0.7023 | 0.7364 | finding 1 |
-| `opencode-go/mimo-v2-pro` | 0.6750 | 0.6692 | finding 1 (the neutral prior was above its real reference) |
-| `opencode-go/grok-4.7` | 0.7008 | 0.7515 | finding 1: equals `openrouter/x-ai/grok-4.7` |
-| `opencode-go/minimax-m2.5` | 0.6750 | 0.6327 | finding 1 |
-| `openrouter/anthropic/claude-opus-5.5`, `kilo/anthropic/claude-opus-5.5` | 0.8116 | 0.8616 | finding 2: raised above the proven `anthropic/claude-sonnet-5-5` (reliability 1.0); no class winner moves |
-| `openrouter/mistralai/mistral-medium-3`, `kilo/mistralai/mistral-medium-3` | 0.6668 | 0.6369 | finding 3: raise bounded, 0.131 -> 0.100 |
+| `opencode-go/mimo-v2.6-flash` | 0.6710 | 0.7334 | finding 1: now anchored on `xiaomi/mimo-v2-flash`, equals `openrouter/xiaomi/mimo-v2.6-flash` (0.7334); in `flash`, `strong-flash-sub`, `cheap-sub`, `best-available` |
+| `opencode-go/mimo-v2.6-pro` | 0.7023 | 0.7364 | finding 1; `best-available` |
+| `opencode-go/mimo-v2-pro` | 0.6750 | 0.6692 | finding 1 (the neutral prior was above its real reference); `best-available` |
+| `opencode-go/grok-4.7` | 0.7008 | 0.7515 | finding 1: equals `openrouter/x-ai/grok-4.7`; `best-available` |
+| `opencode-go/minimax-m2.5` | 0.6750 | 0.6327 | finding 1; `chinese`, `best-available` |
+| `openrouter/mistralai/mistral-medium-3`, `kilo/mistralai/mistral-medium-3` | 0.6668 | 0.6369 | finding 3: raise bounded, 0.131 -> 0.100; `best-available`, available, and still no winner |
 
-Of these only the `opencode-go` routes sit in a class (`flash`, `strong-flash-sub`, `cheap-sub`, `chinese`,
-`best-available`) and none wins one under any preference.
+`openrouter/anthropic/claude-opus-5.5` and `kilo/anthropic/claude-opus-5.5` (0.8116) are unchanged against main: the 0.8616 of `bf9da81` was the
+defect of section 5. The earlier text "of these only the opencode-go routes sit in a class and none wins one" was wrong twice: the
+opus-5.5 and mistral-medium-3 routes are in `best-available`, and opencode-go wins nothing only while all 46 of its routes are cooling down.
 
 ### Mutation results
 
-Each guard was mutated in a scratch copy of `extension/` (the whole suite and the new tests) and the named
-tests went red; the unmutated tree is green (208 / 208 router tests, 7 / 7 simulation).
+Each guard was mutated in a scratch copy of `extension/` (`/tmp/pmr/fix-mut.py`, the whole suite) and the named tests went red; the
+unmutated tree is green (218 / 218 router tests, 7 / 7 simulation).
 
-| mutation | red tests |
-|---|---|
-| M1 lineage and vendor from the catalog slug instead of the matched key | the three bare-id twin tests (mimo-v2.6-flash, grok-4.7, minimax-m2.5); a bare-id route is ordered against its vendor by the snapshot vendor |
-| M2 ordering before reliability (reliability added after) | a reliability gap does not let the lower-index route outrank the higher one; a 0.005 reliability gap does not flip opus-5.5 against sonnet-5.5 |
-| M3 no ceiling | the order lifts a route at most 0.10 above its reference |
-| M3b ceiling without the reliability term | same, plus both reliability tests and the bare-id ordering test |
-| M3c ceiling reference + 0.15 | the order lifts a route at most 0.10 above its reference |
-| M4 equidistant `<` becomes `<=` | with two references equally far the smaller key is the reference |
-| M5 equidistant key clause removed | same |
-| M6 ordering step 0 | between two intelligence-only routes of one vendor the higher index wins; a lift inside the bound is applied in full; both reliability tests; the bare-id ordering test |
-| M7 ordering across vendors | across vendors an intelligence-only route is placed by its own reference (fixture moved inside the ceiling, otherwise the cap alone masked the mutation) |
+| mutation | red | red tests |
+|---|---|---|
+| M1 lineage and vendor from the catalog slug instead of the matched key | 4 | the three bare-id twin tests (mimo-v2.6-flash, grok-4.7, minimax-m2.5); a bare-id route is ordered against its vendor by the snapshot vendor |
+| M2 ordering before reliability (reliability added after) | 2 | a reliability gap between two proven routes; a 0.005 reliability gap does not flip opus-5.5 against sonnet-5.5 |
+| M3 no ceiling | 1 | the order lifts a route at most 0.10 above its reference |
+| M3b ceiling without the reliability term | 8 | same, plus the replay (healthy), both reliability tests, the proven-over-unproven test and the bare-id ordering test |
+| M3c ceiling reference + 0.15 | 1 | the order lifts a route at most 0.10 above its reference |
+| M4 equidistant `<` becomes `<=` | 1 | with two references equally far the smaller key is the reference |
+| M5 equidistant key clause removed | 1 | same |
+| M6 ordering step 0 | 10 | the strictly-increasing family (higher index wins, in-bound lift, chain, bare-id ordering, unproven/proven tests, both reliability tests, live scenario a) |
+| M7 ordering across vendors | 1 | across vendors an intelligence-only route is placed by its own reference |
+| N1 every route measured (the ordering of `bf9da81`) | 7 | replays (a) and (b), the I7 test, the proven-over-unproven test, both live synthetic scenarios |
+| N2 no route measured | 2 | the two measured-pair reliability-gap tests |
+| N3 measured route ignores unmeasured routes below | 2 | a proven higher-index route placed above an unproven one by its own term; a history entry with no requests is no history |
+| N4 unmeasured route ignores unmeasured routes below | 5 | higher index wins between two intelligence-only routes; bare-id ordering; the ceiling and in-bound tests; the chain |
+| N5 unmeasured route ignores measured routes below | 2 | the I7 test; live synthetic scenario (a) |
+| N6 unmeasured route borrows the measured final score | 5 | replays (a) and (b), the I7 test, both live synthetic scenarios |
+| N7 level keeps the route's reliability term | 10 | replays (a), (b) and most of the ordering tests |
+| N8 chain by raw anchor, unmeasured | 1 | the three-route chain |
+| N9 chain by raw anchor, measured (`Math.max(reached, anchor.score)`) | 1 | the three-route chain, measured |
+| N10 "measured" = history entry exists, not requests > 0 | 1 | a history entry with no requests is no history |

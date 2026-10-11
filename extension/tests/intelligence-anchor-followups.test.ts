@@ -105,22 +105,60 @@ test('a bare-id route is ordered against its vendor by the snapshot vendor, not 
 
 // --- 2. The index order survives the reliability term ----------------------------------------------
 
-test('a reliability gap does not let the lower-index route of one vendor outrank the higher-index one', () => {
-  // gamma-2 (index 0.45) anchors on a strong reference: 0.649 + 0.019 = 0.668. zeta-2 (index 0.50)
-  // anchors lower: 0.6226 + 0.38 x 0.11 = 0.6644. The index says zeta-2; gamma-2 has 20 clean requests
-  // (reliability 1.0, +0.05 over zeta-2's unmeasured 0.5), which used to outweigh the 1e-6 ordering step.
-  const intel: IntelMap = {
-    'acme/gamma-1': { coding: 0.6, agentic: 0.5, intelligence: 0.4 },
-    'acme/gamma-2': { intelligence: 0.45 },
-    'acme/zeta-1': { coding: 0.49, agentic: 0.5, intelligence: 0.39 },
-    'acme/zeta-2': { intelligence: 0.5 },
-  };
-  const ids: Spec[] = [['openrouter', 'acme/gamma-2'], ['openrouter', 'acme/zeta-2']];
-  const keys = ids.map(([provider, id]) => `${provider}/${id}`);
-  const proven = build(intel, ids, { 'openrouter/acme/gamma-2': CLEAN });
-  assert.equal(winnerOf(proven, keys), 'openrouter/acme/zeta-2');
-  const reversed = build(intel, [...ids].reverse(), { 'openrouter/acme/gamma-2': CLEAN });
-  assert.equal(winnerOf(reversed, keys), 'openrouter/acme/zeta-2');
+// gamma-2 (index 0.45) anchors on a strong reference: 0.649 + 0.38 x 0.05 = 0.668. zeta-2 (index 0.50)
+// anchors lower: 0.6226 + 0.38 x 0.11 = 0.6644. The index says zeta-2. A route's reliability term is
+// 0.10 x its own reliability: 0.10 for 20 clean requests, 0.05 with no history.
+const GAMMA_ZETA: IntelMap = {
+  'acme/gamma-1': { coding: 0.6, agentic: 0.5, intelligence: 0.4 },
+  'acme/gamma-2': { intelligence: 0.45 },
+  'acme/zeta-1': { coding: 0.49, agentic: 0.5, intelligence: 0.39 },
+  'acme/zeta-2': { intelligence: 0.5 },
+};
+const GAMMA_BASE = 0.505 + 0.24 * 0.6 + 0.38 * 0.05;
+const GAMMA_ZETA_IDS: Spec[] = [['openrouter', 'acme/gamma-2'], ['openrouter', 'acme/zeta-2']];
+const GAMMA_ZETA_KEYS = GAMMA_ZETA_IDS.map(([provider, id]) => `${provider}/${id}`);
+
+test('an unproven higher-index route does not borrow the reliability of a proven lower-index one (I7)', () => {
+  // gamma-2 has 20 clean requests: 0.668 + 0.10 = 0.768. zeta-2 has no history. Lifted onto gamma-2's
+  // final score it would gain gamma-2's measured +0.10 over its own neutral +0.05 and outrank a route
+  // that has earned it. The order is held on the reliability-free level: zeta-2 sits one step above
+  // gamma-2's 0.668 with its own 0.05, 0.718001, below gamma-2.
+  for (const ids of [GAMMA_ZETA_IDS, [...GAMMA_ZETA_IDS].reverse()]) {
+    const routes = build(GAMMA_ZETA, ids, { 'openrouter/acme/gamma-2': CLEAN });
+    assert.equal(winnerOf(routes, GAMMA_ZETA_KEYS), 'openrouter/acme/gamma-2');
+    assertScore(scoreOf(routes, 'openrouter/acme/gamma-2'), GAMMA_BASE + 0.10, 'the proven lower-index route');
+    assertScore(scoreOf(routes, 'openrouter/acme/zeta-2'), GAMMA_BASE + 0.05 + 1e-6, 'zeta-2 above gamma-2 by its own reliability only');
+  }
+});
+
+test('a history entry with no requests is no history: the route is unmeasured', () => {
+  // gamma-2 carries an entry with 0 requests, so its reliability is the neutral 0.5; zeta-2 is measured.
+  // Counted as measured, gamma-2's final 0.718 would be zeta-2's floor instead of its level plus zeta-2's own 0.10.
+  const none = { reliability: 1, errorRate: 0, requests: 0 };
+  const routes = build(GAMMA_ZETA, GAMMA_ZETA_IDS, { 'openrouter/acme/gamma-2': none, 'openrouter/acme/zeta-2': CLEAN });
+  assertScore(scoreOf(routes, 'openrouter/acme/zeta-2'), GAMMA_BASE + 0.10 + 1e-6, 'zeta-2 above gamma-2 by its own reliability');
+});
+
+test('a proven higher-index route is placed above an unproven lower-index one by its own reliability term', () => {
+  // zeta-2 has 20 clean requests, gamma-2 none: gamma-2 0.718, zeta-2 0.6644 + 0.10 = 0.7644, and the
+  // order wants it one step above gamma-2's 0.668 plus zeta-2's own 0.10, 0.768001.
+  for (const ids of [GAMMA_ZETA_IDS, [...GAMMA_ZETA_IDS].reverse()]) {
+    const routes = build(GAMMA_ZETA, ids, { 'openrouter/acme/zeta-2': CLEAN });
+    assert.equal(winnerOf(routes, GAMMA_ZETA_KEYS), 'openrouter/acme/zeta-2');
+    assertScore(scoreOf(routes, 'openrouter/acme/gamma-2'), GAMMA_BASE + 0.05, 'the unproven lower-index route');
+    assertScore(scoreOf(routes, 'openrouter/acme/zeta-2'), GAMMA_BASE + 0.10 + 1e-6, 'zeta-2 above gamma-2');
+  }
+});
+
+test('a reliability gap between two proven routes does not let the lower-index one outrank the higher-index one', () => {
+  // gamma-2 20 clean requests (0.768); zeta-2 200 requests, 1 error (reliability 0.995): 0.7644 -> 0.7639.
+  // Both have history, so the order is held on the final scores: one step above gamma-2.
+  const slightlyWorse = { reliability: 0.995, errorRate: 0.005, requests: 200 };
+  for (const ids of [GAMMA_ZETA_IDS, [...GAMMA_ZETA_IDS].reverse()]) {
+    const routes = build(GAMMA_ZETA, ids, { 'openrouter/acme/gamma-2': CLEAN, 'openrouter/acme/zeta-2': slightlyWorse });
+    assert.equal(winnerOf(routes, GAMMA_ZETA_KEYS), 'openrouter/acme/zeta-2');
+    assertScore(scoreOf(routes, 'openrouter/acme/zeta-2'), GAMMA_BASE + 0.10 + 1e-6, 'zeta-2 one step above gamma-2');
+  }
 });
 
 test('a 0.005 reliability gap does not flip two vendor routes one index step apart (opus-5.5 against sonnet-5.5)', () => {
@@ -139,6 +177,43 @@ test('a 0.005 reliability gap does not flip two vendor routes one index step apa
   // 200 requests, 1 error: reliability 0.995, 0.0005 of score below the other's 1.0, 500 times the step.
   const slightlyWorse = { ...equal, 'anthropic/claude-opus-5-5': { reliability: 0.995, errorRate: 0.005, requests: 200 } };
   assert.equal(winnerOf(build(intel, ids, slightlyWorse), keys), 'anthropic/claude-opus-5-5');
+});
+
+// The live 2026-10-11 snapshot, reduced: anthropic/claude-sonnet-5-5 and opus-5-5 are subscription routes
+// with request history; kilo/anthropic/claude-opus-5.5 is the same model as opus-5-5 through a paid
+// aggregator that has no history. The ordering depends on the catalog, never on health, so it holds
+// when the proven routes are cooling down, which is when the unproven seller gets picked.
+const OPUS_SONNET: IntelMap = {
+  'anthropic/claude-sonnet-5': { coding: 0.715, agentic: 0.436, intelligence: 0.382, taskFit: 0.051, popularity: 0.876 },
+  'anthropic/claude-sonnet-5.5': { intelligence: 0.56 },
+  'anthropic/claude-opus-5': { coding: 0.91, agentic: 0.5, intelligence: 0.508, taskFit: 0.024, popularity: 0.6 },
+  'anthropic/claude-opus-5.5': { intelligence: 0.576 },
+};
+
+test('an unproven seller of the higher-index model does not outrank the proven lower-index route (live scenario: opus-5-5 cooling down)', () => {
+  // sonnet-5-5 is proven: 0.7167 + 0.10 = 0.8167. kilo opus-5.5 is the higher index but has no history: its
+  // own anchor is 0.7586, raised to one step above sonnet-5-5's reliability-free 0.7167 plus its own 0.05.
+  const ids: Spec[] = [['anthropic', 'claude-sonnet-5-5'], ['kilo', 'anthropic/claude-opus-5.5']];
+  const keys = ids.map(([provider, id]) => `${provider}/${id}`);
+  for (const order of [ids, [...ids].reverse()]) {
+    const routes = build(OPUS_SONNET, order, { 'anthropic/claude-sonnet-5-5': CLEAN });
+    assert.equal(winnerOf(routes, keys), 'anthropic/claude-sonnet-5-5');
+    const sonnetBase = scoreOf(routes, 'anthropic/claude-sonnet-5-5') - 0.10;
+    assertScore(scoreOf(routes, 'kilo/anthropic/claude-opus-5.5'), sonnetBase + 0.05 + 1e-6, 'kilo opus-5.5 by its own reliability only');
+  }
+});
+
+test('an unproven seller of the higher-index model does not outrank a proven measured route (live scenario: sonnet and opus-5-5 cooling down)', () => {
+  // opus-5 has coding measured and 20 clean requests: 0.6828 + 0.10 = 0.7828. kilo opus-5.5 has none.
+  // Raised onto the proven sonnet-5-5 final (0.8167) it passed opus-5; on its own level (0.7667) it does not.
+  const ids: Spec[] = [
+    ['anthropic', 'claude-sonnet-5-5'], ['anthropic', 'claude-opus-5'], ['kilo', 'anthropic/claude-opus-5.5'],
+  ];
+  const history = { 'anthropic/claude-sonnet-5-5': CLEAN, 'anthropic/claude-opus-5': CLEAN };
+  for (const order of [ids, [...ids].reverse()]) {
+    const routes = build(OPUS_SONNET, order, history);
+    assert.equal(winnerOf(routes, ['anthropic/claude-opus-5', 'kilo/anthropic/claude-opus-5.5']), 'anthropic/claude-opus-5');
+  }
 });
 
 // --- 3. The order never lifts a route more than the credit cap above its own reference ---------------
@@ -176,6 +251,32 @@ test('a lift inside the bound is applied in full: the order between lineages sti
   const routes = build(intel, [['openrouter', 'acme/gamma-2'], ['openrouter', 'acme/zeta-2']]);
   const gamma = scoreOf(routes, 'openrouter/acme/gamma-2');
   assertScore(scoreOf(routes, 'openrouter/acme/zeta-2'), gamma + 1e-6, 'zeta-2 one step above gamma-2');
+});
+
+test('the order is a chain: each route is one step above the highest score below it, not above the lower index alone', () => {
+  // Unmeasured: a-2 (0.40) anchors at 0.649 + 0.05 = 0.699; b-2 (0.45) at 0.625 + 0.05 = 0.675; c-2 (0.50)
+  // at 0.6274 + 0.05 = 0.6774. b-2 is raised to 0.699001. c-2 must clear that raised b-2, not b-2's own
+  // 0.675 (which the raw anchor of a-2 already beats) or it ties with b-2 at 0.699001. All three measured
+  // is the same chain 0.05 higher.
+  const intel: IntelMap = {
+    'acme/a-1': { coding: 0.6, agentic: 0.5, intelligence: 0.4 },
+    'acme/a-2': { intelligence: 0.4 },
+    'acme/b-1': { coding: 0.5, agentic: 0.5, intelligence: 0.45 },
+    'acme/b-2': { intelligence: 0.45 },
+    'acme/c-1': { coding: 0.51, agentic: 0.5, intelligence: 0.5 },
+    'acme/c-2': { intelligence: 0.5 },
+  };
+  const ids: Spec[] = [['openrouter', 'acme/a-2'], ['openrouter', 'acme/b-2'], ['openrouter', 'acme/c-2']];
+  const measured = Object.fromEntries(ids.map(([provider, id]) => [`${provider}/${id}`, CLEAN]));
+  for (const [label, history, reliability] of [['unmeasured', {}, 0.05], ['measured', measured, 0.10]] as const) {
+    for (const order of [ids, [...ids].reverse()]) {
+      const routes = build(intel, order, history);
+      const [a, b, c] = ids.map(([provider, id]) => scoreOf(routes, `${provider}/${id}`));
+      assertScore(a as number, 0.505 + 0.24 * 0.6 + reliability, `${label}: a-2 unlifted`);
+      assertScore(b as number, (a as number) + 1e-6, `${label}: b-2 one step above a-2`);
+      assertScore(c as number, (b as number) + 1e-6, `${label}: c-2 one step above the raised b-2`);
+    }
+  }
 });
 
 // --- 4. Two references equally far from the route: the smaller key is the reference ------------------
