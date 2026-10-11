@@ -159,12 +159,13 @@ function bestModelThenCheapestSeller(
     .filter((route): route is NormalizedRoute => !!route);
   // A route whose coding index is not published yet can only be compared on the overall
   // intelligence index, so once one is in the set every route is scored on it. A route with no
-  // index at all gets the lowest known score of the set, never a neutral prior: the intelligence
-  // scale sits below the coding scale, so a neutral 0.5 would put an unmeasured route above
-  // measured ones (I7). One scalar per route keeps the order transitive.
+  // index at all gets a score strictly below the lowest known one, never a neutral prior: the
+  // intelligence scale sits below the coding scale, so a neutral 0.5 would put an unmeasured route
+  // above measured ones (I7). One scalar per route keeps the order transitive. The basis is chosen
+  // per candidate set, so a route going DRAINING/COOLDOWN can change it; see the investigation.
   const byIntelligence = representatives.some((r) => r.codingMeasured === false && r.intelligenceQualityScore !== undefined);
   const known = representatives.flatMap((r) => (r.intelligenceQualityScore === undefined ? [] : [r.intelligenceQualityScore]));
-  const floor = byIntelligence ? Math.min(...known) : 0;
+  const floor = byIntelligence ? Math.min(...known) - UNMEASURED_INTELLIGENCE_MARGIN : 0;
   const view = byIntelligence
     ? representatives.map((r) => ({ ...r, qualityScore: r.intelligenceQualityScore ?? floor }))
     : representatives;
@@ -256,14 +257,18 @@ function smoothedReliability(history: HistoryMap[string] | undefined): number {
   return Math.max(smoothed, UNMEASURED_RELIABILITY);
 }
 
+/** How far below the weakest measured route an unmeasured one scores in the intelligence basis. */
+const UNMEASURED_INTELLIGENCE_MARGIN = 0.01;
+
 /**
  * Brand-new models get only the overall Intelligence Index from Artificial Analysis; coding and
- * agentic follow later. `coding`/`agentic` count 0.24+0.14 of the formula below, so the
- * intelligence index replaces both when comparing against a route that has no coding index.
+ * agentic follow later. The index replaces both (0.24 + 0.14 of the formula below). taskFit and
+ * popularity are left out: their neutral 0.5 priors would outweigh a real intelligence gap
+ * (live 2026-10-11: opus-5.5 at 57.6 lost to opus-5 at 50.8 on a 0.024 taskFit vs the 0.5 prior).
  */
 function intelligenceQuality(intel: IntelMap[string] | undefined, reliability: number): number | undefined {
   if (intel?.intelligence === undefined) return undefined;
-  return 0.35 + 0.38 * intel.intelligence + 0.10 * (intel.taskFit ?? 0.5) + 0.10 * reliability + 0.07 * (intel.popularity ?? 0.5);
+  return 0.35 + 0.38 * intel.intelligence + 0.10 * reliability;
 }
 
 function qualityFromIntel(intel: IntelMap[string] | undefined, reliability: number): number {

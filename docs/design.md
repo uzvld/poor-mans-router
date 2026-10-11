@@ -659,6 +659,7 @@ Use:
 
 - `/api/v1/benchmarks?source=artificial-analysis&task_type=coding`
 - `/api/v1/benchmarks?source=artificial-analysis&task_type=agentic`
+- `/api/v1/benchmarks?source=artificial-analysis&task_type=intelligence` (overall Intelligence Index; the only index Artificial Analysis publishes for a brand-new model, see `docs/investigations/finding-intelligence-only-benchmarks.md`)
 - optionally Design Arena coding results;
 - `/api/v1/classifications/task?window=7d`
 - optionally `/api/v1/datasets/rankings-daily` as a very low-weight popularity/tiebreak signal.
@@ -680,6 +681,8 @@ qualityScore =
 ```
 
 Public rankings/popularity are weak tie-breakers only.
+
+Exception: when a candidate set contains a route with no coding index but with an intelligence index, every route in that set is scored on `0.35 + 0.38 * intelligence + 0.10 * reliability` instead, and a route with no index at all scores strictly below the weakest measured one. The basis is chosen per candidate set.
 
 ### 14.4 Safety boundaries
 

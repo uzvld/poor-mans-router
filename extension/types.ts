@@ -36,7 +36,7 @@ export interface NormalizedRoute {
   /**
    * Quality with the overall Intelligence Index standing in for coding+agentic; undefined when the
    * snapshot has no intelligence index. Only used to compare a set that includes a route whose
-   * coding index is not published yet (see ranking.ts `qualityBasis`).
+   * coding index is not published yet (see ranking.ts `bestModelThenCheapestSeller`).
    */
   intelligenceQualityScore?: number;
   /** Whether the snapshot carries a coding index for this model. */

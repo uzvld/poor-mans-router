@@ -189,7 +189,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     if (shared) intel = mergeIntelCache(intel, shared);
   };
 
-  // The Data API budget is per account (500 requests/day, four per refresh) and every OMP process on
+  // The Data API budget is per account (500 requests/day, five per refresh) and every OMP process on
   // the machine shares the intel file. A refresh starts from whatever snapshot or 429 block a peer
   // persisted, spends requests only under the machine-wide claim, and re-checks once it holds the
   // claim: a peer may have finished since the first read, and this process's own concurrent refresh

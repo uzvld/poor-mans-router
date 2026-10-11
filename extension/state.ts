@@ -34,7 +34,7 @@ function isIntelCache(value: unknown): value is IntelCache {
     && Object.values(value.data).every(isPlainObject);
 }
 
-/** A claim older than this belongs to a process that died mid-refresh (the four requests time out at 10 s). */
+/** A claim older than this belongs to a process that died mid-refresh (the five requests time out at 10 s). */
 const CLAIM_STALE_MS = 60_000;
 
 /**

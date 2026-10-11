@@ -233,7 +233,7 @@ test('a refresh in flight in one process is not duplicated by a peer that starts
     calls.push(url);
     if (!url.startsWith('https://openrouter.ai/api/v1/')) return new Response('{}', { status: 404 }); // CodexBar
     firstRequest();
-    await gate; // the first process's four Data API requests stay in flight
+    await gate; // the first process's five Data API requests stay in flight
     return serveSnapshot(url);
   }) as typeof fetch;
   try {
