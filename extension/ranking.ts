@@ -157,7 +157,19 @@ function bestModelThenCheapestSeller(
   const representatives = [...byModel.values()]
     .map((sellerRoutes) => cheapestThenBest(sellerRoutes, currentKey))
     .filter((route): route is NormalizedRoute => !!route);
-  return representatives.sort(preferenceComparator(preference, currentKey))[0];
+  // A route whose coding index is not published yet can only be compared on the overall
+  // intelligence index, so once one is in the set every route is scored on it. A route with no
+  // index at all gets the lowest known score of the set, never a neutral prior: the intelligence
+  // scale sits below the coding scale, so a neutral 0.5 would put an unmeasured route above
+  // measured ones (I7). One scalar per route keeps the order transitive.
+  const byIntelligence = representatives.some((r) => r.codingMeasured === false && r.intelligenceQualityScore !== undefined);
+  const known = representatives.flatMap((r) => (r.intelligenceQualityScore === undefined ? [] : [r.intelligenceQualityScore]));
+  const floor = byIntelligence ? Math.min(...known) : 0;
+  const view = byIntelligence
+    ? representatives.map((r) => ({ ...r, qualityScore: r.intelligenceQualityScore ?? floor }))
+    : representatives;
+  const best = view.sort(preferenceComparator(preference, currentKey))[0];
+  return best && representatives.find((r) => r.key === best.key);
 }
 
 export function selectWithinClass(
@@ -244,6 +256,16 @@ function smoothedReliability(history: HistoryMap[string] | undefined): number {
   return Math.max(smoothed, UNMEASURED_RELIABILITY);
 }
 
+/**
+ * Brand-new models get only the overall Intelligence Index from Artificial Analysis; coding and
+ * agentic follow later. `coding`/`agentic` count 0.24+0.14 of the formula below, so the
+ * intelligence index replaces both when comparing against a route that has no coding index.
+ */
+function intelligenceQuality(intel: IntelMap[string] | undefined, reliability: number): number | undefined {
+  if (intel?.intelligence === undefined) return undefined;
+  return 0.35 + 0.38 * intel.intelligence + 0.10 * (intel.taskFit ?? 0.5) + 0.10 * reliability + 0.07 * (intel.popularity ?? 0.5);
+}
+
 function qualityFromIntel(intel: IntelMap[string] | undefined, reliability: number): number {
   const coding = intel?.coding ?? 0.5;
   const agentic = intel?.agentic ?? 0.5;
@@ -295,6 +317,8 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
       price: model.cost ?? {},
       health,
       qualityScore: qualityFromIntel(intel, reliabilityScore),
+      intelligenceQualityScore: intelligenceQuality(intel, reliabilityScore),
+      codingMeasured: intel?.coding !== undefined,
       agenticScore: intel?.agentic ?? 0.5,
       benchmarkPower: benchmarkPower(intel),
       reliabilityScore,
