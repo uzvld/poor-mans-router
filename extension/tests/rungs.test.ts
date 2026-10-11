@@ -266,6 +266,7 @@ const SNAPSHOT_PAYLOADS: Record<string, unknown> = {
       { model_permaslug: 'anthropic/claude-opus-5', agentic_index: 56.5 },
     ],
   },
+  'task_type=intelligence': { data: [] },
   'classifications/task': { data: [] },
   'datasets/rankings-daily': { data: [] },
 };

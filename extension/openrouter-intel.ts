@@ -1,6 +1,8 @@
 export interface ModelIntel {
   coding?: number;
   agentic?: number;
+  /** Artificial Analysis overall Intelligence Index; the only index published for a brand-new model. */
+  intelligence?: number;
   taskFit?: number;
   popularity?: number;
 }
@@ -132,12 +134,12 @@ export function intelForRoute(lookup: IntelLookup, provider: string, modelId: st
   return undefined;
 }
 
-export function normalizeBenchmarkRows(payload: any, kind: 'coding' | 'agentic'): IntelMap {
+export function normalizeBenchmarkRows(payload: any, kind: 'coding' | 'agentic' | 'intelligence'): IntelMap {
   const out: IntelMap = {};
   for (const row of payload?.data ?? []) {
     const slug = typeof row?.model_permaslug === 'string' ? stripVariants(row.model_permaslug.toLowerCase()) : undefined;
     if (!slug) continue;
-    const raw = kind === 'coding' ? row.coding_index : row.agentic_index;
+    const raw = kind === 'coding' ? row.coding_index : kind === 'agentic' ? row.agentic_index : row.intelligence_index;
     const score = boundedScore(raw);
     if (score !== undefined) out[slug] = { [kind]: score };
   }
@@ -314,7 +316,7 @@ export function intelRefreshDue(cache: IntelCache, now = Date.now()): boolean {
 }
 
 /**
- * Spend one refresh (four Data API requests). The caller has checked `intelRefreshDue` and owns
+ * Spend one refresh (five Data API requests). The caller has checked `intelRefreshDue` and owns
  * the machine-wide claim; this only fetches and records the outcome.
  */
 export async function fetchOpenRouterIntel(apiKey: string, cache: IntelCache, now = Date.now()): Promise<IntelCache> {
@@ -324,9 +326,10 @@ export async function fetchOpenRouterIntel(apiKey: string, cache: IntelCache, no
   const base = 'https://openrouter.ai/api/v1';
 
   try {
-    const [coding, agentic, tasks, rankings] = await Promise.all([
+    const [coding, agentic, intelligence, tasks, rankings] = await Promise.all([
       getJson<any>(`${base}/benchmarks?source=artificial-analysis&task_type=coding`, apiKey),
       getJson<any>(`${base}/benchmarks?source=artificial-analysis&task_type=agentic`, apiKey),
+      getJson<any>(`${base}/benchmarks?source=artificial-analysis&task_type=intelligence`, apiKey),
       getJson<any>(`${base}/classifications/task?window=7d`, apiKey),
       getJson<any>(`${base}/datasets/rankings-daily?start_date=${yyyyMmDd(start)}&end_date=${yyyyMmDd(end)}`, apiKey),
     ]);
@@ -335,6 +338,7 @@ export async function fetchOpenRouterIntel(apiKey: string, cache: IntelCache, no
       data: mergeOpenRouterIntel(
         normalizeBenchmarkRows(coding, 'coding'),
         normalizeBenchmarkRows(agentic, 'agentic'),
+        normalizeBenchmarkRows(intelligence, 'intelligence'),
         normalizeTaskClassifications(tasks),
         normalizeRankingRows(rankings),
       ),

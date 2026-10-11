@@ -33,6 +33,11 @@ export interface NormalizedRoute {
   agenticScore: number;
   /** Measured benchmark power of the model (0..1); undefined when no snapshot covers it. */
   benchmarkPower?: number;
+  /**
+   * Whether the snapshot carries any Artificial Analysis index (coding, agentic or intelligence) for
+   * this model. Breaks an exact `qualityScore` tie in favour of the route with evidence (I7).
+   */
+  benchmarked?: boolean;
   reliabilityScore: number;
   latencyMs?: number;
   throughput?: number;

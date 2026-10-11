@@ -38,6 +38,7 @@ const SNAPSHOT_PAYLOADS: Record<string, unknown> = {
     { model_permaslug: 'openai/gpt-6-astra', agentic_index: 51 },
     { model_permaslug: 'anthropic/claude-opus-5', agentic_index: 56.5 },
   ] },
+  'task_type=intelligence': { data: [] },
   'classifications/task': { data: [] },
   'datasets/rankings-daily': { data: [] },
 };
@@ -171,20 +172,20 @@ test('a process reuses the snapshot a peer fetched instead of spending the share
     await second.start();
 
     await first.runScheduled();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'precondition: one refresh is four Data API requests');
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5, 'precondition: one refresh is five Data API requests');
 
     // A long-lived process still running the previous release rewrites state.json with only the
     // fields it knows (install.sh warns about these). It must not erase the shared snapshot.
     writeFileSync(SCRATCH_STATE, JSON.stringify({ routes: {} }));
 
     await second.runScheduled();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'the peer snapshot is fresh: no second refresh');
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5, 'the peer snapshot is fresh: no second refresh');
     assert.equal(await second.turn(), 'anthropic/claude-opus-5', 'the shared snapshot drives the ladder');
 
     const third = omProcess(); // a fresh process spawned later (Multica/Hermes, one per attempt)
     await third.start();
     await third.runScheduled();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'a fresh process starts from the persisted snapshot');
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5, 'a fresh process starts from the persisted snapshot');
     assert.equal(await third.turn(), 'anthropic/claude-opus-5');
     assert.equal(existsSync(`${SCRATCH_INTEL}.lock`), false, 'a successful refresh releases its claim');
   } finally {
@@ -232,7 +233,7 @@ test('a refresh in flight in one process is not duplicated by a peer that starts
     calls.push(url);
     if (!url.startsWith('https://openrouter.ai/api/v1/')) return new Response('{}', { status: 404 }); // CodexBar
     firstRequest();
-    await gate; // the first process's four Data API requests stay in flight
+    await gate; // the first process's five Data API requests stay in flight
     return serveSnapshot(url);
   }) as typeof fetch;
   try {
@@ -246,7 +247,7 @@ test('a refresh in flight in one process is not duplicated by a peer that starts
     const peer = second.runScheduled();
     release();
     await Promise.all([inFlight, peer]);
-    assert.equal(dataApiCalls(calls).length, 4, 'the peer sees the published attempt and waits out the retry floor');
+    assert.equal(dataApiCalls(calls).length, 5, 'the peer sees the published attempt and waits out the retry floor');
   } finally {
     globalThis.fetch = real;
     cleanScratch();
@@ -318,7 +319,7 @@ test('processes that refresh in the same tick spend one refresh between them', a
     for (const peer of peers) await peer.start();
     // Multica/Hermes start processes together: every one reads the file before any one writes.
     await Promise.all(peers.map((peer) => peer.runScheduledTogether()));
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4);
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5);
   } finally {
     fetchStub.restore();
     cleanScratch();
@@ -339,7 +340,7 @@ test('one process whose session-start and first-turn refreshes fire together spe
     await solo.start();
     await solo.turn(); // schedules a second refresh behind session_start's
     await solo.runScheduledTogether();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4);
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5);
   } finally {
     fetchStub.restore();
     rmSync(`${SCRATCH_INTEL}.lock`, { recursive: true, force: true });
@@ -362,7 +363,7 @@ test('a live peer\'s claim holds a process off, and a dead peer\'s stale claim i
     const next = omProcess();
     await next.start();
     await next.runScheduled();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'a stale claim does not block forever');
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5, 'a stale claim does not block forever');
   } finally {
     fetchStub.restore();
     cleanScratch();
@@ -402,7 +403,7 @@ test('a process without an OpenRouter key does not hold back a peer that has one
     const keyed = omProcess();
     await keyed.start();
     await keyed.runScheduled();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'nothing was attempted, so nothing is waited out');
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5, 'nothing was attempted, so nothing is waited out');
   } finally {
     fetchStub.restore();
     cleanScratch();
@@ -417,7 +418,7 @@ test('an unwritable intel file costs the sharing, not the ratings', async () => 
     const solo = omProcess();
     await solo.start();
     await solo.runScheduled();
-    assert.equal(dataApiCalls(fetchStub.calls).length, 4, 'the refresh still runs');
+    assert.equal(dataApiCalls(fetchStub.calls).length, 5, 'the refresh still runs');
     assert.equal(await solo.turn(), 'anthropic/claude-opus-5', 'and its snapshot still drives the ladder');
   } finally {
     fetchStub.restore();
@@ -500,7 +501,7 @@ test('a future-dated snapshot or attempt in the file does not wedge refreshes', 
       const solo = omProcess();
       await solo.start();
       await solo.runScheduled();
-      assert.equal(dataApiCalls(fetchStub.calls).length, 4, `a future ${field} is not a recent one`);
+      assert.equal(dataApiCalls(fetchStub.calls).length, 5, `a future ${field} is not a recent one`);
     } finally {
       fetchStub.restore();
       cleanScratch();

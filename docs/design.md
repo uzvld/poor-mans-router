@@ -659,6 +659,7 @@ Use:
 
 - `/api/v1/benchmarks?source=artificial-analysis&task_type=coding`
 - `/api/v1/benchmarks?source=artificial-analysis&task_type=agentic`
+- `/api/v1/benchmarks?source=artificial-analysis&task_type=intelligence` (overall Intelligence Index; the only index Artificial Analysis publishes for a brand-new model, see `docs/investigations/finding-intelligence-only-benchmarks.md`)
 - optionally Design Arena coding results;
 - `/api/v1/classifications/task?window=7d`
 - optionally `/api/v1/datasets/rankings-daily` as a very low-weight popularity/tiebreak signal.
@@ -680,6 +681,8 @@ qualityScore =
 ```
 
 Public rankings/popularity are weak tie-breakers only.
+
+Exception: Artificial Analysis publishes only the overall Intelligence Index for a brand-new model (coding and agentic follow later). A route with an intelligence index and no coding index is scored from a measured model of its own lineage (same vendor, same model family; the closest in intelligence, read from the snapshot): the reference's benchmark quality, plus `min(0.10, 0.38 * (intelligence - reference intelligence))`, plus `0.10 * reliability` of the route itself. Between two such routes of one vendor the higher intelligence index ranks first. A route with no measured lineage keeps the neutral priors. Only these routes' scores change: the coding/agentic score of every other route is untouched, and the score is fixed by the model catalog and the snapshot alone, so it never depends on which routes are in a candidate set or healthy. The one comparator change: on an exact score tie a route with a published index ranks above one with none (I7). See `docs/investigations/finding-intelligence-only-benchmarks.md`.
 
 ### 14.4 Safety boundaries
 
