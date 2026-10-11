@@ -118,20 +118,33 @@ export function buildIntelLookup(intel: IntelMap): IntelLookup {
   return { exact, byBasename };
 }
 
-/** Intel for one catalog route, or undefined when nothing measured it. */
-export function intelForRoute(lookup: IntelLookup, provider: string, modelId: string): ModelIntel | undefined {
+/** What a catalog route matched: the intel row and the snapshot key (an alias of it) that reached the row. */
+export interface IntelMatch {
+  /** Carries the snapshot's own vendor segment, which the catalog slug may name differently. */
+  key: string;
+  intel: ModelIntel;
+}
+
+/** The snapshot key and intel for one catalog route, or undefined when nothing measured it. */
+export function intelMatchForRoute(lookup: IntelLookup, provider: string, modelId: string): IntelMatch | undefined {
   const canonical = canonicalModelSlug(provider, modelId);
   for (const alias of intelAliases(canonical)) {
     const hit = lookup.exact[alias];
-    if (hit) return hit;
+    if (hit) return { key: alias, intel: hit };
   }
   const basename = stripVariants(canonical.toLowerCase()).split('/').pop();
   if (!basename) return undefined;
   for (const alias of intelAliases(basename)) {
     const key = lookup.byBasename[alias];
-    if (key) return lookup.exact[key];
+    const hit = key ? lookup.exact[key] : undefined;
+    if (key && hit) return { key, intel: hit };
   }
   return undefined;
+}
+
+/** Intel for one catalog route, or undefined when nothing measured it. */
+export function intelForRoute(lookup: IntelLookup, provider: string, modelId: string): ModelIntel | undefined {
+  return intelMatchForRoute(lookup, provider, modelId)?.intel;
 }
 
 export function normalizeBenchmarkRows(payload: any, kind: 'coding' | 'agentic' | 'intelligence'): IntelMap {
