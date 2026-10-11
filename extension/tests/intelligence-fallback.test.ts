@@ -277,12 +277,14 @@ test('a coding-measured route keeps exactly the score the coding/agentic formula
 
 test('between two intelligence-only routes of one vendor the higher index wins, whatever their references were', () => {
   // gamma-2 (index 0.45) anchors on a strong reference: 0.649 + 0.019 = 0.668. zeta-2 (index 0.50)
-  // anchors on a weak one: 0.529 + 0.10 (capped) = 0.629. Their own estimates say gamma-2; the index
-  // they share says zeta-2. The references need not be in the catalog, only in the snapshot.
+  // anchors on a weaker one: 0.6226 + 0.38 x 0.11 = 0.6644. Their own estimates say gamma-2; the index
+  // they share says zeta-2, and the 0.0036 raise is inside the credit cap of zeta-2's own reference
+  // (a bigger one is pinned by intelligence-anchor-followups.test.ts). The references need not be in
+  // the catalog, only in the snapshot.
   const intel: IntelMap = {
     'acme/gamma-1': { coding: 0.6, agentic: 0.5, intelligence: 0.4 },
     'acme/gamma-2': { intelligence: 0.45 },
-    'acme/zeta-1': { coding: 0.1, agentic: 0.5, intelligence: 0.2 },
+    'acme/zeta-1': { coding: 0.49, agentic: 0.5, intelligence: 0.39 },
     'acme/zeta-2': { intelligence: 0.5 },
   };
   assert.equal(pick(intel, ['acme/gamma-2', 'acme/zeta-2']), 'acme/zeta-2');
@@ -290,13 +292,14 @@ test('between two intelligence-only routes of one vendor the higher index wins, 
 });
 
 test('across vendors an intelligence-only route is placed by its own reference, not lifted by another vendor', () => {
-  // Same numbers, but zeta-2 belongs to another vendor: nothing ties its index to acme's, so each
-  // keeps its own anchored estimate (0.668 against 0.629) and measured-looking routes of other vendors
-  // are not dragged along by an estimate that was never on their scale.
+  // Same numbers as the same-vendor test, but zeta-2 belongs to another vendor: nothing ties its index
+  // to acme's, so each keeps its own anchored estimate (0.668 against 0.6644) and measured-looking
+  // routes of other vendors are not dragged along by an estimate that was never on their scale. The
+  // 0.0036 gap sits inside zeta-2's credit cap, so only the vendor scope stops the raise.
   const intel: IntelMap = {
     'acme/gamma-1': { coding: 0.6, agentic: 0.5, intelligence: 0.4 },
     'acme/gamma-2': { intelligence: 0.45 },
-    'other/zeta-1': { coding: 0.1, agentic: 0.5, intelligence: 0.2 },
+    'other/zeta-1': { coding: 0.49, agentic: 0.5, intelligence: 0.39 },
     'other/zeta-2': { intelligence: 0.5 },
   };
   assert.equal(pick(intel, ['acme/gamma-2', 'other/zeta-2']), 'acme/gamma-2');
