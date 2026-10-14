@@ -90,11 +90,20 @@ On `session_start`, if `ctx.models.current()` is a `pmr/*` model, mode is set ac
 If, for any reason, a request is about to be sent **to** `provider === 'router'` (switch failed, event ordering, host quirk), that request would hit `http://127.0.0.1:9` and fail with retries (F3). Guard:
 
 - hook `before_provider_request`;
-- if `event/model.provider === 'router'` (any `pmr/*` model): **abort the turn locally** with a clear, non-retryable error:
+- if the session's current model provider is `pmr` (any `pmr/*` model; the code's `VIRTUAL_PROVIDER`): **abort the turn locally** with a clear, non-retryable error:
   `pmr: virtual model leaked to provider transport — this is a router bug; select a concrete model with /model`.
 - No attempt to "fix" the request in-flight; fail closed, loud.
 
 This converts the worst case from "burn 10 silent retries" (F3) into one immediate actionable error.
+
+## 4a. Mid-run selection repair (BUG E, 2026-10-14)
+
+A client may select a `pmr/*` model while a run is already in flight; Paseo's model picker does exactly this. OMP reads the session model once at the top of every agent-loop iteration, **before** the `context` and `turn_start` hooks, so a `setModel` issued from those hooks lands one request too late. Measured against a real OMP 18.10.2 run (`docs/investigations/bug-e-midrun-virtual-selection.md`), the hooks that still precede the read are `tool_result` (awaited) and `turn_end` (not awaited to completion, so it is a second line, not the primary one).
+
+- On `tool_result` and `turn_end`, if the current model is `pmr/*`, the router runs the same routing pass as `before_agent_start` and switches to the ladder winner of that virtual mode.
+- Same rules as turn start: remote-compaction hold (BUG C), `lastRouterSelected` bookkeeping, the `[omp:pmr]` switch marker, and no action while a native retry owns the model (§6).
+- Only a `pmr/*` current model is ever repaired. That is the explicit opt-in (§3), so a `manual` session is never touched.
+- The §4 guard is unchanged and remains the backstop for a selection that lands after the last hook, or for a repair that cannot switch.
 
 ## 5. What is deleted from the current activation path
 
@@ -149,6 +158,7 @@ New invariants to add tests for:
 - **N2**: `pmr/*` never reaches a provider request (§4 guard → red by removing the guard).
 - **N3**: A router `setModel` sets `lastRouterSelected` and the next turn with `current == lastRouterSelected` stays in managed mode.
 - **N4**: A manual change to any non-`pmr/*`, non-`lastRouterSelected` model flips mode to `manual` and the router never switches again for the session lifetime.
+- **N7**: A `pmr/*` selection that lands mid-run is resolved to a concrete model at the next `tool_result` / `turn_end`, before the next provider request (§4a; mutation test: let the repair act on a non-`pmr/*` current model → the N1 mid-run test goes red). The §4 guard aborts only when no repair was possible.
 
 ## 9. Known edge cases
 
