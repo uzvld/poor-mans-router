@@ -17,8 +17,9 @@ rmSync(SCRATCH_STATE, { force: true });
 interface FakeModel { provider: string; id: string; cost: { input: number; output: number } }
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
 
-function harness(models: FakeModel[], initial: FakeModel, opts: { setModelResult?: boolean } = {}) {
+function harness(models: FakeModel[], initial: FakeModel, opts: { setModelResult?: boolean; setModelDelayTicks?: number; setModelThrows?: boolean } = {}) {
   const handlers = new Map<string, Handler[]>();
+  const commands = new Map<string, (args: string, ctx: unknown) => Promise<void>>();
   const setModelCalls: FakeModel[] = [];
   const notifications: Array<{ text: string; level: string }> = [];
   let current = initial;
@@ -28,11 +29,14 @@ function harness(models: FakeModel[], initial: FakeModel, opts: { setModelResult
     on(name: string, handler: Handler) {
       handlers.set(name, [...(handlers.get(name) ?? []), handler]);
     },
-    registerCommand() {},
+    registerCommand(name: string, spec: { handler: (args: string, ctx: unknown) => Promise<void> }) { commands.set(name, spec.handler); },
     registerProvider() {},
     async exec() { return { code: 1, stdout: '', stderr: '' }; },
     async setModel(m: FakeModel) {
       setModelCalls.push(m);
+      if (opts.setModelThrows) throw new Error('setModel exploded');
+      // Real OMP awaits credential/metadata lookups before the session model changes.
+      for (let i = 0; i < (opts.setModelDelayTicks ?? 0); i++) await Promise.resolve();
       if (opts.setModelResult === false) return false;
       current = m;
       return true;
@@ -60,6 +64,11 @@ function harness(models: FakeModel[], initial: FakeModel, opts: { setModelResult
     notifications,
     current: () => current,
     abortCount: () => aborted,
+    async routeStatus(): Promise<string> {
+      const before = notifications.length;
+      await commands.get('route-status')!('', ctx);
+      return notifications.slice(before).map((n) => n.text).join('\n');
+    },
     setCurrent: (m: FakeModel) => { current = m; },
     async emit(name: string, event: unknown = {}): Promise<void> {
       for (const handler of handlers.get(name) ?? []) await handler(event, ctx);
@@ -141,4 +150,71 @@ test('when the repair cannot switch, the leak guard is still the backstop (N2)',
   assert.equal(h.setModelCalls.length, attemptsBefore + 1, 'the repair must try');
   await h.emit('before_provider_request', { payload: {} });
   assert.equal(h.abortCount(), 1, 'a request still on pmr/* is aborted locally');
+});
+
+test('parallel tool results from one batch cause a single switch while setModel is in flight', async () => {
+  const h = harness(models, virtualBalanced, { setModelDelayTicks: 5 });
+  await h.emit('session_start');
+  await h.emit('before_agent_start');
+  h.setCurrent(virtualBalanced);
+  const before = h.setModelCalls.length;
+  const markersBefore = h.notifications.filter((n) => n.text.startsWith('[omp:pmr] ')).length;
+  await Promise.all([h.emit('tool_result'), h.emit('tool_result'), h.emit('tool_result'), h.emit('turn_end')]);
+  assert.equal(h.setModelCalls.length - before, 1);
+  assert.equal(h.notifications.filter((n) => n.text.startsWith('[omp:pmr] ')).length - markersBefore, 1);
+});
+
+test('the tool_result handler finishes the switch before it resolves', async () => {
+  const h = harness(models, virtualBalanced, { setModelDelayTicks: 5 });
+  await h.emit('session_start');
+  await h.emit('before_agent_start');
+  h.setCurrent(virtualBalanced);
+  await h.emit('tool_result');
+  assert.equal(h.current().provider, 'kilo', 'OMP must not issue the next request before the switch lands');
+});
+
+test('a manual session that selects pmr/* mid-run stays managed afterwards', async () => {
+  const h = harness(models, sonnet);
+  await h.emit('session_start');
+  await h.emit('before_agent_start'); // manual
+  h.setCurrent(virtualBalanced);
+  await h.emit('tool_result');
+  assert.equal(h.current().provider, 'kilo');
+  const calls = h.setModelCalls.length;
+  await h.emit('before_agent_start'); // current == lastRouterSelected: must stay managed, not flip to manual
+  assert.equal(h.current().provider, 'kilo');
+  h.setCurrent(virtualSmall);
+  await h.emit('before_agent_start');
+  assert.equal(h.current().provider, 'kilo');
+  assert.ok(h.setModelCalls.length > calls, 'still managed: a later pmr/* selection is still routed');
+});
+
+test('the repair routes with the mode of the selected virtual model', async () => {
+  for (const id of ['frontier', 'balanced', 'small', 'free']) {
+    const v: FakeModel = { provider: 'pmr', id, cost: { input: 0, output: 0 } };
+    const h = harness([sonnet, kiloFree, v], sonnet);
+    await h.emit('session_start');
+    h.setCurrent(v);
+    await h.emit('tool_result');
+    assert.match(await h.routeStatus(), new RegExp(`tier: ${id}\\b`), `repair of pmr/${id} must walk the ${id} ladder`);
+  }
+});
+
+test('no repair while a native retry owns the model', async () => {
+  const h = await routedSession();
+  await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 1000 });
+  h.setCurrent(virtualBalanced);
+  const calls = h.setModelCalls.length;
+  await h.emit('tool_result');
+  await h.emit('turn_end');
+  assert.equal(h.setModelCalls.length, calls);
+});
+
+test('a throwing setModel does not break the tool_result hook and leaves the guard as backstop', async () => {
+  const h = harness(models, virtualBalanced, { setModelThrows: true });
+  await h.emit('session_start');
+  await h.emit('before_agent_start');
+  await assert.doesNotReject(h.emit('tool_result'));
+  await h.emit('before_provider_request', { payload: {} });
+  assert.equal(h.abortCount(), 1);
 });

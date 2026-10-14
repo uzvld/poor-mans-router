@@ -84,3 +84,7 @@ During live reproduction on a **fresh** router state a different failure appeare
 - The same signature (`model_change` with role `fallback` to a `pmr/*` model, then `aborted` on provider `pmr`) appears in sessions on 2026-10-12 at 17:13 and 17:59 UTC.
 
 This needs a design decision before any change: either stop the router from choosing a route that OMP's own preflight will reject, or find a hook that precedes the fallback.
+
+## Independent review follow-up
+
+A read-only review of the first version found no blocking issue and one real defect: parallel tool calls run their `tool_result` hooks concurrently and `pi.setModel` awaits credential lookups, so three parallel results made three `setModel` calls and three `[omp:pmr]` markers. The repair is now single-flight: concurrent callers share one in-flight promise and each awaits it. The review also showed that six realistic mutations (no-await handler, dropped `routingMode = mode`, dropped retry guard, always `balanced`, dropped try/catch, no single-flight) stayed green; each now turns a test red, including a `setModel` with real latency and a mode check through `/route-status`.

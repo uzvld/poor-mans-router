@@ -421,16 +421,25 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   // run before that read (`turn_start` and `context` fire after it: one request too late).
   // Only a pmr/* current model is ever repaired. It is the explicit opt-in (N4), so a manual
   // session is untouched (N1), and a native retry keeps ownership of the model (spec §6).
-  async function repairVirtualMidRun(ctx: ExtensionContext): Promise<void> {
+  // Parallel tool calls run their `tool_result` hooks concurrently and `pi.setModel` awaits
+  // credential lookups before the session model changes, so a second caller would still see
+  // pmr/* and switch (and announce) again. Callers share one in-flight repair and each awaits
+  // it: OMP must not issue the next request before the switch has landed.
+  let repairInFlight: Promise<void> | undefined;
+  function repairVirtualMidRun(ctx: ExtensionContext): Promise<void> {
+    if (repairInFlight) return repairInFlight;
     const currentKey = modelKey(ctx.models.current());
     const mode = virtualModeForModelKey(currentKey);
-    if (!mode || !shouldRouteBeforeAgentStart(retryActive)) return;
-    try {
-      routingMode = mode;
-      await routeSession(ctx, currentKey, mode);
-    } catch (error) {
-      logger.warn('pmr mid-run repair failed open', { error: String(error) });
-    }
+    if (!mode || !shouldRouteBeforeAgentStart(retryActive)) return Promise.resolve();
+    repairInFlight = (async () => {
+      try {
+        routingMode = mode;
+        await routeSession(ctx, currentKey, mode);
+      } catch (error) {
+        logger.warn('pmr mid-run repair failed open', { error: String(error) });
+      }
+    })().finally(() => { repairInFlight = undefined; });
+    return repairInFlight;
   }
 
   pi.on('tool_result', async (_event, ctx) => {
