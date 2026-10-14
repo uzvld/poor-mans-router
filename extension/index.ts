@@ -30,7 +30,7 @@ import {
   retryRoutingPolicy,
 } from './runtime.ts';
 import { formatRouteStatus } from './status.ts';
-import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, type ManagedMode, type RoutingMode } from './virtual-model.ts';
+import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, virtualModeForModelKey, type ManagedMode, type RoutingMode } from './virtual-model.ts';
 import { holdForRemoteCompaction } from './compaction-guard.ts';
 
 const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
@@ -335,6 +335,46 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     }
   }
 
+  // One routing pass: choose the ladder winner for `mode` and move the session onto it.
+  // Shared by the turn-start hook and the mid-run repair so both obey the same
+  // remote-compaction hold and leave the same bookkeeping behind.
+  async function routeSession(
+    ctx: ExtensionContext,
+    currentKey: string | undefined,
+    mode: ManagedMode,
+  ): Promise<{ selection?: SelectionResult; held: boolean }> {
+    const { selection } = chooseForCurrentWork(ctx, mode);
+    if (!selection) return { held: false };
+    const target = ctx.models.resolve(selection.route.selector);
+    if (target && currentKey !== selection.route.key) {
+      // BUG C guard: a remote compaction is provider-native. Switching away from the
+      // provider that produced it replaces the whole conversation with a ~933-char
+      // placeholder, so hold the session where it is and let the human decide.
+      const held = holdForRemoteCompaction(ctx.sessionManager?.getBranch?.(), ctx.models.current(), target);
+      if (held.hold) {
+        if (!remoteCompactionHoldAnnounced) {
+          remoteCompactionHoldAnnounced = true;
+          announceHold(ctx, currentKey, selection.route.key, held.reason);
+        }
+        logger.info('pmr held a switch to preserve remote-compacted context', {
+          from: currentKey, to: selection.route.key,
+        });
+        return { selection, held: true };
+      }
+      const changed = await pi.setModel(target);
+      if (!changed) {
+        logger.warn('pmr could not switch model', { selector: selection.route.selector });
+        // A failed switch must not claim the target: the next turn retries.
+        lastRouterSelected = undefined;
+      } else {
+        announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
+        lastRouterSelected = selection.route.key;
+      }
+    }
+    lastRoutedSelector = selection.route.key;
+    return { selection, held: false };
+  }
+
   pi.on('before_agent_start', async (_event: any, ctx: any) => {
     const currentKey = modelKey(ctx.models.current());
     const previousMode = routingMode;
@@ -352,36 +392,8 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       ctx.setTimeout(() => refreshHistory(false), 0);
       ctx.setTimeout(() => refreshIntel(ctx), 0);
 
-      const { selection } = chooseForCurrentWork(ctx, routingMode === 'manual' ? 'balanced' : routingMode);
-      if (selection) {
-        const target = ctx.models.resolve(selection.route.selector);
-        if (target && currentKey !== selection.route.key) {
-          // BUG C guard: a remote compaction is provider-native. Switching away from the
-          // provider that produced it replaces the whole conversation with a ~933-char
-          // placeholder, so hold the session where it is and let the human decide.
-          const held = holdForRemoteCompaction(ctx.sessionManager?.getBranch?.(), ctx.models.current(), target);
-          if (held.hold) {
-            if (!remoteCompactionHoldAnnounced) {
-              remoteCompactionHoldAnnounced = true;
-              announceHold(ctx, currentKey, selection.route.key, held.reason);
-            }
-            logger.info('pmr held a switch to preserve remote-compacted context', {
-              from: currentKey, to: selection.route.key,
-            });
-            return undefined;
-          }
-          const changed = await pi.setModel(target);
-          if (!changed) {
-            logger.warn('pmr could not switch model', { selector: selection.route.selector });
-            // A failed switch must not claim the target: the next turn retries.
-            lastRouterSelected = undefined;
-          } else {
-            announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
-            lastRouterSelected = selection.route.key;
-          }
-        }
-        lastRoutedSelector = selection.route.key;
-      }
+      const { selection, held } = await routeSession(ctx, currentKey, routingMode === 'manual' ? 'balanced' : routingMode);
+      if (held) return undefined;
 
       const pressure = pressureForSelection(selection);
       const content = pressureMessage(pressure);
@@ -400,6 +412,43 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       return undefined;
     }
     return undefined;
+  });
+
+  // BUG E (docs/investigations/bug-e-midrun-virtual-selection.md): a client may re-select a
+  // pmr/* model while a run is in flight. OMP reads the model at the top of every loop
+  // iteration, so the next provider request would reach the virtual provider and the leak
+  // guard below would abort the turn. `tool_result` and `turn_end` are the hooks that still
+  // run before that read (`turn_start` and `context` fire after it: one request too late).
+  // Only a pmr/* current model is ever repaired. It is the explicit opt-in (N4), so a manual
+  // session is untouched (N1), and a native retry keeps ownership of the model (spec §6).
+  // Parallel tool calls run their `tool_result` hooks concurrently and `pi.setModel` awaits
+  // credential lookups before the session model changes, so a second caller would still see
+  // pmr/* and switch (and announce) again. Callers share one in-flight repair and each awaits
+  // it: OMP must not issue the next request before the switch has landed.
+  let repairInFlight: Promise<void> | undefined;
+  function repairVirtualMidRun(ctx: ExtensionContext): Promise<void> {
+    if (repairInFlight) return repairInFlight;
+    const currentKey = modelKey(ctx.models.current());
+    const mode = virtualModeForModelKey(currentKey);
+    if (!mode || !shouldRouteBeforeAgentStart(retryActive)) return Promise.resolve();
+    repairInFlight = (async () => {
+      try {
+        routingMode = mode;
+        await routeSession(ctx, currentKey, mode);
+      } catch (error) {
+        logger.warn('pmr mid-run repair failed open', { error: String(error) });
+      }
+    })().finally(() => { repairInFlight = undefined; });
+    return repairInFlight;
+  }
+
+  pi.on('tool_result', async (_event, ctx) => {
+    await repairVirtualMidRun(ctx);
+    return undefined;
+  });
+
+  pi.on('turn_end', async (_event, ctx) => {
+    await repairVirtualMidRun(ctx);
   });
 
   // Fail-closed seatbelt (spec §4): the virtual provider's baseUrl is the discard

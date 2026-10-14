@@ -30,6 +30,7 @@ Tests exist for each of these. If your change needs one relaxed, that is a desig
 | N4 | A manual model change flips the session to `manual` permanently; only a `pmr/*` selection re-enables routing. | `managed-mode.test.ts` · `virtual-model.test.ts` |
 | N5 | A CodexBar allowance window (one with a reset) never vetoes a provider whose prepaid balance still has capacity; a spent balance never borrows an allowance's reset date. | `codexbar-windows.test.ts` |
 | N6 | A CodexBar pace forecast only marks a route `DRAINING` when it belongs to the window that carries capacity. | `codexbar-pace-scope.test.ts` |
+| N7 | A `pmr/*` selection that lands mid-run (a client re-selecting it while a turn is running) is resolved to a concrete model at the next `tool_result` / `turn_end`, before the next provider request; the N2 guard aborts only when no repair was possible. | `midrun-virtual-repair.test.ts` |
 
 ## How to change routing behaviour
 

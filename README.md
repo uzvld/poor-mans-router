@@ -138,7 +138,7 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 
 ```
 extension/          the OMP extension (TypeScript, loaded by Bun)
-  index.ts            hooks: session_start · before_agent_start · before_provider_request · auto_retry_* · /route-status
+  index.ts            hooks: session_start · before_agent_start · tool_result · turn_end · before_provider_request · auto_retry_* · /route-status
   virtual-model.ts    pmr/* registration · routing-mode state machine
   policy.ts/.yml      class ladders, model-id classification, fallback order
   ranking.ts          buildRoutes · selectForTier · in-class comparators
