@@ -135,6 +135,14 @@ routes, preserving free routes and longer cooldowns. Subscription failures and
 errors about a request needing more credits remain route-scoped. Native concrete
 fallbacks, credential rotation and shared settings remain untouched.
 
+Terminal API-key rejection is learned only from the last assistant message at
+`agent_end`: a `401` explicitly naming an expired, invalid, or revoked API key
+cools only the failed route for five minutes. Intermediate auth errors during
+native credential recovery do not create this cooldown; a successful final
+response keeps the route eligible. Generic `401/403` permission errors are not
+classified as API-key rejection. This adds no credential-store reads or
+provider-wide authentication state.
+
 ## 7. Multica mapping
 
 - Frontier agent → `model: pmr/frontier`

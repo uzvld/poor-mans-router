@@ -171,6 +171,90 @@ test('a turn that ends in an unclassified provider error records the failure wit
   assert.equal(persisted.cooldownUntil, undefined, 'a one-off request error is not catalog drift and must not cool the route down');
 });
 
+test('a terminal expired API key makes a fresh managed session avoid the failed route', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const expired = { provider: 'opencode-go', id: 'glm-5.3-flash', cost: { input: 1, output: 1 } };
+  const alternate = { provider: 'openrouter', id: 'qwen/qwen3.7-flash', cost: { input: 2, output: 2 } };
+  const models = [balanced, expired, alternate];
+  const first = harness(models, balanced);
+  await boot(first);
+  await turn(first);
+  assert.equal(first.ctx.models.current(), expired);
+
+  await endInError(first, expired,
+    '401 This API key has expired. Create a new API key in OpenCode Console. (type=authentication_error param=api_key_expired)', 401);
+
+  const next = harness(models, balanced);
+  await boot(next);
+  await turn(next);
+  assert.equal(next.ctx.models.current(), alternate, 'the known expired key must not beat a working fallback');
+
+  const persisted = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')).routes['opencode-go/glm-5.3-flash'];
+  assert.ok(persisted.cooldownUntil > Date.now(), 'the refusal must persist across processes');
+  assert.equal(evaluateRouteHealth({ provider: 'opencode-go', modelId: expired.id, free: false }, {
+    ompReports: [], codexbar: [], local: persisted, reservePct: 10, now: persisted.cooldownUntil + 1,
+  }).state, 'AVAILABLE', 'a credential replacement must not require deleting persistent state');
+});
+
+test('native credential recovery after an API-key rejection does not cool a successful route', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'opencode-go', id: 'glm-5.3-flash', cost: { input: 1, output: 1 } };
+  const alternate = { provider: 'openrouter', id: 'qwen/qwen3.7-flash', cost: { input: 2, output: 2 } };
+  const models = [balanced, primary, alternate];
+  const first = harness(models, balanced);
+  await boot(first);
+  await turn(first);
+  await first.emit('auto_retry_start', { errorMessage: '401 Invalid API key (code=invalid_api_key)', delayMs: 0 });
+  await first.emit('auto_retry_end');
+  await first.emit('agent_end', { messages: [
+    { role: 'assistant', provider: primary.provider, model: primary.id, stopReason: 'error',
+      errorMessage: '401 Invalid API key (code=invalid_api_key)' },
+    { role: 'assistant', provider: primary.provider, model: primary.id, stopReason: 'stop',
+      content: [{ type: 'text', text: 'Recovered using the healthy sibling credential' }] },
+  ] });
+
+  const next = harness(models, balanced);
+  await boot(next);
+  await turn(next);
+  assert.equal(next.ctx.models.current(), primary, 'native recovery must retain the healthy sibling credential');
+});
+
+test('an API-key rejection cools only the failed route, not a sibling model on the same provider', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'opencode-go', id: 'glm-5.3-flash', cost: { input: 1, output: 1 } };
+  const sibling = { provider: 'opencode-go', id: 'qwen/qwen3.7-flash', cost: { input: 2, output: 2 } };
+  const models = [balanced, primary, sibling];
+  const first = harness(models, balanced);
+  await boot(first);
+  await turn(first);
+  assert.equal(first.ctx.models.current(), primary);
+  await endInError(first, primary, '401 Invalid API key (code=invalid_api_key)', 401);
+
+  const next = harness(models, balanced);
+  await boot(next);
+  await turn(next);
+  assert.equal(next.ctx.models.current(), sibling);
+});
+
+for (const [errorStatus, errorMessage] of [
+  [403, '403 Permission denied for this resource'],
+  [403, '403 API key is invalid for this resource'],
+  [400, '400 Invalid API key field in the request body'],
+  [401, '401 Invalid request signature'],
+] as const) {
+  test(`a request-specific rejection does not blacklist a credential: ${errorMessage}`, async () => {
+    const h = harness([virtualFree, primaryFree, secondaryFree], virtualFree);
+    await boot(h);
+    await turn(h);
+    const pick = h.setModelCalls[0];
+    await endInError(h, pick, errorMessage, errorStatus);
+    const next = harness([virtualFree, primaryFree, secondaryFree], virtualFree);
+    await boot(next);
+    await turn(next);
+    assert.equal(next.ctx.models.current(), pick);
+  });
+}
+
 test('a terminal credit rejection prevents a fresh balanced session from selecting the failed paid route', async () => {
   const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
   const paidKilo = { provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };

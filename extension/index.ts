@@ -15,7 +15,7 @@ import {
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
 import { computeLadders, type ComputedLadder } from './rungs.ts';
-import { cooldownFromPermanentModelError, cooldownFromRetry, isPaidBalanceError, isPermanentModelError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
+import { cooldownFromAuthenticationError, cooldownFromPermanentModelError, cooldownFromRetry, isPaidBalanceError, isPermanentModelError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
 import { IntelStore, RouterStateStore } from './state.ts';
 import {
   FreeProbeGate,
@@ -616,7 +616,9 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
 
     const message = String(last.errorMessage ?? '');
     const now = Date.now();
-    const cooldown = cooldownFromPermanentModelError(message, now) ?? cooldownFromRetry(message, undefined, now);
+    const cooldown = cooldownFromPermanentModelError(message, now)
+      ?? cooldownFromAuthenticationError(message, last.errorStatus, now)
+      ?? cooldownFromRetry(message, undefined, now);
     if (cooldown?.cooldownUntil) {
       markErrorCooldown(ctx, key, message, cooldown);
     } else {

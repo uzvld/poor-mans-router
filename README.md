@@ -77,6 +77,13 @@ Route health is decided per **provider + model + quota window**, in this precede
 
 A fresh, healthy OMP verdict always outranks a CodexBar burn-rate *forecast*. That rule exists because of [a real bug](docs/investigations/bug-d-sonnet-subscription-root-cause.md) where a pessimistic weekly forecast hid a 99 %-remaining Sonnet subscription behind a free DeepSeek route.
 
+A terminal `401` explicitly identifying an expired, invalid, or revoked API key also
+cools the failed **provider/model route** for five minutes. `/route-status` shows
+`API key expired or invalid; update provider credentials`. This does not classify
+generic `401/403` permission failures, block sibling models, or intercept OMP's
+credential rotation. Once the cooldown expires, the route can be tried again after
+replacing the key. See the [expired-key investigation](docs/investigations/expired-api-key-reselection.md).
+
 ## Inside a class
 
 When several routes share the winning class:

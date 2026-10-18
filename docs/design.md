@@ -793,7 +793,9 @@ Suggested hooks:
 ### retry / provider-response events
 
 - observe OMP `auto_retry_*` / fallback events and response errors;
-- record hard cooldown only for explicit rate/quota/retry signals;
+- record hard cooldown for explicit rate/quota/retry signals and permanent model errors;
+- on `agent_end` only, a terminal `401` explicitly identifying an expired, invalid, or revoked API key cools the failed route for five minutes, with a static credential-update reason; no raw authentication response is persisted by this path;
+- do not classify generic permission/signature errors as expired credentials, broaden this auth cooldown to sibling routes, or apply it to intermediate native credential-rotation failures;
 - a zero-delay quota retry without a model fallback is treated as likely native credential rotation/banked-reset recovery: record the failed attempt but do **not** blacklist the whole provider/model route;
 - when OMP applies a model fallback, cool the failed concrete route; an explicit empty-wallet error from a PAYG route also cools that provider's known paid routes, never its free routes or independent subscription failures;
 - provider retries do not run `before_agent_start`; OMP still owns retry scheduling and continuation;
