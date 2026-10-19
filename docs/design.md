@@ -794,12 +794,24 @@ Suggested hooks:
 
 - observe OMP `auto_retry_*` / fallback events and response errors;
 - record hard cooldown for explicit rate/quota/retry signals and permanent model errors;
-- on `agent_end` only, a terminal `401` explicitly identifying an expired, invalid, or revoked API key cools the failed route for five minutes, with a static credential-update reason; no raw authentication response is persisted by this path;
+- terminal error hooks (`session_stop` before managed recovery, `agent_end` for notification) cool a route for five minutes when a `401` explicitly identifies an expired, invalid, or revoked API key; persist a static credential-update reason, not the raw authentication response;
 - do not classify generic permission/signature errors as expired credentials, broaden this auth cooldown to sibling routes, or apply it to intermediate native credential-rotation failures;
 - a zero-delay quota retry without a model fallback is treated as likely native credential rotation/banked-reset recovery: record the failed attempt but do **not** blacklist the whole provider/model route;
 - when OMP applies a model fallback, cool the failed concrete route; an explicit empty-wallet error from a PAYG route also cools that provider's known paid routes, never its free routes or independent subscription failures;
 - provider retries do not run `before_agent_start`; OMP still owns retry scheduling and continuation;
 - only a managed native fallback onto a virtual `pmr/*` model is repaired before continuation, using the original tier and session-scoped `pi.setModel`; concrete native fallbacks are not intercepted and the virtual transport guard remains fail-closed.
+
+### `session_stop` (OMP 18.11 main sessions)
+
+- run only after native retry relinquishes the request, never as a second retry engine competing with credential rotation;
+- retain the original managed tier and follow only native fallback transitions whose `from` belongs to the router-owned chain and whose `to` matches the actual session model;
+- distinguish native primary restores from manual re-selections using current-branch model-change provenance (`role: fallback`, with `resolvedModelIsFallback` true only for a hop); never treat an arbitrary native entry or a manual selection as router ownership;
+- an unsuccessful model switch preserves ownership of the unchanged concrete model, so the next user turn can still route;
+- require an empty classified final assistant error on that owned current route, record its cooldown, then select through the existing tier ladder and remote-compaction guard;
+- return `continue: true` only after the replacement actually lands and the stop signal remains live; OMP retains its bounded hidden continuation lifecycle and completed tool history;
+- manual sessions, user interruption, delivered partial text/tool calls, unknown request errors, no eligible route, or an unsuccessful switch do not continue;
+- do not create or branch sessions, replay user messages, change shared retry settings, or bypass OMP's continuation cap;
+- native OMP task subprocesses do not emit this main-session hook; see [the investigation](investigations/managed-native-retry-exhaustion.md) for the verified boundary.
 
 ### `session_shutdown`
 

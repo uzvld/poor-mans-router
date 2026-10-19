@@ -135,13 +135,42 @@ routes, preserving free routes and longer cooldowns. Subscription failures and
 errors about a request needing more credits remain route-scoped. Native concrete
 fallbacks, credential rotation and shared settings remain untouched.
 
-Terminal API-key rejection is learned only from the last assistant message at
-`agent_end`: a `401` explicitly naming an expired, invalid, or revoked API key
-cools only the failed route for five minutes. Intermediate auth errors during
+Terminal API-key rejection is learned from the final assistant error by
+`session_stop` before managed recovery, and by the `agent_end` notification:
+a `401` explicitly naming an expired, invalid, or revoked API key cools only the
+failed route for five minutes. Intermediate auth errors during
 native credential recovery do not create this cooldown; a successful final
 response keeps the route eligible. Generic `401/403` permission errors are not
 classified as API-key rejection. This adds no credential-store reads or
 provider-wide authentication state.
+
+**Managed exhaustion recovery (2026-10-19, OMP 18.11):** after native retries and
+concrete fallback candidates have finished, a managed **main** session may return
+`continue: true` with additional context from `session_stop`. The failed assistant
+must have no delivered text or tool call, belong to the current router-owned
+route or an explicitly observed native fallback descendant, and have a classified
+quota/rate, permanent-model, or API-key rejection. PMR learns its cooldown before
+selection because this hook precedes the final `agent_end` notification.
+
+The original PMR tier chooses the replacement. A successful model switch is
+required; cancellation, an unrelated manual selection, remote-compaction hold,
+or no eligible candidate prevents continuation. Native concrete fallback remains
+untouched **while native retry is running**. Its proven descendants retain
+managed ownership instead of being mistaken for manual opt-out on the next
+request. No new session/branch, user-message replay, or shared retry settings are
+used. `continue: true` preserves OMP's built-in continuation cap; PMR never uses
+`decision: block` to bypass it. OMP 18.11 does not emit `session_stop` for native
+task subprocesses (`agent.kind=sub`); this stop-time continuation contract is
+for main sessions, including independently launched Paseo agents.
+
+Native ownership is checked against the latest model-change provenance on the
+current branch. A native hop has `role: fallback` and
+`resolvedModelIsFallback: true`; a primary restore has the same role without a
+fallback resolution. The restored model must equal the original router pick.
+During a new hop, its already-recorded target entry is skipped to inspect the
+source entry. Explicit `default`/`temporary` selections of either model veto
+adoption; absent provenance never grants restore ownership. A failed PMR switch
+does not discard ownership of an unchanged concrete route.
 
 ## 7. Multica mapping
 

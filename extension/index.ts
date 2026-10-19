@@ -107,6 +107,8 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   let lastRoutedSelector: string | undefined;
   let routingMode: RoutingMode = 'manual';
   let lastRouterSelected: string | undefined;
+  // Native fallback descendants retain managed ownership; an unrelated manual selection does not.
+  let managedNativeSelector: string | undefined;
   let retryActive = false;
   let nativeFallbackAppliedForRetry = false;
   // Set by `retry_fallback_applied` (fires before `auto_retry_start` on the same native
@@ -121,6 +123,33 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     routes: any[];
     at: number;
   } | undefined;
+
+  function ownsManagedRoute(ctx: ExtensionContext, key: string | undefined, nativeTarget?: string): boolean {
+    if (!key) return false;
+    if (!managedNativeSelector) return key === lastRouterSelected;
+    if (key !== managedNativeSelector && key !== lastRouterSelected) return false;
+    try {
+      const branch = ctx.sessionManager.getBranch();
+      let skipAppliedHop = nativeTarget !== undefined;
+      for (let i = branch.length - 1; i >= 0; i--) {
+        const entry = branch[i];
+        if (entry.type !== 'model_change') continue;
+        const selector = normalizeRuntimeSelector(entry.model);
+        if (skipAppliedHop) {
+          skipAppliedHop = false;
+          if (selector !== nativeTarget || entry.role !== 'fallback' || entry.resolvedModelIsFallback !== true) return false;
+          continue; // The native hop is recorded before retry_fallback_applied; inspect its source.
+        }
+        // Native restores have role=fallback but are not themselves fallback resolutions.
+        // A later explicit selection of either selector must remain a manual opt-out.
+        return selector === key && entry.role === 'fallback'
+          && (key === managedNativeSelector ? entry.resolvedModelIsFallback === true : !entry.resolvedModelIsFallback);
+      }
+    } catch {
+      // Missing provenance must never adopt a manual selection.
+    }
+    return false;
+  }
 
   const refreshLive = async (force = false): Promise<void> => {
     const now = Date.now();
@@ -364,23 +393,28 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       const changed = await pi.setModel(target);
       if (!changed) {
         logger.warn('pmr could not switch model', { selector: selection.route.selector });
-        // A failed switch must not claim the target: the next turn retries.
-        lastRouterSelected = undefined;
+        // Do not claim the failed target or lose ownership of an unchanged concrete route.
+        if (modelKey(ctx.models.current()) !== lastRouterSelected) lastRouterSelected = undefined;
       } else {
         announceSwitch(ctx, currentKey, selection.route.key, selection.reason);
         lastRouterSelected = selection.route.key;
       }
     }
     lastRoutedSelector = selection.route.key;
+    if (modelKey(ctx.models.current()) === selection.route.key) {
+      lastRouterSelected = selection.route.key;
+      managedNativeSelector = undefined;
+    }
     return { selection, held: false };
   }
 
   pi.on('before_agent_start', async (_event: any, ctx: any) => {
     const currentKey = modelKey(ctx.models.current());
     const previousMode = routingMode;
-    routingMode = resolveModeTransition(previousMode, currentKey, lastRouterSelected);
+    routingMode = resolveModeTransition(previousMode, currentKey, ownsManagedRoute(ctx, currentKey) ? currentKey : undefined);
     if (previousMode !== 'manual' && routingMode === 'manual') {
       logger.info('pmr opt-out: manual model selection', { currentKey });
+      managedNativeSelector = undefined;
     }
     if (routingMode === 'manual') return undefined;
     if (!shouldRouteBeforeAgentStart(retryActive)) return undefined;
@@ -492,10 +526,15 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     return undefined;
   });
 
-  (pi as any).on('retry_fallback_applied', async (event: any) => {
+  pi.on('retry_fallback_applied', async (event, ctx) => {
+    const from = typeof event.from === 'string' ? normalizeRuntimeSelector(event.from) : undefined;
+    const to = typeof event.to === 'string' ? normalizeRuntimeSelector(event.to) : undefined;
+    const owned = routingMode !== 'manual' && from !== undefined
+      && ownsManagedRoute(ctx, from, to) && to === modelKey(ctx.models.current());
+    managedNativeSelector = owned ? to : undefined;
     nativeFallbackAppliedForRetry = true;
-    if (typeof event?.from === 'string') lastRetryFrom = normalizeRuntimeSelector(event.from);
-    if (typeof event?.to === 'string') lastRoutedSelector = normalizeRuntimeSelector(event.to);
+    lastRetryFrom = from;
+    lastRoutedSelector = to;
   });
 
   pi.on('auto_retry_start', async (event: any, ctx: any) => {
@@ -513,7 +552,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     );
     const recoverVirtualFallback = nativeFallbackAppliedForRetry
       && routingMode !== 'manual'
-      && lastRetryFrom === lastRouterSelected
+      && managedNativeSelector === lastRoutedSelector
       && lastRoutedSelector?.startsWith(`${VIRTUAL_PROVIDER}/`)
       && modelKey(ctx.models.current()) === lastRoutedSelector;
     nativeFallbackAppliedForRetry = false;
@@ -577,6 +616,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
         if (await pi.setModel(target)) {
           lastRouterSelected = selection.route.key;
           lastRoutedSelector = selection.route.key;
+          managedNativeSelector = undefined;
           announceSwitch(ctx, from, selection.route.key, 'recovering virtual native fallback');
         }
       } catch (error) {
@@ -591,12 +631,39 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     lastRetryFrom = undefined;
   });
 
-  // The only hook that observes a failure OMP does not retry. OMP 18.2.6 `isRetryableError`
-  // returns false for every 4xx except 408/429 (and its non-retryable wording includes
-  // "not found"), so a 404 "model does not exist" never reaches `auto_retry_start`: the turn
-  // ends with the assistant message carrying `stopReason: "error"` + `errorMessage`, and
-  // that message is what arrives here. Recording it as a success (2026-09-19 14:52/14:57
-  // live incident, after d3b888e was installed) keeps a dead route AVAILABLE forever.
+  // Native retry owns the active chain. Only after it gives up may a managed main session
+  // ask OMP's bounded stop continuation to resume the existing task on its original PMR tier.
+  pi.on('session_stop', async (event, ctx) => {
+    if (routingMode === 'manual' || retryActive || event.signal.aborted) return undefined;
+    const last = event.last_assistant_message;
+    if (!last || last.role !== 'assistant' || last.stopReason !== 'error') return undefined;
+    if (last.content.some((block) => block.type === 'toolCall'
+      || (block.type === 'text' && block.text.trim().length > 0))) return undefined;
+    const key = modelKey(ctx.models.current());
+    if (!key || !ownsManagedRoute(ctx, key)
+      || key !== `${last.provider}/${last.model}`) return undefined;
+
+    // session_stop precedes the final agent_end notification, so learn this failure before choosing.
+    const message = last.errorMessage ?? '';
+    const now = Date.now();
+    const cooldown = cooldownFromPermanentModelError(message, now)
+      ?? cooldownFromAuthenticationError(message, last.errorStatus, now)
+      ?? cooldownFromRetry(message, undefined, now);
+    if (!cooldown?.cooldownUntil) return undefined;
+    markErrorCooldown(ctx, key, message, cooldown);
+    state.save();
+    const mode = routingMode;
+    const { selection, held } = await routeSession(ctx, key, mode);
+    if (event.signal.aborted || routingMode !== mode || held || !selection
+      || lastRouterSelected !== selection.route.key || modelKey(ctx.models.current()) !== selection.route.key) return undefined;
+    return {
+      continue: true,
+      additionalContext: 'The previous provider request failed before delivering an answer. Continue the existing task from the conversation and completed tool results; do not repeat completed actions.',
+    };
+  });
+
+  // Persist every final provider failure, including non-retried errors. A managed stop
+  // continuation may already have learned it; other sessions still need failure bookkeeping.
   pi.on('agent_end', async (event: any, ctx: any) => {
     const messages: any[] = Array.isArray(event?.messages) ? event.messages : [];
     let last: any;

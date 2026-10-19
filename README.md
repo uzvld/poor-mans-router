@@ -84,6 +84,23 @@ generic `401/403` permission failures, block sibling models, or intercept OMP's
 credential rotation. Once the cooldown expires, the route can be tried again after
 replacing the key. See the [expired-key investigation](docs/investigations/expired-api-key-reselection.md).
 
+### Recovery inside a managed request
+
+On OMP 18.11, an opted-in main session (`pmr/*`, including a Paseo agent) can
+continue the existing task when native retries and concrete fallback candidates
+are exhausted. PMR learns the terminal route failure, selects from the original
+tier, and asks OMP's bounded `session_stop` continuation to proceed. It does not
+start a new session, resend the user's prompt, or change shared fallback settings.
+Completed tool results remain in context; direct-model sessions stay manual.
+Only classified rate/quota, unavailable-model and explicit API-key rejections
+trigger this recovery; generic 5xx, overload and network errors are not converted
+into quota cooldowns. Native primary restores preserve managed ownership, while
+explicit model selections remain manual.
+Cancellation, partial output, remote-compaction safety, a failed model switch,
+or no eligible alternative prevents recovery. Native OMP task subprocesses do
+not emit this main-session hook in 18.11.
+See the [managed-retry investigation](docs/investigations/managed-native-retry-exhaustion.md).
+
 ## Inside a class
 
 When several routes share the winning class:
@@ -206,6 +223,19 @@ Runs two isolated OMP processes against a localhost provider. The first recovers
 from `402 → pmr/balanced` without losing the user context; the second avoids both
 paid routes sharing the rejected wallet. Temporary config/state are removed.
 No live provider inference, installation, or live configuration changes.
+
+Managed same-request recovery regression (OMP 18.11.0):
+
+```bash
+bun scripts/managed-retry-recovery-probe.ts
+```
+
+Runs isolated managed, manual, and exhausted-candidate cases against localhost.
+Both native-chain exhaustion and no native fallback candidate must recover only
+for managed sessions. An actual tool action runs once before the failures; its
+result and the original task must reach the backup provider without replay.
+Optional `PMR_STOP_ROUTER` selects an installed `index.ts` for deployment proof;
+`PMR_PROBE_OUTPUT` saves synthetic request summaries and `/route-status` evidence.
 
 Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines the invariants every change must keep and the evidence a PR must carry. Every fix here has been a *proven* root cause first and a failing test second; keep it that way.
 
