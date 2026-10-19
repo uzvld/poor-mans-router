@@ -40,6 +40,14 @@ function harness(models: unknown[], currentModel: unknown) {
   const handlers = new Map<string, Array<(event: unknown, ctx: unknown) => Promise<unknown>>>();
   const setModelCalls: Array<{ provider?: string; id?: string }> = [];
   let current = currentModel;
+  let switchResult = true;
+  const branch: Array<{ type: string; model?: string; role?: string; modelRole?: string; resolvedModelIsFallback?: boolean }> = [
+    { type: 'session_init', modelRole: 'default' },
+  ];
+  function recordModel(model: unknown, role: string) {
+    if (!model || typeof model !== 'object' || !('provider' in model) || !('id' in model)) return;
+    branch.push({ type: 'model_change', model: `${model.provider}/${model.id}`, role, resolvedModelIsFallback: false });
+  }
   const pi: any = {
     setLabel() {},
     on(name: string, handler: (event: unknown, ctx: unknown) => Promise<unknown>) {
@@ -51,8 +59,10 @@ function harness(models: unknown[], currentModel: unknown) {
     registerProvider() {},
     async exec() { return { code: 1, stdout: '', stderr: '' }; },
     async setModel(m: unknown) {
+      if (!switchResult) return false;
       setModelCalls.push(m as { provider?: string; id?: string });
       current = m;
+      recordModel(m, 'default');
       return true;
     },
     logger: { info() {}, warn() {}, debug() {} },
@@ -63,7 +73,7 @@ function harness(models: unknown[], currentModel: unknown) {
       current: () => current,
       resolve: (selector: string) => models.find((m: any) => `${m.provider}/${m.id}` === selector),
     },
-    sessionManager: { getBranch: () => [{ type: 'session_init', modelRole: 'default' }], getSessionId: () => 's1' },
+    sessionManager: { getBranch: () => branch, getSessionId: () => 's1' },
     setTimeout() {},
     setInterval() {},
     modelRegistry: { getApiKeyForProvider: async () => undefined },
@@ -73,9 +83,20 @@ function harness(models: unknown[], currentModel: unknown) {
   adaptiveRouter(pi);
   return {
     handlers, ctx, setModelCalls,
-    setCurrent(model: unknown) { current = model; },
+    setCurrent(model: unknown, role = 'default') { current = model; recordModel(model, role); },
+    setSwitchResult(result: boolean) { switchResult = result; },
     async emit(name: string, event: unknown = {}) {
-      for (const handler of handlers.get(name) ?? []) await handler(event, ctx);
+      if (name === 'retry_fallback_applied' && event && typeof event === 'object' && 'to' in event
+        && typeof event.to === 'string') {
+        const pending = branch.at(-1);
+        if (pending?.type === 'model_change' && pending.model === event.to && pending.role === 'default') {
+          pending.role = 'fallback';
+          pending.resolvedModelIsFallback = true;
+        } else branch.push({ type: 'model_change', model: event.to, role: 'fallback', resolvedModelIsFallback: true });
+      }
+      let result: unknown;
+      for (const handler of handlers.get(name) ?? []) result = await handler(event, ctx);
+      return result;
     },
   };
 }
@@ -170,6 +191,90 @@ test('a turn that ends in an unclassified provider error records the failure wit
   assert.equal(persisted.lastSuccessAt, undefined, 'an error turn must never be recorded as a success');
   assert.equal(persisted.cooldownUntil, undefined, 'a one-off request error is not catalog drift and must not cool the route down');
 });
+
+test('a terminal expired API key makes a fresh managed session avoid the failed route', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const expired = { provider: 'opencode-go', id: 'glm-5.3-flash', cost: { input: 1, output: 1 } };
+  const alternate = { provider: 'openrouter', id: 'qwen/qwen3.7-flash', cost: { input: 2, output: 2 } };
+  const models = [balanced, expired, alternate];
+  const first = harness(models, balanced);
+  await boot(first);
+  await turn(first);
+  assert.equal(first.ctx.models.current(), expired);
+
+  await endInError(first, expired,
+    '401 This API key has expired. Create a new API key in OpenCode Console. (type=authentication_error param=api_key_expired)', 401);
+
+  const next = harness(models, balanced);
+  await boot(next);
+  await turn(next);
+  assert.equal(next.ctx.models.current(), alternate, 'the known expired key must not beat a working fallback');
+
+  const persisted = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')).routes['opencode-go/glm-5.3-flash'];
+  assert.ok(persisted.cooldownUntil > Date.now(), 'the refusal must persist across processes');
+  assert.equal(evaluateRouteHealth({ provider: 'opencode-go', modelId: expired.id, free: false }, {
+    ompReports: [], codexbar: [], local: persisted, reservePct: 10, now: persisted.cooldownUntil + 1,
+  }).state, 'AVAILABLE', 'a credential replacement must not require deleting persistent state');
+});
+
+test('native credential recovery after an API-key rejection does not cool a successful route', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'opencode-go', id: 'glm-5.3-flash', cost: { input: 1, output: 1 } };
+  const alternate = { provider: 'openrouter', id: 'qwen/qwen3.7-flash', cost: { input: 2, output: 2 } };
+  const models = [balanced, primary, alternate];
+  const first = harness(models, balanced);
+  await boot(first);
+  await turn(first);
+  await first.emit('auto_retry_start', { errorMessage: '401 Invalid API key (code=invalid_api_key)', delayMs: 0 });
+  await first.emit('auto_retry_end');
+  await first.emit('agent_end', { messages: [
+    { role: 'assistant', provider: primary.provider, model: primary.id, stopReason: 'error',
+      errorMessage: '401 Invalid API key (code=invalid_api_key)' },
+    { role: 'assistant', provider: primary.provider, model: primary.id, stopReason: 'stop',
+      content: [{ type: 'text', text: 'Recovered using the healthy sibling credential' }] },
+  ] });
+
+  const next = harness(models, balanced);
+  await boot(next);
+  await turn(next);
+  assert.equal(next.ctx.models.current(), primary, 'native recovery must retain the healthy sibling credential');
+});
+
+test('an API-key rejection cools only the failed route, not a sibling model on the same provider', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'opencode-go', id: 'glm-5.3-flash', cost: { input: 1, output: 1 } };
+  const sibling = { provider: 'opencode-go', id: 'qwen/qwen3.7-flash', cost: { input: 2, output: 2 } };
+  const models = [balanced, primary, sibling];
+  const first = harness(models, balanced);
+  await boot(first);
+  await turn(first);
+  assert.equal(first.ctx.models.current(), primary);
+  await endInError(first, primary, '401 Invalid API key (code=invalid_api_key)', 401);
+
+  const next = harness(models, balanced);
+  await boot(next);
+  await turn(next);
+  assert.equal(next.ctx.models.current(), sibling);
+});
+
+for (const [errorStatus, errorMessage] of [
+  [403, '403 Permission denied for this resource'],
+  [403, '403 API key is invalid for this resource'],
+  [400, '400 Invalid API key field in the request body'],
+  [401, '401 Invalid request signature'],
+] as const) {
+  test(`a request-specific rejection does not blacklist a credential: ${errorMessage}`, async () => {
+    const h = harness([virtualFree, primaryFree, secondaryFree], virtualFree);
+    await boot(h);
+    await turn(h);
+    const pick = h.setModelCalls[0];
+    await endInError(h, pick, errorMessage, errorStatus);
+    const next = harness([virtualFree, primaryFree, secondaryFree], virtualFree);
+    await boot(next);
+    await turn(next);
+    assert.equal(next.ctx.models.current(), pick);
+  });
+}
 
 test('a terminal credit rejection prevents a fresh balanced session from selecting the failed paid route', async () => {
   const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
@@ -346,3 +451,317 @@ test('a wallet message does not broaden a failed subscription route across indep
   await turn(fresh);
   assert.equal(fresh.ctx.models.current(), sibling);
 });
+
+function stoppedRequest(pick: { provider: string; id: string }, errorMessage = '429 rate limit retry-after-ms=3600000') {
+  const last = { role: 'assistant', provider: pick.provider, model: pick.id, stopReason: 'error',
+    content: [] as Array<{ type: string; text: string }>, errorMessage };
+  return { type: 'session_stop', messages: [last], last_assistant_message: last,
+    turn_id: 1, session_id: 's1', stop_hook_active: false, signal: new AbortController().signal };
+}
+
+test('a managed request continues on its tier after the concrete native fallback also fails', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };
+  const native = { provider: 'kilo', id: 'qwen/qwen3.5-flash', cost: { input: 2, output: 2 } };
+  const backup = { provider: 'openrouter', id: primary.id, cost: { input: 3, output: 3 } };
+  const h = harness([balanced, primary, native, backup], balanced);
+  await boot(h);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), primary);
+  h.setCurrent(native);
+  await h.emit('retry_fallback_applied', { from: `kilo/${primary.id}:high`, to: `kilo/${native.id}` });
+  await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+  assert.equal(h.ctx.models.current(), native, 'native recovery must get its own chance first');
+  await h.emit('auto_retry_end', { success: false });
+
+  const result = await h.emit('session_stop', stoppedRequest(native));
+  assert.equal(h.ctx.models.current(), backup, 'choose a working PMR route before the original request settles');
+  assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), backup, 'the continuation must stay managed');
+});
+
+test('managed recovery also runs when native fallback has no candidate and emits no retry event', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), primaryFree);
+  const result = await h.emit('session_stop', stoppedRequest(primaryFree));
+  assert.equal(h.ctx.models.current(), secondaryFree);
+  assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+});
+
+test('managed recovery follows ownership through multiple concrete native fallback hops', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };
+  const native = { provider: 'kilo', id: 'qwen/qwen3.5-flash', cost: { input: 2, output: 2 } };
+  const lastNative = { provider: 'kilo', id: 'qwen/qwen3.0-flash', cost: { input: 3, output: 3 } };
+  const h = harness([balanced, primary, native, lastNative, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  for (const [from, to] of [[primary, native], [native, lastNative]]) {
+    h.setCurrent(to);
+    await h.emit('retry_fallback_applied', { from: `kilo/${from.id}`, to: `kilo/${to.id}` });
+    await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+  }
+  await h.emit('auto_retry_end', { success: false });
+  const result = await h.emit('session_stop', stoppedRequest(lastNative));
+  assert.equal(h.ctx.models.current(), secondaryFree);
+  assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+});
+
+test('terminal recovery retains frontier rather than taking a balanced paid-flash fallback', async () => {
+  const frontier = { provider: 'pmr', id: 'frontier', cost: {} };
+  const primary = { provider: 'kilo', id: 'z-ai/glm-5', cost: { input: 1, output: 1 } };
+  const flash = { provider: 'openrouter', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };
+  const h = harness([frontier, primary, flash, secondaryFree], frontier);
+  await boot(h);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), primary);
+  const result = await h.emit('session_stop', stoppedRequest(primary));
+  assert.equal(h.ctx.models.current(), secondaryFree);
+  assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+});
+
+test('a direct model session is not opted into terminal PMR recovery', async () => {
+  const h = harness([primaryFree, secondaryFree], primaryFree);
+  await boot(h);
+  await turn(h);
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+  assert.equal(h.setModelCalls.length, 0);
+});
+
+test('manual selection after a native fallback vetoes terminal PMR recovery', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  h.setCurrent(secondaryFree);
+  await h.emit('retry_fallback_applied', { from: `kilo/${primaryFree.id}`, to: `openrouter/${secondaryFree.id}` });
+  await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+  await h.emit('auto_retry_end', { success: false });
+  h.setCurrent(primaryFree);
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+});
+
+test('terminal recovery cannot revive a manual opt-out by returning to the old router pick', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  h.setCurrent(secondaryFree);
+  await turn(h);
+  h.setCurrent(primaryFree);
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+});
+
+test('an interrupted terminal request is not continued by PMR', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  const controller = new AbortController();
+  controller.abort();
+  const event = { ...stoppedRequest(primaryFree), signal: controller.signal };
+  assert.equal(await h.emit('session_stop', event), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+});
+
+test('terminal recovery cannot replay a partial answer or an unclassified request error', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  const partial = stoppedRequest(primaryFree);
+  partial.last_assistant_message.content.push({ type: 'text', text: 'A partial answer was already delivered' });
+  assert.equal(await h.emit('session_stop', partial), undefined);
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree, '400 invalid request body')), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+});
+
+test('terminal recovery stops when the tier has no eligible route left', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+});
+
+test('terminal recovery cannot strand provider-native compacted history', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const codex = { provider: 'openai-codex', id: 'gpt-6-luna', api: 'openai-codex-responses', cost: { input: 1, output: 1 } };
+  const models: unknown[] = [balanced, codex];
+  const h = harness(models, balanced);
+  await boot(h);
+  await turn(h);
+  models.push(secondaryFree);
+  h.ctx.sessionManager.getBranch = () => [{ type: 'compaction', method: 'remote' }];
+  assert.equal(await h.emit('session_stop', stoppedRequest(codex)), undefined);
+  assert.equal(h.ctx.models.current(), codex);
+});
+
+test('terminal recovery does not request continuation when the model switch fails', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  h.setSwitchResult(false);
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+  h.setSwitchResult(true);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), secondaryFree, 'a failed switch must not silently opt the managed session out');
+});
+
+test('a successful concrete native fallback keeps the session managed for the next request', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const primary = { provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };
+  const backup = { provider: 'openrouter', id: primary.id, cost: { input: 2, output: 2 } };
+  const h = harness([balanced, primary, backup, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  h.setCurrent(secondaryFree);
+  await h.emit('retry_fallback_applied', { from: `kilo/${primary.id}`, to: `openrouter/${secondaryFree.id}` });
+  await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+  await h.emit('auto_retry_end', { success: true });
+  const event = stoppedRequest(secondaryFree);
+  event.last_assistant_message.stopReason = 'stop';
+  assert.equal(await h.emit('session_stop', event), undefined, 'a successful answer needs no recovery');
+  await turn(h);
+  assert.equal(h.ctx.models.current(), backup, 'a native fallback must not be mistaken for a manual opt-out');
+});
+
+test('PMR does not schedule a second continuation while native retry still owns the request', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const h = harness([balanced, primaryFree, secondaryFree], balanced);
+  await boot(h);
+  await turn(h);
+  await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+  assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+  assert.equal(h.ctx.models.current(), primaryFree);
+});
+
+test('an abort during model resolution prevents a managed stop continuation', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const models = [balanced, primaryFree, secondaryFree];
+  const h = harness(models, balanced);
+  await boot(h);
+  await turn(h);
+  const controller = new AbortController();
+  h.ctx.models.resolve = (selector: string) => {
+    controller.abort();
+    return models.find(model => `${model.provider}/${model.id}` === selector);
+  };
+  assert.equal(await h.emit('session_stop', { ...stoppedRequest(primaryFree), signal: controller.signal }), undefined);
+});
+
+for (const boundary of ['next request', 'terminal stop', 'new native hop'] as const) {
+  test(`a native primary restore retains managed ownership at ${boundary}`, async () => {
+    const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+    const primary = { provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };
+    const backup = { provider: 'openrouter', id: primary.id, cost: { input: 2, output: 2 } };
+    const h = harness([balanced, primary, backup, primaryFree, secondaryFree], balanced);
+    await boot(h);
+    await turn(h);
+    h.setCurrent(primaryFree);
+    await h.emit('retry_fallback_applied', { from: `kilo/${primary.id}`, to: `kilo/${primaryFree.id}` });
+    await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+    await h.emit('auto_retry_end', { success: true });
+    h.setCurrent(primary, 'fallback'); // OMP restores its primary without a retry_fallback_applied event.
+    if (boundary === 'next request') {
+      await turn(h);
+    } else {
+      const failed = boundary === 'terminal stop' ? primary : secondaryFree;
+      if (boundary === 'new native hop') {
+        h.setCurrent(secondaryFree);
+        await h.emit('retry_fallback_applied', { from: `kilo/${primary.id}`, to: `openrouter/${secondaryFree.id}` });
+        await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+        await h.emit('auto_retry_end', { success: false });
+      }
+      const result = await h.emit('session_stop', stoppedRequest(failed));
+      assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+    }
+    assert.equal(h.ctx.models.current(), backup, 'native restoration must not become a manual opt-out');
+  });
+}
+
+for (const error of ['401 This API key has expired (param=api_key_expired)', `404 The requested model 'retired-model' does not exist`]) {
+  test(`managed terminal recovery handles a non-retried route rejection: ${error}`, async () => {
+    const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+    const h = harness([balanced, primaryFree, secondaryFree], balanced);
+    await boot(h);
+    await turn(h);
+    const result = await h.emit('session_stop', stoppedRequest(primaryFree, error));
+    assert.equal(h.ctx.models.current(), secondaryFree);
+    assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+  });
+}
+
+for (const error of ['500 upstream overloaded', 'ECONNRESET connection closed']) {
+  test(`an unclassified transient failure does not create a quota-style retry: ${error}`, async () => {
+    const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+    const h = harness([balanced, primaryFree, secondaryFree], balanced);
+    await boot(h);
+    await turn(h);
+    assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree, error)), undefined);
+    assert.equal(h.ctx.models.current(), primaryFree);
+  });
+}
+
+test('terminal recovery may switch Responses providers when there is no remote compaction', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const codex = { provider: 'openai-codex', id: 'gpt-6-luna', api: 'openai-codex-responses', cost: { input: 1, output: 1 } };
+  const models: unknown[] = [balanced, codex];
+  const h = harness(models, balanced);
+  await boot(h);
+  await turn(h);
+  models.push(secondaryFree);
+  const result = await h.emit('session_stop', stoppedRequest(codex));
+  assert.equal(h.ctx.models.current(), secondaryFree);
+  assert.ok(result && typeof result === 'object' && 'continue' in result && result.continue === true);
+});
+
+for (const selection of ['original', 'native descendant'] as const) {
+test(`a manual re-selection of the ${selection} remains a manual opt-out`, async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const models: unknown[] = [balanced, primaryFree, secondaryFree];
+  const h = harness(models, balanced);
+  await boot(h);
+  await turn(h);
+  h.setCurrent(secondaryFree);
+  await h.emit('retry_fallback_applied', { from: `kilo/${primaryFree.id}`, to: `openrouter/${secondaryFree.id}` });
+  await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+  await h.emit('auto_retry_end', { success: true });
+  models.push({ provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } });
+  const selected = selection === 'original' ? primaryFree : secondaryFree;
+  h.setCurrent(selected); // Same selector, but explicitly chosen rather than a native hop/restore.
+  assert.equal(await h.emit('session_stop', stoppedRequest(selected)), undefined);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), selected);
+});
+}
+
+for (const unavailable of ['empty', 'throws'] as const) {
+  test(`native restoration is not assumed when model provenance ${unavailable}`, async () => {
+    const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+    const h = harness([balanced, primaryFree, secondaryFree], balanced);
+    await boot(h);
+    await turn(h);
+    h.setCurrent(secondaryFree);
+    await h.emit('retry_fallback_applied', { from: `kilo/${primaryFree.id}`, to: `openrouter/${secondaryFree.id}` });
+    await h.emit('auto_retry_start', { errorMessage: '429 rate limit', delayMs: 0 });
+    await h.emit('auto_retry_end', { success: false });
+    h.setCurrent(primaryFree, 'fallback');
+    h.ctx.sessionManager.getBranch = () => {
+      if (unavailable === 'throws') throw new Error('branch unavailable');
+      return [];
+    };
+    assert.equal(await h.emit('session_stop', stoppedRequest(primaryFree)), undefined);
+    assert.equal(h.ctx.models.current(), primaryFree);
+  });
+}

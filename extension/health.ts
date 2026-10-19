@@ -215,6 +215,17 @@ export function cooldownFromRetry(message: string, delayMs: number | undefined, 
   };
 }
 
+/** Only terminal API-key rejection, never an intermediate native credential-rotation error. */
+export function cooldownFromAuthenticationError(message: string, status: unknown, now = Date.now()): LocalRouteState | undefined {
+  if (status !== 401 && !/^401\b/.test(message)) return undefined;
+  if (!/api_key_expired|invalid_api_key|\b(?:invalid|expired|revoked) (?:x[- ]?)?api[- ]key\b|\bapi[- ]key (?:has |is )?(?:expired|invalid|revoked)\b/i.test(message)) return undefined;
+  return {
+    cooldownUntil: now + 5 * 60_000,
+    lastFailureAt: now,
+    reason: 'API key expired or invalid; update provider credentials',
+  };
+}
+
 // A hard "this model does not exist" rejection is catalog drift (the provider removed or
 // renamed the model OMP's own catalog still lists), not a transient rate/quota condition --
 // `isRateOrQuotaError` never matches it. Left unclassified it falls through to
