@@ -103,3 +103,21 @@ test('an Anthropic not_found_error naming a model is permanent, other not_found_
   const otherResource = '404 {"type":"error","error":{"type":"not_found_error","message":"file: file_abc"},"request_id":"req_x"}';
   assert.ok(!isPermanentModelError(otherResource));
 });
+
+test('a provider rejection of a deprecated model receives the permanent route cooldown', () => {
+  const message = '410 Model minimax-m3.1-flash-free has been deprecated.\nModel minimax-m3.1-flash-free has been deprecated. (type=ModelDeprecated)';
+  assert.equal(isPermanentModelError(message), true);
+  const cooldown = cooldownFromPermanentModelError(message, 1000);
+  assert.equal(cooldown?.cooldownUntil, 1000 + 24 * 60 * 60_000);
+});
+
+test('deprecation of a request parameter or a future model retirement is not a permanent model rejection', () => {
+  for (const message of [
+    '400 The max_tokens parameter has been deprecated for this model',
+    '400 Model request uses a deprecated parameter: max_tokens',
+    'Warning: Model example will be deprecated next month',
+    '410 The requested file has been deprecated',
+  ]) {
+    assert.equal(cooldownFromPermanentModelError(message, 1000), undefined, message);
+  }
+});

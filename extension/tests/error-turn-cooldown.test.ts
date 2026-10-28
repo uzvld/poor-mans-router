@@ -190,6 +190,35 @@ test('a terminal credit rejection prevents a fresh balanced session from selecti
   assert.equal(next.ctx.models.current(), paidAlternate);
 });
 
+test('a deprecated model is not reselected when native retry falls back to pmr/balanced', async () => {
+  const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
+  const retired = { provider: 'opencode-go', id: 'minimax-m3.1-flash-free', cost: { input: 0, output: 0 } };
+  const models = [balanced, retired, secondaryFree];
+  const h = harness(models, balanced);
+  await boot(h);
+  await turn(h);
+  assert.equal(h.ctx.models.current(), retired);
+
+  h.setCurrent(balanced);
+  await h.emit('retry_fallback_applied', {
+    from: `${retired.provider}/${retired.id}`, to: 'pmr/balanced', role: 'default',
+  });
+  await h.emit('auto_retry_start', {
+    errorMessage: '410 Model minimax-m3.1-flash-free has been deprecated.\nModel minimax-m3.1-flash-free has been deprecated. (type=ModelDeprecated)',
+    delayMs: 0,
+  });
+  assert.equal(h.ctx.models.current(), secondaryFree, 'recover onto a usable route instead of repeating the 410');
+
+  await h.emit('auto_retry_end');
+  await turn(h);
+  assert.equal(h.ctx.models.current(), secondaryFree, 'the next turn must not retry the deprecated route');
+
+  const fresh = harness(models, balanced);
+  await boot(fresh);
+  await turn(fresh);
+  assert.equal(fresh.ctx.models.current(), secondaryFree, 'the route cooldown must survive a fresh process');
+});
+
 test('virtual native fallback escapes an empty paid wallet without blocking its free routes', async () => {
   const balanced = { provider: 'pmr', id: 'balanced', cost: {} };
   const paid = { provider: 'kilo', id: 'qwen/qwen3.7-flash', cost: { input: 1, output: 1 } };

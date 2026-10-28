@@ -135,6 +135,12 @@ routes, preserving free routes and longer cooldowns. Subscription failures and
 errors about a request needing more credits remain route-scoped. Native concrete
 fallbacks, credential rotation and shared settings remain untouched.
 
+A provider's `Model <id> has been deprecated` rejection is a permanent-model
+failure, using the existing 24-hour route-scoped cooldown before virtual-fallback
+repair chooses again. Deprecation of request parameters, future retirement
+warnings, and unrelated HTTP 410 errors do not imply a retired model.
+See [the deprecated-model retry investigation](investigations/deprecated-model-retry-loop.md).
+
 ## 7. Multica mapping
 
 - Frontier agent → `model: pmr/frontier`
