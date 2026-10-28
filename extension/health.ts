@@ -227,7 +227,9 @@ export function isPermanentModelError(message: string): boolean {
   // (`bytedance-seed/dola-seed-2.0-pro:free` is 41 chars with quotes; ids get longer).
   // Anthropic's retired-model 404 is `{"error":{"type":"not_found_error","message":"model: <id>"}}`;
   // other not_found_error resources (files, batches) must not cool a model route.
-  return /model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id|not_found_error"[^\n]*?"message"\s*:\s*"model:/i.test(message);
+  // OpenCode's 410 ModelDeprecated names the retired id before "has been deprecated".
+  // Require that verdict directly after the id, not incidental deprecated request fields.
+  return /model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id|not_found_error"[^\n]*?"message"\s*:\s*"model:|\bmodel\s+\S+\s+has been deprecated\b/i.test(message);
 }
 
 // Catalog drift does not heal in minutes: on 2026-09-19 32 of the 52 `kilo/*:free` ids in
