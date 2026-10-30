@@ -668,6 +668,8 @@ The API is authenticated with a normal OpenRouter key and currently documents sh
 
 The budget belongs to the account, not to a process. The snapshot is therefore persisted in `state.intel.json` (beside `state.json`) and shared by every OMP process on the machine. A 429 blocks every process until `X-RateLimit-Reset` (capped at a day), or until the next UTC day when the body names the per-day quota and no usable reset is given. One process at a time spends a refresh, under an exclusive lock file. See `docs/investigations/bug-intel-data-api-quota.md`.
 
+> **Superseded in part (2026-10-30):** the scores are no longer read from this source alone. See `docs/superpowers/specs/2026-10-30-benchmark-snapshots-design.md` and `docs/investigations/finding-multi-source-benchmarks.md`. Class order, tier boundaries and §3.3 are unchanged.
+
 ### 14.3 How scores are used
 
 Inside one allowed class:

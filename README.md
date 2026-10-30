@@ -131,6 +131,7 @@ Restart `omp`. After the first turn, `/route-status` shows the decision.
 
 - **CodexBar** — install it for pace/wallet telemetry. The extension tries `http://127.0.0.1:8080/usage` first, then the `codexbar` CLI.
 - **OpenRouter intel** — quality/agentic benchmarks and traffic rankings are fetched from the OpenRouter Data API using the `openrouter` credential OMP already holds. No key is copied or stored by this project.
+- **Benchmark snapshots** — besides Artificial Analysis, the router reads Epoch AI, LMArena and BenchLM (all keyless), keeps a dated snapshot of each (`state.bench.json`, 30 per source, refreshed when older than 24 h, never on the turn path), puts them on one scale and blends them. A source whose scale moved (Artificial Analysis re-based its index on 2026-10-11 → 2026-10-30) is detected and never mixed with its old values; a model whose LMArena rating falls against the field loses up to 0.015 of quality. Tiers stay price groups; `weights:` in `policy.yml` say what coding, agentic and general strength count for in each. See [`docs/superpowers/specs/2026-10-30-benchmark-snapshots-design.md`](docs/superpowers/specs/2026-10-30-benchmark-snapshots-design.md).
 - **Emergency fallback chains** — [`config/fallback-chains.example.yml`](config/fallback-chains.example.yml) is a starting point for `retry.fallbackChains`. Review against `omp models --json` before merging.
 - **Hermes bridge** — routing also governs `multica → hermes → omp`, because `omp --mode rpc-ui` is a full agent host. The bridge that drives it lives in [`hermes/omp-bridge/`](hermes/omp-bridge/) and deploys with `./scripts/install-bridge.sh` (`--check` reports drift, `--launcher` also installs the `hermes` wrapper that re-applies the Hermes core overlays every `hermes update` wipes) — or pass `--bridge`/`--launcher` to `bootstrap.sh` to do both installs in one call. Point Hermes at a selector with `model.default: pmr/balanced` in `~/.hermes/config.yaml`. See [`docs/investigations/host-integration-matrix.md`](docs/investigations/host-integration-matrix.md).
 
@@ -147,9 +148,10 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   telemetry.ts        omp usage + CodexBar normalisation
   history.ts          omp stats → reliability / TTFT / throughput
   openrouter-intel.ts OpenRouter Data API → quality scores
-  state.ts            persisted per-route cooldowns and telemetry (state.json) and the OpenRouter intel snapshot (state.intel.json), both gitignored
+  bench-*.ts          benchmark sources (AA, Epoch, LMArena, BenchLM), snapshot store, re-base detection, blend and nerf penalty
+  state.ts            persisted per-route cooldowns and telemetry (state.json), the OpenRouter intel snapshot (state.intel.json) and the benchmark snapshots (state.bench.json), all gitignored
   compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
-  tests/              bun test — 177 tests, run from extension/
+  tests/              bun test — 369 tests, run from extension/ (exclude macOS ._* sidecars)
 hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
                     survives `hermes update`, and their tests
@@ -207,6 +209,15 @@ Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines t
 Live and in daily use on OMP 18.2.6. Known follow-ups are tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 This repo is public and has **no CI**: every check runs locally and is hash-attested (`scripts/secret-scan.sh`, see [`AGENTS.md`](AGENTS.md)). Clone → `git config core.hooksPath .githooks` before your first commit.
+
+## Benchmark data and credits
+
+This project is non-commercial and open source. The data it reads carries attribution terms that `/route-status` repeats for every source in use:
+
+- Artificial Analysis, via the OpenRouter Data API.
+- Epoch AI, "Capabilities & benchmarking" ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), <https://epoch.ai/benchmarks>.
+- LMArena leaderboard dataset ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), <https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset>.
+- Data from BenchLM.ai ([CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/): non-commercial use only; commercial use needs a licence from BenchLM).
 
 ## License
 

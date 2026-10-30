@@ -1,0 +1,1210 @@
+[
+ {
+  "credits": {
+   "balanceIsWorkspace": false,
+   "balanceReadSucceeded": true,
+   "creditsAvailable": true,
+   "events": [],
+   "remaining": 53141.81424675,
+   "updatedAt": "2026-10-30T17:48:08Z"
+  },
+  "pace": {
+   "primary": {
+    "deltaPercent": -4,
+    "expectedUsedPercent": 4,
+    "stage": "slightlyBehind",
+    "summary": "4% in reserve | Expected 4% used | Lasts until reset",
+    "willLastToReset": true
+   }
+  },
+  "provider": "codex",
+  "rateWindowLabels": {
+   "primary": "Session",
+   "secondary": "Weekly"
+  },
+  "source": "oauth",
+  "usage": {
+   "accountEmail": "<redacted>",
+   "codexResetCredits": {
+    "availableCount": 1,
+    "credits": [
+     {
+      "expires_at": "2026-11-06T23:40:10Z",
+      "granted_at": "2026-10-07T23:40:10Z",
+      "id": "codex-reset-credit-v1-b017a3701638aa042dffd686eecbf9ee9b93a7767fe7ec3fd7e9b3054ff8b765",
+      "reset_type": "codex_rate_limits",
+      "status": "available",
+      "title": "Full reset (Weekly + 5 hr)"
+     }
+    ],
+    "updatedAt": "2026-10-30T17:48:08Z"
+   },
+   "dataConfidence": "exact",
+   "loginMethod": "plus",
+   "primary": {
+    "resetsAt": "2026-10-30T22:34:55Z",
+    "usedPercent": 0,
+    "windowMinutes": 300
+   },
+   "providerCost": {
+    "balance": 53141.81424675,
+    "balanceUpdatedAt": "2026-10-30T17:48:08Z",
+    "currencyCode": "Credits",
+    "limit": 0,
+    "period": "Extra usage",
+    "updatedAt": "2026-10-30T17:48:08Z",
+    "used": 0
+   },
+   "secondary": {
+    "resetsAt": "2026-11-04T08:44:36Z",
+    "usedPercent": 100,
+    "windowMinutes": 10080
+   },
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:48:08Z"
+  },
+  "version": "0.164.0"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for openai."
+  },
+  "provider": "openai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Azure OpenAI API key not configured. Set AZURE_OPENAI_API_KEY or configure an API key in Settings."
+  },
+  "provider": "azureopenai",
+  "source": "auto"
+ },
+ {
+  "account": "<redacted>",
+  "pace": {
+   "primary": {
+    "deltaPercent": 16,
+    "etaSeconds": 5341,
+    "expectedUsedPercent": 43,
+    "stage": "farAhead",
+    "summary": "16% in deficit | Expected 43% used | Projected empty in 1h 30m",
+    "willLastToReset": false
+   },
+   "secondary": {
+    "deltaPercent": 23,
+    "etaSeconds": 86391,
+    "expectedUsedPercent": 6,
+    "stage": "farAhead",
+    "summary": "23% in deficit | Expected 6% used | Runs out in 1d",
+    "willLastToReset": false
+   }
+  },
+  "provider": "claude",
+  "rateWindowLabels": {
+   "primary": "Session",
+   "secondary": "Weekly"
+  },
+  "source": "claude-swap",
+  "usage": {
+   "accountEmail": "<redacted>",
+   "extraRateWindows": [
+    {
+     "id": "claude-weekly-scoped-fable",
+     "title": "Fable only",
+     "window": {
+      "resetsAt": "2026-11-06T08:00:00Z",
+      "usedPercent": 0,
+      "windowMinutes": 10080
+     }
+    }
+   ],
+   "loginMethod": "claude-swap",
+   "primary": {
+    "resetsAt": "2026-10-30T20:40:00Z",
+    "usedPercent": 59,
+    "windowMinutes": 300
+   },
+   "secondary": {
+    "resetsAt": "2026-11-06T08:00:00Z",
+    "usedPercent": 29,
+    "windowMinutes": 10080
+   },
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:47:02Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for clinepass."
+  },
+  "provider": "clinepass",
+  "source": "auto"
+ },
+ {
+  "pace": {
+   "primary": {
+    "deltaPercent": -48,
+    "expectedUsedPercent": 48,
+    "stage": "farBehind",
+    "summary": "48% in reserve | Expected 48% used | Lasts until reset",
+    "willLastToReset": true
+   },
+   "secondary": {
+    "deltaPercent": -48,
+    "expectedUsedPercent": 48,
+    "stage": "farBehind",
+    "summary": "48% in reserve | Expected 48% used | Lasts until reset",
+    "willLastToReset": true
+   },
+   "tertiary": {
+    "deltaPercent": -48,
+    "expectedUsedPercent": 48,
+    "stage": "farBehind",
+    "summary": "48% in reserve | Expected 48% used | Lasts until reset",
+    "willLastToReset": true
+   }
+  },
+  "provider": "cursor",
+  "rateWindowLabels": {
+   "primary": "Total",
+   "secondary": "Cursor",
+   "tertiary": "Third Party"
+  },
+  "source": "web",
+  "usage": {
+   "accountEmail": "<redacted>",
+   "loginMethod": "Cursor Free",
+   "primary": {
+    "resetsAt": "2026-11-15T17:51:32Z",
+    "usedPercent": 0,
+    "windowMinutes": 44640
+   },
+   "secondary": {
+    "resetsAt": "2026-11-15T17:51:32Z",
+    "usedPercent": 0,
+    "windowMinutes": 44640
+   },
+   "tertiary": {
+    "resetsAt": "2026-11-15T17:51:32Z",
+    "usedPercent": 0,
+    "windowMinutes": 44640
+   },
+   "updatedAt": "2026-10-30T17:48:07Z"
+  }
+ },
+ {
+  "account": "opencode",
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "OpenCode API error: HTTP 500: HTTPError"
+  },
+  "provider": "opencode",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "OpenCode Go API error: HTTP 500: HTTPError"
+  },
+  "provider": "opencodego",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for alibaba."
+  },
+  "provider": "alibaba",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Alibaba Token Plan session cookies found in browsers. Sign in to Model Studio/Bailian in Chrome, allow CodexBar to access Chrome Safe Storage in Keychain Access, or paste a manual Cookie header. Safari cookie file exists but is not readable (/Users/<user>/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies). Enable Full Disk Access. Safari: Safari cookie file exists but is not readable (/Users/<user>/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies). Enable Full Disk Access."
+  },
+  "provider": "alibabatokenplan",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Qwen Cloud session cookies found in browsers. Sign in to Qwen Cloud in a supported browser, then Refresh to authorize cookie access, or paste a manual Cookie header. Safari cookie file exists but is not readable (/Users/<user>/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies). Enable Full Disk Access. Safari: Safari cookie file exists but is not readable (/Users/<user>/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies). Enable Full Disk Access."
+  },
+  "provider": "qwencloud",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Safari cookie file exists but is not readable (/Users/<user>/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies). Enable Full Disk Access."
+  },
+  "provider": "factory",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for fireworks."
+  },
+  "provider": "fireworks",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Not logged in to Gemini. Run 'gemini' in Terminal to authenticate."
+  },
+  "provider": "gemini",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Antigravity language server not detected. Launch Antigravity and retry."
+  },
+  "provider": "antigravity",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for copilot."
+  },
+  "provider": "copilot",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Devin session found. Sign in to app.devin.ai in a supported Chromium browser on macOS, then open Usage & Limits. Manual auth: Settings \u2192 Providers \u2192 Devin \u2192 Auth source \u2192 Manual (app), or cookieSource=manual in your CLI config (default ~/.config/codexbar/config.json). Setup: https://github.com/steipete/CodexBar/blob/main/docs/devin.md#manual-auth"
+  },
+  "provider": "devin",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for zai."
+  },
+  "provider": "zai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for minimax."
+  },
+  "provider": "minimax",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "manus",
+  "source": "auto"
+ },
+ {
+  "pace": {
+   "secondary": {
+    "deltaPercent": -100,
+    "expectedUsedPercent": 100,
+    "stage": "farBehind",
+    "summary": "100% in reserve | Expected 100% used | Lasts until reset",
+    "willLastToReset": true
+   }
+  },
+  "provider": "kimi",
+  "rateWindowLabels": {
+   "secondary": "5-hour usage"
+  },
+  "source": "Kimi Code API key",
+  "usage": {
+   "details": [],
+   "extraRateWindows": [
+    {
+     "id": "kimi-monthly",
+     "title": "Total usage",
+     "window": {
+      "resetsAt": "2026-11-27T00:00:00Z",
+      "usedPercent": 100,
+      "windowMinutes": 43200
+     }
+    }
+   ],
+   "primary": null,
+   "secondary": {
+    "resetsAt": "2026-10-30T17:48:53Z",
+    "usedPercent": 0,
+    "windowMinutes": 300
+   },
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:48:12Z"
+  }
+ },
+ {
+  "provider": "kilo",
+  "rateWindowLabels": {
+   "primary": "Credits",
+   "secondary": "Kilo Pass"
+  },
+  "source": "api",
+  "usage": {
+   "loginMethod": "Starter \u00b7 Auto top-up: off",
+   "primary": {
+    "usedPercent": 100
+   },
+   "secondary": {
+    "resetsAt": "2026-11-17T09:22:52Z",
+    "usedPercent": 99.95215311004786
+   },
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:48:13Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Kiro usage requires the Kiro CLI. Install it from https://kiro.dev/docs/cli/ and run 'kiro-cli login' first."
+  },
+  "provider": "kiro",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for vertexai."
+  },
+  "provider": "vertexai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Augment session found. Please log in to app.augmentcode.com in Safari, Chrome, Microsoft Edge, Brave, Arc, Dia, ChatGPT Atlas, Chromium, Helium, Vivaldi, Yandex Browser, Firefox, Firefox Beta, Firefox Developer Edition, Firefox Nightly, Zen, Chrome Beta, Chrome Canary, Arc Beta, Arc Canary, Brave Beta, Brave Nightly, Microsoft Edge Beta, Microsoft Edge Canary, Comet, Aside, Opera, Opera Neon, or Ego Lite."
+  },
+  "provider": "augment",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No JetBrains IDE with AI Assistant detected. Install a JetBrains IDE and enable AI Assistant."
+  },
+  "provider": "jetbrains",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for moonshot."
+  },
+  "provider": "moonshot",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Amp session cookie found. Please log in to ampcode.com in your browser."
+  },
+  "provider": "amp",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Provider plugin script failed: Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "t3chat",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Select a Browser profile in provider settings."
+  },
+  "provider": "langdock",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Ollama session cookie found. Please sign in at https://ollama.com/signin in your browser."
+  },
+  "provider": "ollama",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for synthetic."
+  },
+  "provider": "synthetic",
+  "source": "auto"
+ },
+ {
+  "provider": "openrouter",
+  "source": "api",
+  "usage": {
+   "details": [
+    {
+     "rows": [
+      {
+       "label": "Remaining",
+       "value": "$0.00"
+      },
+      {
+       "label": "Used",
+       "value": "$75.41"
+      },
+      {
+       "label": "Total added",
+       "value": "$75.00"
+      }
+     ],
+     "title": "Credits"
+    }
+   ],
+   "loginMethod": "Balance: $0.00",
+   "primary": null,
+   "providerCost": {
+    "balance": 0,
+    "currencyCode": "USD",
+    "limit": 0,
+    "period": "This month (API key)",
+    "updatedAt": "2026-10-30T17:48:19Z",
+    "used": 0
+   },
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:48:19Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for elevenlabs."
+  },
+  "provider": "elevenlabs",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for warp."
+  },
+  "provider": "warp",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Windsurf database not found at /Users/<user>/Library/Application Support/Windsurf/User/globalStorage/state.vscdb. Ensure Windsurf is installed and has been launched at least once."
+  },
+  "provider": "windsurf",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Not signed in to Zed. Sign in from the Zed editor app with GitHub."
+  },
+  "provider": "zed",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "perplexity",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Xiaomi MiMo browser session found. Log in at platform.xiaomimimo.com first. Safari cookie file exists but is not readable (/Users/<user>/Library/Containers/com.apple.Safari/Data/Library/Cookies/Cookies.binarycookies). Enable Full Disk Access."
+  },
+  "provider": "mimo",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "arkcli was not found. Install arkcli, run 'arkcli auth login', or configure Doubao API credentials."
+  },
+  "provider": "doubao",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for sakana."
+  },
+  "provider": "sakana",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "abacus",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Mistral session cookies found in browsers."
+  },
+  "provider": "mistral",
+  "source": "auto"
+ },
+ {
+  "provider": "deepseek",
+  "source": "web",
+  "usage": {
+   "primary": null,
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:48:22Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for deepinfra."
+  },
+  "provider": "deepinfra",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Codebuff API token not configured. Set CODEBUFF_API_KEY or run `codebuff login` to populate ~/.config/manicode/credentials.json."
+  },
+  "provider": "codebuff",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for venice."
+  },
+  "provider": "venice",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Command Code session cookie not found. Sign in to commandcode.ai in Chrome."
+  },
+  "provider": "commandcode",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "qoder",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Missing StepFun username or password. Set STEPFUN_USERNAME and STEPFUN_PASSWORD environment variables."
+  },
+  "provider": "stepfun",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for bedrock."
+  },
+  "provider": "bedrock",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for grok."
+  },
+  "provider": "grok",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for groq."
+  },
+  "provider": "groq",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for llmproxy."
+  },
+  "provider": "llmproxy",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for litellm."
+  },
+  "provider": "litellm",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for bifrost."
+  },
+  "provider": "bifrost",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for aixy."
+  },
+  "provider": "aixy",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for deepgram."
+  },
+  "provider": "deepgram",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for soniox."
+  },
+  "provider": "soniox",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for poe."
+  },
+  "provider": "poe",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for chutes."
+  },
+  "provider": "chutes",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for neuralwatt."
+  },
+  "provider": "neuralwatt",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "helmcode",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for clawrouter."
+  },
+  "provider": "clawrouter",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No LongCat session cookies found in browsers."
+  },
+  "provider": "longcat",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for sub2api."
+  },
+  "provider": "sub2api",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Could not reach the Wayfinder gateway. Start it with `wayfinder-router serve` (default http://127.0.0.1:8088) or fix the Gateway URL in Settings."
+  },
+  "provider": "wayfinder",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for zenmux."
+  },
+  "provider": "zenmux",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for aiand."
+  },
+  "provider": "aiand",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "zoommate",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for xai."
+  },
+  "provider": "xai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "xapi",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "notion",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for ibmbob."
+  },
+  "provider": "ibmbob",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Hermes auth file at /Users/<user>/.hermes/auth.json has no Nous Portal access token. Run `hermes auth add nous` to sign in."
+  },
+  "provider": "nous",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for muse."
+  },
+  "provider": "muse",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for coderabbit."
+  },
+  "provider": "coderabbit",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No Replicate session cookies found. Sign in at replicate.com/account/billing or paste a Cookie header."
+  },
+  "provider": "replicate",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for huggingface."
+  },
+  "provider": "huggingface",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "raycast",
+  "source": "auto"
+ },
+ {
+  "provider": "pi",
+  "source": "local",
+  "usage": {
+   "dataConfidence": "estimated",
+   "primary": null,
+   "secondary": null,
+   "tertiary": null,
+   "updatedAt": "2026-10-30T17:48:29Z"
+  }
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for v0."
+  },
+  "provider": "v0",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No TypeSafe session cookies found. Sign in at console.typesafe.ai/settings/billing or paste a Cookie header."
+  },
+  "provider": "typesafe",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "hyper",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for gitkraken."
+  },
+  "provider": "gitkraken",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Future AGI requires both FI_API_KEY and FI_SECRET_KEY."
+  },
+  "provider": "futureagi",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for devpass."
+  },
+  "provider": "devpass",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for atlascloud."
+  },
+  "provider": "atlascloud",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for vercel."
+  },
+  "provider": "vercel",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "llmman is not reachable at http://127.0.0.1:17434. Start it with llmman serve."
+  },
+  "provider": "llmman",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for xkiro."
+  },
+  "provider": "xkiro",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "museai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "lithosai",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh."
+  },
+  "provider": "workbuddy",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for tavily."
+  },
+  "provider": "tavily",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for linkup."
+  },
+  "provider": "linkup",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "tinyapi",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for exa."
+  },
+  "provider": "exa",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for cosmic."
+  },
+  "provider": "cosmic",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for aerostack."
+  },
+  "provider": "aerostack",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for sailresearch."
+  },
+  "provider": "sailresearch",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for sofya."
+  },
+  "provider": "sofya",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for fal."
+  },
+  "provider": "fal",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for flora."
+  },
+  "provider": "flora",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "parallel",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "claudeplatform",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for munito."
+  },
+  "provider": "munito",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "Cannot read Chrome's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Chrome under CodexBar, then refresh. Cannot read Firefox's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox under CodexBar, then refresh. Cannot read Firefox Beta's profile. In System Settings \u2192 Privacy & Security \u2192 Files & Folders, turn on Firefox Beta under CodexBar, then refresh. Safari cookies need Full Disk Access for CodexBar in System Settings \u2192 Privacy & Security \u2192 Full Disk Access, then refresh."
+  },
+  "provider": "traecn",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for chatbox."
+  },
+  "provider": "chatbox",
+  "source": "auto"
+ },
+ {
+  "error": {
+   "code": 1,
+   "kind": "provider",
+   "message": "No available fetch strategy for abliteration."
+  },
+  "provider": "abliteration",
+  "source": "auto"
+ }
+]

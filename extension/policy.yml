@@ -21,3 +21,11 @@ tiers:
       - cheap-sub
       - cheap-flash
       - healthy-free-fast
+# How much each benchmark facet counts in a tier. Three non-negative numbers per tier that sum to
+# something; a missing or damaged entry falls back to the shipped value for that tier. Judgment, not
+# measurement. Tiers stay price groups: these weights only decide which model leads inside them.
+weights:
+  frontier: { coding: 0.40, agentic: 0.45, general: 0.15 }
+  balanced: { coding: 0.45, agentic: 0.35, general: 0.20 }
+  small: { coding: 0.40, agentic: 0.20, general: 0.40 }
+  free: { coding: 0.45, agentic: 0.35, general: 0.20 }

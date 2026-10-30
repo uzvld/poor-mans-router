@@ -1,0 +1,78 @@
+Model version,Percent correct,Release date,Organization
+gpt-oss-120b_high,41.8,2025-08-05,OpenAI
+Qwen3-235B-A22B,59.6,2025-04-29,Alibaba
+,52.9,,
+DeepSeek-V3.2-Exp,70.2,2025-09-29,DeepSeek
+DeepSeek-V3.2-Exp_thinking,74.2,2025-09-29,DeepSeek
+gpt-5-2025-08-07_low,81.3,2025-08-07,OpenAI
+gpt-5-2025-08-07_medium,86.7,2025-08-07,OpenAI
+gpt-5-2025-08-07_high,88.0,2025-08-07,OpenAI
+o3-2025-04-16_medium,76.9,2025-04-16,OpenAI
+grok-3-mini-beta_low,34.7,2025-04-09,xAI
+openhands-lm-32b-v0.1,10.2,2024-03-26,
+Kimi-K2-Instruct,59.1,2025-07-12,Moonshot
+grok-4-0709,79.6,2025-07-09,xAI
+o3-pro-2025-06-10_high,84.9,2025-06-10,OpenAI
+gemini-2.5-pro-preview-05-06,76.9,2025-05-06,Google DeepMind
+gemini-2.5-pro-preview-06-05,79.1,2025-06-05,Google DeepMind
+gemini-2.5-pro-preview-06-05_32K,83.1,2025-06-05,Google DeepMind
+gemini-2.5-flash-preview-05-20_23K,55.1,2025-05-20,Google DeepMind
+gemini-2.5-flash-preview-05-20,44.0,2025-05-20,Google DeepMind
+claude-sonnet-4-20250514,56.4,2025-05-22,Anthropic
+claude-sonnet-4-20250514_32K,61.3,2025-05-22,Anthropic
+claude-opus-4-20250514,70.7,2025-05-22,Anthropic
+claude-opus-4-20250514_32K,72.0,2025-05-22,Anthropic
+Qwen3-32B,40.0,2025-04-29,Alibaba
+Llama-4-Maverick-17B-128E-Instruct,15.6,2025-04-05,Meta AI
+gpt-4.1-mini-2025-04-14,32.4,2025-04-14,OpenAI
+gpt-4.1-nano-2025-04-14,8.9,2025-04-14,OpenAI
+chatgpt-4o-03-27-2025,45.3,2025-03-27,OpenAI
+gemini-2.5-flash-preview-04-17,47.1,2025-04-17,Google DeepMind
+grok-3-mini-beta_high,49.3,2025-04-09,xAI
+gpt-4.1-2025-04-14,52.4,2025-04-14,OpenAI
+grok-3-beta,53.3,2025-04-09,xAI
+DeepSeek-V3-0324,55.1,2025-03-24,DeepSeek
+DeepSeek-R1-0528,71.4,2025-05-28,DeepSeek
+gemini-2.5-pro-exp-03-25,72.9,2025-03-25,Google DeepMind
+o4-mini-2025-04-16_high,72.0,2025-04-16,OpenAI
+o3-2025-04-16_high,81.3,2025-04-16,OpenAI
+,78.2,,
+gemini-2.0-flash-thinking-exp-01-21,18.2,2025-01-21,"Google DeepMind,Google"
+gpt-4o-2024-11-20,18.2,2024-11-20,OpenAI
+claude-3-5-sonnet-20241022,51.6,2024-10-22,Anthropic
+Qwen2.5-Coder-32B-Instruct,8.0,2024-11-21,Alibaba
+claude-3-5-haiku-20241022,28.0,2024-10-22,Anthropic
+gemini-exp-1206,38.2,2024-12-06,"Google DeepMind,Google"
+DeepSeek-R1,56.9,2025-01-20,DeepSeek
+DeepSeek-V3,48.4,2024-12-26,DeepSeek
+qwen-max-2025-01-25,21.8,2025-01-25,Alibaba
+gemini-2.0-pro-exp-02-05,35.6,2025-02-05,Google DeepMind
+,32.9,,
+QwQ-32B,20.9,2025-03-05,Alibaba
+c4ai-command-a-03-2025,12.0,2025-03-13,Cohere
+gpt-4o-mini-2024-07-18,3.6,2024-07-18,OpenAI
+gemma-3-27b-it,4.9,2025-03-12,Google DeepMind
+gpt-4.5-preview-2025-02-27,44.9,2025-02-27,OpenAI
+,26.2,,
+claude-3-7-sonnet-20250219,60.4,2025-02-24,Anthropic
+gemini-2.0-flash-exp,22.2,2024-12-11,"Google DeepMind,Google"
+DeepSeek-V2.5,17.8,2024-09-06,DeepSeek
+Qwen2.5-Coder-32B-Instruct,16.4,2024-11-21,Alibaba
+chatgpt-4o-01-29-2025,27.1,2025-01-29,OpenAI
+codestral-2501,11.1,2025-01-13,Mistral AI
+o1-2024-12-17_high,61.7,2024-12-17,OpenAI
+o3-mini-2025-01-31_medium,53.8,2025-01-31,OpenAI
+yi-lightning,12.9,2024-12-02,01.AI
+gpt-4o-2024-08-06,23.1,2024-08-06,OpenAI
+,64.0,,
+claude-3-7-sonnet-20250219_32K,64.9,2025-02-24,Anthropic
+o3-mini-2025-01-31_high,60.4,2025-01-31,OpenAI
+o1-mini-2024-09-12_unknown,32.9,2024-09-12,OpenAI
+gemini-2.5-pro-preview-03-25,72.9,2025-03-31,Google DeepMind
+Qwen3-235B-A22B-Instruct-2507,59.6,2025-07-25,Alibaba
+o3-2025-04-16_unknown,76.9,2025-04-16,OpenAI
+grok-4-0709_high,79.6,2025-07-09,xAI
+moonshotai/kimi-k2-0905,59.1,2025-09-05,Moonshot
+openai/gpt-oss-120b_high,41.8,2025-08-05,OpenAI
+deepseek-reasoner,74.2,2025-12-01,DeepSeek
+deepseek-chat,70.2,2025-12-01,DeepSeek

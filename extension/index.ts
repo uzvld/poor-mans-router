@@ -2,7 +2,7 @@ import type { ExtensionAPI, ExtensionContext } from '@oh-my-pi/pi-coding-agent';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RouterPolicy, Tier } from './types.ts';
-import { DEFAULT_POLICY, normalizePolicy } from './policy.ts';
+import { DEFAULT_POLICY, DEFAULT_WEIGHTS, normalizePolicy } from './policy.ts';
 import { fetchCodexBarUsage, fetchOmpUsage, type CodexBarUsage, type OmpCredentialUsage } from './telemetry.ts';
 import { fetchOmpHistory, type HistoryMap } from './history.ts';
 import {
@@ -11,12 +11,19 @@ import {
   intelRefreshDue,
   mergeIntelCache,
   resolveOpenRouterKey,
+  canonicalModelSlug,
+  intelAliases,
   type IntelCache,
+  type IntelMap,
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
 import { computeLadders, type ComputedLadder } from './rungs.ts';
 import { cooldownFromPermanentModelError, cooldownFromRetry, isPaidBalanceError, isPermanentModelError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
 import { IntelStore, RouterStateStore } from './state.ts';
+import { blendIntel, type BlendReport } from './bench-blend.ts';
+import { LIVE_FETCHERS, recordAaSnapshot, refreshKeylessSources } from './bench-refresh.ts';
+import { BenchStore, type BenchHistory } from './bench-store.ts';
+import { BENCH_SOURCES } from './bench-types.ts';
 import {
   FreeProbeGate,
   allowDrainingForTier,
@@ -29,7 +36,7 @@ import {
   shouldRouteBeforeAgentStart,
   retryRoutingPolicy,
 } from './runtime.ts';
-import { formatRouteStatus } from './status.ts';
+import { formatRouteStatus, type BenchStatus, type StatusContributions } from './status.ts';
 import { VIRTUAL_PROVIDER, registerVirtualRouterProvider, resolveModeTransition, virtualModeForModelKey, type ManagedMode, type RoutingMode } from './virtual-model.ts';
 import { holdForRemoteCompaction } from './compaction-guard.ts';
 
@@ -92,16 +99,23 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   const state = new RouterStateStore(stateFilePath());
   const intelStore = IntelStore.besideStateFile(stateFilePath());
   const probeGate = new FreeProbeGate();
+  const benchStore = BenchStore.besideStateFile(stateFilePath());
 
   let policy: RouterPolicy = DEFAULT_POLICY;
   let ompUsage: Timestamped<OmpCredentialUsage[]> = { value: [], fetchedAt: 0 };
   let codexbar: Timestamped<CodexBarUsage[]> = { value: [], fetchedAt: 0 };
   let history: Timestamped<HistoryMap> = { value: {}, fetchedAt: 0 };
   let intel: IntelCache = { ...EMPTY_INTEL_CACHE };
+  // Benchmark evidence from four sources (bench-*.ts). The store is read at session start and after each
+  // refresh, never on the turn path; the blend with the AA cache is derived once per change of its inputs.
+  let benchHistory: BenchHistory = {};
+  let benchRevisionKey = '';
+  let blended: { intel: IntelMap; report?: BlendReport; key: string } | undefined;
+  let benchRefresh: Promise<void> | undefined;
   // Rung order per tier, derived from the last snapshot that landed (see rungs.ts). Undefined
   // until a snapshot exists: the shipped ladder in policy.yml is the fallback, by contract.
   let ladders: Record<Tier, ComputedLadder> | undefined;
-  let laddersIntelAt = 0;
+  let laddersIntelAt = '';
   let liveRefresh: Promise<void> | undefined;
   let historyRefresh: Promise<void> | undefined;
   let lastRoutedSelector: string | undefined;
@@ -213,31 +227,90 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     }
   };
 
-  const refreshIntel = async (ctx: any): Promise<void> => {
+  const loadBench = (): void => {
     try {
-      await refreshIntelSnapshot(ctx);
-      // Membership in a `*-sub` class needs OMP's subscription telemetry, and a ladder is derived
-      // once per snapshot. A persisted snapshot is available instantly while `omp usage` takes
-      // seconds, so deriving now would profile routes with no subscription class and pin the
-      // shipped order until the next snapshot: wait for the telemetry refresh already in flight.
-      if (liveRefresh) await liveRefresh;
-      // Rung order is derived once per snapshot, never per turn: a refresh that returned the
-      // cached map must not re-derive anything, and what it does derive is sticky (the margin
-      // in rungs.ts only lets a rung climb when the snapshot says so by more than noise).
-      if (laddersIntelAt === intel.fetchedAt) return;
-      ladders = computeLadders(policy, currentRoutes(ctx), ladders ? {
-        frontier: ladders.frontier.order,
-        balanced: ladders.balanced.order,
-        small: ladders.small.order,
-        free: ladders.free.order,
-      } : {});
-      laddersIntelAt = intel.fetchedAt;
+      benchHistory = benchStore.read().history;
+      // Every retained source timestamp participates: a slow source may arrive after a newer peer.
+      benchRevisionKey = JSON.stringify(BENCH_SOURCES.map((source) =>
+        benchHistory[source]?.map((snapshot) => [snapshot.fetchedAt, snapshot.sourceVersion]) ?? []));
     } catch (error) {
-      logger.warn('pmr OpenRouter intelligence refresh failed', { error: String(error) });
+      logger.warn('pmr could not read benchmark snapshots', { error: String(error) });
     }
   };
 
-  const currentRoutes = (ctx: any) => {
+  /** The AA cache with the other sources blended in; the bare AA cache if the blend ever fails (fail open). */
+  const currentBlend = (): { intel: IntelMap; report?: BlendReport } => {
+    const key = `${intel.fetchedAt}|${benchRevisionKey}`;
+    if (blended?.key !== key) {
+      try {
+        blended = { ...blendIntel(intel.data, benchHistory), key };
+      } catch (error) {
+        logger.warn('pmr benchmark blend failed', { error: String(error) });
+        blended = { intel: intel.data, key };
+      }
+    }
+    return blended;
+  };
+
+  // Fetches whatever is due and stores it. Needs no OpenRouter key, so it runs whether or not the AA refresh did,
+  // and it is slow (LMArena paces its requests): only ever called from the background refresh path.
+  const refreshBench = (): Promise<void> => {
+    if (benchRefresh) return benchRefresh;
+    benchRefresh = (async () => {
+      const now = Date.now();
+      await recordAaSnapshot(benchStore, intel, now);
+      await refreshKeylessSources(benchStore, LIVE_FETCHERS, now, (message, detail) => logger.warn(message, detail));
+      loadBench();
+    })().catch((error) => {
+      logger.warn('pmr benchmark refresh failed', { error: String(error) });
+    }).finally(() => {
+      benchRefresh = undefined;
+    });
+    return benchRefresh;
+  };
+
+  // Membership in a `*-sub` class needs OMP's subscription telemetry, and a ladder is derived once per
+  // change of evidence. A persisted snapshot is available instantly while `omp usage` takes seconds, so
+  // deriving now would profile routes with no subscription class and pin the shipped order until the next
+  // snapshot: wait for the telemetry refresh already in flight. Rung order is never derived per turn, and
+  // what it derives is sticky (the margin in rungs.ts only lets a rung climb when the evidence says so by
+  // more than noise). Each tier is scored with its own weights, so each gets its own route list.
+  const deriveLadders = async (ctx: any): Promise<void> => {
+    if (liveRefresh) await liveRefresh;
+    const revision = `${intel.fetchedAt}|${benchRevisionKey}`;
+    if (laddersIntelAt === revision) return;
+    ladders = computeLadders(policy, {
+      frontier: currentRoutes(ctx, 'frontier'),
+      balanced: currentRoutes(ctx, 'balanced'),
+      small: currentRoutes(ctx, 'small'),
+      free: currentRoutes(ctx, 'free'),
+    }, ladders ? {
+      frontier: ladders.frontier.order,
+      balanced: ladders.balanced.order,
+      small: ladders.small.order,
+      free: ladders.free.order,
+    } : {});
+    laddersIntelAt = revision;
+  };
+
+  const refreshIntel = async (ctx: any): Promise<void> => {
+    try {
+      await refreshIntelSnapshot(ctx);
+    } catch (error) {
+      logger.warn('pmr OpenRouter intelligence refresh failed', { error: String(error) });
+    }
+
+    try {
+      loadBench(); // snapshots a peer process or an earlier session already stored: no network
+      await deriveLadders(ctx);
+      await refreshBench();
+      await deriveLadders(ctx); // a no-op unless a snapshot landed
+    } catch (error) {
+      logger.warn('pmr benchmark refresh failed', { error: String(error) });
+    }
+  };
+
+  const currentRoutes = (ctx: any, tier: Tier = 'balanced') => {
     state.clearExpired();
     const models = ctx.models.list().filter((model: { provider: string }) => model.provider !== VIRTUAL_PROVIDER).map(asModelLike);
     return buildRoutes(models, {
@@ -245,14 +318,15 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       codexbar: codexbar.value,
       localState: state.snapshot(),
       history: history.value,
-      intel: intel.data,
+      intel: currentBlend().intel,
+      weights: policy.weights?.[tier] ?? DEFAULT_WEIGHTS[tier],
       reservePct: 10,
       now: Date.now(),
     });
   };
 
   const chooseForCurrentWork = (ctx: any, mode: ManagedMode) => {
-    const routes = currentRoutes(ctx);
+    const routes = currentRoutes(ctx, mode);
     const classOrder = ladders?.[mode]?.order ?? policy.tiers[mode].classes;
     const selection = selectForTier(
       routes,
@@ -266,6 +340,39 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     );
     lastDecision = { tier: mode, selection, routes, at: Date.now() };
     return { routes, selection };
+  };
+
+  /** No snapshot for three days: the router is running on old evidence. */
+  const BENCH_STALE_AFTER_MS = 72 * 3_600_000;
+
+  const benchStatus = (now: number): BenchStatus[] => {
+    const report = currentBlend().report;
+    return BENCH_SOURCES.flatMap((source): BenchStatus[] => {
+      const latest = benchHistory[source]?.at(-1);
+      // AA refreshes every six hours; its daily snapshot in the store would make it look a day older.
+      const fetchedAt = source === 'aa' ? intel.fetchedAt : (latest?.fetchedAt ?? 0);
+      if (fetchedAt <= 0) return [];
+      return [{
+        source,
+        sourceVersion: latest?.sourceVersion ?? source,
+        ageMs: now - fetchedAt,
+        ...(latest?.publishedAt ? { publishedAt: latest.publishedAt } : {}),
+        models: report?.matched[source] ?? latest?.rows.length ?? 0,
+        rebaselined: report?.rebaselined.includes(source) ?? false,
+        stale: now - fetchedAt > BENCH_STALE_AFTER_MS,
+      }];
+    });
+  };
+
+  /** What each source said about the route the router chose, by the model's canonical key. */
+  const selectedContributions = (route: { provider: string; modelId: string } | undefined): StatusContributions | undefined => {
+    const report = currentBlend().report;
+    if (!route || !report) return undefined;
+    const model = intelAliases(canonicalModelSlug(route.provider, route.modelId)).find((alias) => report.byModel[alias]);
+    const facets = model ? report.byModel[model] : undefined;
+    if (!model || !facets) return undefined;
+    const penalty = report.penalties[model];
+    return { model, facets, ...(penalty ? { penalty } : {}) };
   };
 
   function markErrorCooldown(ctx: ExtensionContext, key: string, message: string, cooldown: LocalRouteState): void {
@@ -290,7 +397,9 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     // policy.yml may have changed the class sets, so any ladder derived from the previous
     // policy is void; the next snapshot rebuilds it.
     ladders = undefined;
-    laddersIntelAt = 0;
+    laddersIntelAt = '';
+    mergeSharedIntel(); // the AA cache an earlier session stored: the blend needs it as its reference from the first turn
+    loadBench();
     state.load();
     const keys = new Set(ctx.models.list().map(modelKey).filter((x: string | undefined): x is string => !!x));
     state.garbageCollect(keys);
@@ -661,7 +770,9 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
           openRouterIntelAgeMs: intel.fetchedAt ? now - intel.fetchedAt : undefined,
           openRouterIntelBlockedUntil: intel.blockedUntil && intel.blockedUntil > now ? intel.blockedUntil : undefined,
           historyAgeMs: history.fetchedAt ? now - history.fetchedAt : undefined,
+          bench: benchStatus(now),
         },
+        contributions: selectedContributions(lastDecision.routes.find((route) => route.key === selected)),
       });
       ctx.ui.notify(text, 'info');
     },

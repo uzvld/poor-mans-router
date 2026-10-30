@@ -1,0 +1,22 @@
+Model version,Score,Release date,Organization,Harness
+gpt-6-astra_max,0.6550757455882352,2026-09-03,OpenAI,proximus
+claude-opus-5-5_max,0.623309882352941,2026-09-22,Anthropic,proximus
+claude-sonnet-5-5_max,0.618892994117647,2026-09-28,Anthropic,proximus
+claude-fable-5-1_max,0.5629078999999999,2026-09-01,Anthropic,proximus
+gemini-4-argon_high,0.5496118588235293,2026-09-30,Google DeepMind,proximus
+claude-opus-5_max,0.5201176764705882,2026-07-24,Anthropic,proximus
+claude-fable-5_max,0.4696449352941177,2026-06-09,Anthropic,proximus
+claude-haiku-5-5_max,0.4376868294117648,2026-10-07,Anthropic,proximus
+gpt-5.6-sol_max,0.3220246705882353,2026-07-09,OpenAI,proximus
+glm-5.3_max,0.3018186411764705,2026-08-14,Z.ai (Zhipu AI),proximus
+grok-4.7_xhigh,0.2950476117647059,2026-09-21,xAI,proximus
+kimi-k3_max,0.25865032058823534,2026-07-16,Moonshot,proximus
+muse-spark-1.3_max,0.2580214823529412,2026-09-02,Meta AI,proximus
+grok-4.6_xhigh,0.25286195882352946,2026-08-12,xAI,proximus
+gemini-3.7-flash_high,0.20260590588235297,2026-08-13,Google DeepMind,proximus
+gemini-3.8-flash_high,0.19626902941176463,2026-09-02,Google DeepMind,proximus
+glm-5.3-flash_max,0.18125205882352943,2026-08-20,Z.ai (Zhipu AI),proximus
+qwen3.8-max-0902_xhigh,0.17809649411764705,2026-09-01,Alibaba,proximus
+qwen3.8-max_xhigh,0.15809350588235294,2026-08-02,Alibaba,proximus
+muse-spark-1.2_xhigh,0.11970256470588238,2026-08-05,Meta AI,proximus
+Inkling_xhigh,0.04118886470588236,2026-07-15,Thinking Machines,proximus

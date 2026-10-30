@@ -1,3 +1,4 @@
+import { ANCHORING_WEIGHTS } from './anchoring-weights.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,7 +17,7 @@ function routesFor(intel: IntelMap, ids: string[]) {
     ids.map((id) => ({ provider: 'anthropic', id, selector: `anthropic/${id}`, cost: { input: 2, output: 10 } })),
     {
       ompReports: normalizeOmpUsage(JSON.parse(fs.readFileSync('fixtures/live-omp-usage-2026-09-19.json', 'utf8'))),
-      codexbar: [], localState: {}, history: {}, intel, reservePct: 10, now: LIVE_NOW,
+      codexbar: [], localState: {}, history: {}, intel, reservePct: 10, now: LIVE_NOW, weights: ANCHORING_WEIGHTS,
     },
   );
 }
@@ -145,7 +146,7 @@ const NOW_HEALTH = { reliability: 1, errorRate: 0, requests: 20 };
 function genericRoutes(intel: IntelMap, ids: string[], history: Record<string, typeof NOW_HEALTH> = {}) {
   return buildRoutes(
     ids.map((id) => ({ provider: 'openrouter', id, selector: `openrouter/${id}`, cost: { input: 2, output: 10 } })),
-    { ompReports: [], codexbar: [], localState: {}, history, intel, reservePct: 10, now: LIVE_NOW },
+    { ompReports: [], codexbar: [], localState: {}, history, intel, reservePct: 10, now: LIVE_NOW, weights: ANCHORING_WEIGHTS },
   );
 }
 
@@ -253,27 +254,6 @@ test('with no measured reference a route that has an index still beats one that 
   }
 });
 
-test('a coding-measured route keeps exactly the score the coding/agentic formula gives it', () => {
-  // No other pair may be re-ordered, not even by a rounding step: the anchored path is for routes
-  // without a coding index only.
-  const rows = [
-    { coding: 0.715, agentic: 0.436, intelligence: 0.382, taskFit: 0.051, popularity: 0.876 },
-    { coding: 0.783, agentic: 0.502, intelligence: 0.47, taskFit: 0.127, popularity: 0.8977 },
-    { coding: 0.6, agentic: 0.5, intelligence: 0.4, popularity: 0.3333 },
-    { coding: 0.71, agentic: 0.29, intelligence: 0.1 },
-    // Chosen so that adding the reliability term last instead of in formula order differs by one ulp.
-    { coding: 0.408, agentic: 0.16, intelligence: 0.2, taskFit: 0.207, popularity: 0.235 },
-    { coding: 0.487, agentic: 0.048, intelligence: 0.2, taskFit: 0.149, popularity: 0.205 },
-    { coding: 0.144, agentic: 0.714, intelligence: 0.2, taskFit: 0.134, popularity: 0.142 },
-  ];
-  rows.forEach((row, i) => {
-    const id = `acme/measured-${i}`;
-    const [route] = genericRoutes({ [id]: row }, [id]);
-    const expected =
-      0.35 + 0.24 * row.coding + 0.14 * row.agentic + 0.10 * (row.taskFit ?? 0.5) + 0.10 * 0.5 + 0.07 * (row.popularity ?? 0.5);
-    assert.equal(route?.qualityScore, expected, id);
-  });
-});
 
 test('between two intelligence-only routes of one vendor the higher index wins, whatever their references were', () => {
   // gamma-2 (index 0.45) anchors on a strong reference: 0.649 + 0.019 = 0.668. zeta-2 (index 0.50)
