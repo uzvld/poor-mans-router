@@ -68,7 +68,26 @@ test('the penalty comes off every facet of the model in the blend, never below z
   const twin: BenchHistory = { lmarena: latest ? [latest] : [] };
   const before = blendIntel(base, twin).intel['v/m5'];
   const after = blendIntel(base, nerfed).intel['v/m5'];
-  assert.ok(Math.abs((before?.intelligence ?? 0) - (after?.intelligence ?? 0) - penalty) < 1e-9);
-  assert.ok(Math.abs((before?.coding ?? 0) - (after?.coding ?? 0) - penalty) < 1e-9, 'a model that degraded is lower on every facet, not only the one measured');
+  assert.equal(after?.intelligence, before?.intelligence, 'a nerf must not rewrite the raw AA anchor coordinate');
+  assert.ok(Math.abs((before?.coding ?? 0) - (after?.coding ?? 0) - penalty) < 1e-9, 'the nerf reduces coding once');
+  assert.ok(Math.abs((before?.general ?? 0) - (after?.general ?? 0) - penalty) < 1e-9, 'the nerf reduces projected general once');
+  const peersBefore = blendIntel(base, twin).intel;
+  const peersAfter = blendIntel(base, nerfed).intel;
+  for (const model of Object.keys(base).filter((key) => key !== 'v/m5')) {
+    assert.deepEqual(peersAfter[model], peersBefore[model], `the nerf must not change ${model}'s calibration`);
+  }
   assert.ok((blendIntel({ 'v/m5': { intelligence: 0.001 } }, nerfed).intel['v/m5']?.intelligence ?? 1) >= 0);
+});
+
+test('a stable snapshot after a rebaseline does not compare across the old scale', () => {
+  const before = Object.fromEntries(Array.from({ length: 10 }, (_, i) => [`v/m${i}`, { general: 1000 + i * 100 }]));
+  const rebased = Object.fromEntries(Array.from({ length: 10 }, (_, i) => [`v/m${i}`, { general: 1900 - i * 100 }]));
+  const history: BenchHistory = {
+    lmarena: [
+      synthetic('lmarena', before, { version: 'v1' }),
+      synthetic('lmarena', rebased, { version: 'v2' }),
+      synthetic('lmarena', rebased, { version: 'v2' }),
+    ],
+  };
+  assert.equal(nerfPenalties(history).size, 0);
 });

@@ -109,12 +109,13 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   // Benchmark evidence from four sources (bench-*.ts). The store is read at session start and after each
   // refresh, never on the turn path; the blend with the AA cache is derived once per change of its inputs.
   let benchHistory: BenchHistory = {};
+  let benchRevisionKey = '';
   let blended: { intel: IntelMap; report?: BlendReport; key: string } | undefined;
   let benchRefresh: Promise<void> | undefined;
   // Rung order per tier, derived from the last snapshot that landed (see rungs.ts). Undefined
   // until a snapshot exists: the shipped ladder in policy.yml is the fallback, by contract.
   let ladders: Record<Tier, ComputedLadder> | undefined;
-  let laddersIntelAt = 0;
+  let laddersIntelAt = '';
   let liveRefresh: Promise<void> | undefined;
   let historyRefresh: Promise<void> | undefined;
   let lastRoutedSelector: string | undefined;
@@ -229,16 +230,17 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   const loadBench = (): void => {
     try {
       benchHistory = benchStore.read().history;
+      // Every retained source timestamp participates: a slow source may arrive after a newer peer.
+      benchRevisionKey = JSON.stringify(BENCH_SOURCES.map((source) =>
+        benchHistory[source]?.map((snapshot) => [snapshot.fetchedAt, snapshot.sourceVersion]) ?? []));
     } catch (error) {
       logger.warn('pmr could not read benchmark snapshots', { error: String(error) });
     }
   };
 
-  const benchRevision = (): number => Math.max(0, ...BENCH_SOURCES.map((source) => benchHistory[source]?.at(-1)?.fetchedAt ?? 0));
-
   /** The AA cache with the other sources blended in; the bare AA cache if the blend ever fails (fail open). */
   const currentBlend = (): { intel: IntelMap; report?: BlendReport } => {
-    const key = `${intel.fetchedAt}|${benchRevision()}`;
+    const key = `${intel.fetchedAt}|${benchRevisionKey}`;
     if (blended?.key !== key) {
       try {
         blended = { ...blendIntel(intel.data, benchHistory), key };
@@ -256,7 +258,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     if (benchRefresh) return benchRefresh;
     benchRefresh = (async () => {
       const now = Date.now();
-      recordAaSnapshot(benchStore, intel, now);
+      await recordAaSnapshot(benchStore, intel, now);
       await refreshKeylessSources(benchStore, LIVE_FETCHERS, now, (message, detail) => logger.warn(message, detail));
       loadBench();
     })().catch((error) => {
@@ -275,7 +277,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   // more than noise). Each tier is scored with its own weights, so each gets its own route list.
   const deriveLadders = async (ctx: any): Promise<void> => {
     if (liveRefresh) await liveRefresh;
-    const revision = Math.max(intel.fetchedAt, benchRevision());
+    const revision = `${intel.fetchedAt}|${benchRevisionKey}`;
     if (laddersIntelAt === revision) return;
     ladders = computeLadders(policy, {
       frontier: currentRoutes(ctx, 'frontier'),
@@ -294,12 +296,17 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
   const refreshIntel = async (ctx: any): Promise<void> => {
     try {
       await refreshIntelSnapshot(ctx);
+    } catch (error) {
+      logger.warn('pmr OpenRouter intelligence refresh failed', { error: String(error) });
+    }
+
+    try {
       loadBench(); // snapshots a peer process or an earlier session already stored: no network
       await deriveLadders(ctx);
       await refreshBench();
       await deriveLadders(ctx); // a no-op unless a snapshot landed
     } catch (error) {
-      logger.warn('pmr OpenRouter intelligence refresh failed', { error: String(error) });
+      logger.warn('pmr benchmark refresh failed', { error: String(error) });
     }
   };
 
@@ -347,6 +354,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       if (fetchedAt <= 0) return [];
       return [{
         source,
+        sourceVersion: latest?.sourceVersion ?? source,
         ageMs: now - fetchedAt,
         ...(latest?.publishedAt ? { publishedAt: latest.publishedAt } : {}),
         models: report?.matched[source] ?? latest?.rows.length ?? 0,
@@ -389,7 +397,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     // policy.yml may have changed the class sets, so any ladder derived from the previous
     // policy is void; the next snapshot rebuilds it.
     ladders = undefined;
-    laddersIntelAt = 0;
+    laddersIntelAt = '';
     mergeSharedIntel(); // the AA cache an earlier session stored: the blend needs it as its reference from the first turn
     loadBench();
     state.load();

@@ -118,3 +118,29 @@ test('fetch reads the archive and yields the snapshot parsing its files yields',
   const html = (async () => new Response('<html>maintenance</html>')) as unknown as typeof fetch;
   await assert.rejects(fetchEpoch(html, 5));
 });
+
+test('an oversized streamed archive is cancelled before the rest is consumed, with or without Content-Length', async () => {
+  const maxArchiveBytes = 32 * 1024 * 1024;
+  const atLimit = new Uint8Array(maxArchiveBytes);
+  for (const headers of [undefined, { 'content-length': '1' }]) {
+    let pulls = 0;
+    let cancelled = false;
+    const chunks = [atLimit, new Uint8Array([1]), new Uint8Array([2])];
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const index = pulls++;
+        if (index < chunks.length) controller.enqueue(chunks[index]!);
+        else controller.close();
+      },
+      cancel() {
+        cancelled = true;
+      },
+    }, { highWaterMark: 0 });
+    const response = new Response(body, { headers });
+    const oversized = (async () => response) as typeof fetch;
+
+    await assert.rejects(fetchEpoch(oversized, 5), /larger than expected/);
+    assert.equal(pulls, 2, 'the first chunk beyond the bound is enough to reject');
+    assert.equal(cancelled, true, 'the unread remainder of the response is cancelled');
+  }
+});

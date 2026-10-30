@@ -328,12 +328,12 @@ interface AnchoredBase {
  * The lineage is read from the snapshot key the route matched (`match.key`), the key the reference
  * pool is built from, not from the catalog slug: a bare id on a provider the slug helper does not
  * map (`opencode-go/grok-4.7`) is `opencode-go/...` there but `x-ai/grok-4.7` in the snapshot.
- * undefined when the model is coding-measured, has no intelligence index, or has no measured lineage.
+ * undefined when the tier has a usable composite facet, there is no intelligence index, or no measured lineage.
  * taskFit and popularity are the reference's: a lone taskFit of 0.024 against the neutral 0.5 prior
  * outweighed a real intelligence lead (opus-5.5 at 57.6 lost to opus-5 at 50.8).
  */
-function anchoredBase(match: IntelMatch | undefined, pools: Map<string, IntelReference[]>): AnchoredBase | undefined {
-  if (!match || match.intel.coding !== undefined || match.intel.intelligence === undefined) return undefined;
+function anchoredBase(match: IntelMatch | undefined, pools: Map<string, IntelReference[]>, weights: FacetWeights): AnchoredBase | undefined {
+  if (!match || match.intel.intelligence === undefined || benchmarkPower(match.intel, weights) !== undefined) return undefined;
   const pool = pools.get(lineageOf(match.key));
   if (!pool) return undefined;
   let reference: IntelReference | undefined;
@@ -464,7 +464,7 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
   const catalogMeasured = catalog.map((model) => (input.history[`${model.provider}/${model.id}`]?.requests ?? 0) > 0);
   const anchoredScores = orderByIntelligence(
     catalogMatches.map((match, i) => {
-      const anchor = anchoredBase(match, referencePools);
+      const anchor = anchoredBase(match, referencePools, weights);
       const reliabilityTerm = 0.10 * (catalogReliability[i] as number);
       const measured = catalogMeasured[i] as boolean;
       return anchor && {
@@ -512,9 +512,9 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
       subscriptionLike,
       price: model.cost ?? {},
       health,
-      // Only a route scored from a measured lineage leaves the coding/agentic formula.
+      // Same-lineage intelligence anchoring is only a fallback when no weighted composite is usable.
       qualityScore: anchoredScore ?? qualityFromIntel(intel, reliabilityScore, weights),
-      benchmarked: intel?.coding !== undefined || intel?.agentic !== undefined || intel?.intelligence !== undefined,
+      benchmarked: intel?.coding !== undefined || intel?.agentic !== undefined || intel?.general !== undefined || intel?.intelligence !== undefined,
       agenticScore: intel?.agentic ?? 0.5,
       benchmarkPower: benchmarkPower(intel, weights),
       reliabilityScore,

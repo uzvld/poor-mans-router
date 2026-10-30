@@ -26,7 +26,7 @@ export function parseBenchlm(body: unknown, fetchedAt: number): BenchSnapshot {
     const entries = list(body);
     if (!Array.isArray(entries)) continue;
     for (const entry of entries) {
-      if (!isRecord(entry) || typeof entry.canonicalModelKey !== 'string' || !isFiniteNumber(entry.score)) continue;
+      if (!isRecord(entry) || typeof entry.canonicalModelKey !== 'string' || !isFiniteNumber(entry.score) || entry.score < 0 || entry.score > 100) continue;
       const identity = canonicalBenchModel(entry.canonicalModelKey, typeof entry.creator === 'string' ? entry.creator : undefined);
       if (!identity) continue;
       const observation: BenchObservation = {

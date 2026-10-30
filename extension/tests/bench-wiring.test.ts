@@ -16,7 +16,7 @@ interface Model { provider: string; id: string; cost?: object }
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
 type Command = { handler: (args: string, ctx: unknown) => Promise<void> };
 
-function harness(options: { seedBench: boolean; seedAa?: boolean }) {
+async function harness(options: { seedBench: boolean; seedAa?: boolean; rejectApiKey?: boolean }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmr-wiring-'));
   const stateFile = path.join(dir, 'state.json');
   process.env.PMR_STATE_FILE = stateFile;
@@ -28,7 +28,7 @@ function harness(options: { seedBench: boolean; seedAa?: boolean }) {
   const benchStore = BenchStore.besideStateFile(stateFile);
   if (options.seedBench) {
     for (const snapshots of Object.values(liveHistory())) {
-      for (const snapshot of snapshots ?? []) benchStore.append({ ...snapshot, fetchedAt: now - HOUR }, now);
+      for (const snapshot of snapshots ?? []) await benchStore.append({ ...snapshot, fetchedAt: now - HOUR }, now);
     }
   }
 
@@ -63,7 +63,12 @@ function harness(options: { seedBench: boolean; seedAa?: boolean }) {
     sessionManager: { getBranch: () => [{ type: 'session_init' }], getSessionId: () => 's1' },
     setTimeout(callback: () => unknown) { scheduled.push(callback); },
     setInterval() {},
-    modelRegistry: { getApiKeyForProvider: async () => undefined },
+    modelRegistry: {
+      getApiKeyForProvider: async () => {
+        if (options.rejectApiKey) throw new Error('credential lookup failed');
+        return undefined;
+      },
+    },
     ui: { notify(text: string) { notices.push(text) } },
   };
   // The extension takes the host's API object; this is the part of it the router reads and writes.
@@ -96,7 +101,7 @@ function failingFetch() {
 test('the evidence stored on disk decides the first managed turn: balanced lands on sonnet-5-5', async () => {
   const net = failingFetch();
   try {
-    const h = harness({ seedBench: true });
+    const h = await harness({ seedBench: true });
     await h.start();
     await h.runScheduled();
     assert.equal(await h.turn(), 'claude-sonnet-5-5');
@@ -109,7 +114,7 @@ test('the evidence stored on disk decides the first managed turn: balanced lands
 test('the AA cache alone, with no other source stored, still lands on sonnet-5-5: its intelligence index counts under the tier weights', async () => {
   const net = failingFetch();
   try {
-    const h = harness({ seedBench: false });
+    const h = await harness({ seedBench: false });
     await h.start();
     await h.runScheduled();
     assert.equal(await h.turn(), 'claude-sonnet-5-5');
@@ -121,7 +126,7 @@ test('the AA cache alone, with no other source stored, still lands on sonnet-5-5
 test('every source down: the turn is routed all the same, each source is tried, and none again inside the retry floor', async () => {
   const net = failingFetch();
   try {
-    const h = harness({ seedBench: false });
+    const h = await harness({ seedBench: false });
     await h.start();
     await h.runScheduled();
     assert.equal(await h.turn(), 'claude-sonnet-5-5', 'a failed refresh never reaches the turn');
@@ -140,10 +145,24 @@ test('every source down: the turn is routed all the same, each source is tried, 
   }
 });
 
+test('keyless benchmarks refresh when the AA credential lookup rejects', async () => {
+  const net = failingFetch();
+  try {
+    const h = await harness({ seedBench: false, seedAa: false, rejectApiKey: true });
+    await h.start();
+    await h.runScheduled();
+    const hosts = new Set(net.urls.map((url) => new URL(url).host));
+    assert.deepEqual([...hosts].sort(), ['benchlm.ai', 'datasets-server.huggingface.co', 'epoch.ai']);
+    assert.deepEqual(Object.keys(h.benchStore.read().attempts).sort(), ['benchlm', 'epoch', 'lmarena']);
+  } finally {
+    net.restore();
+  }
+});
+
 test('the AA cache becomes the day\u2019s snapshot in the store, so a later re-baseline can be seen', async () => {
   const net = failingFetch();
   try {
-    const h = harness({ seedBench: false });
+    const h = await harness({ seedBench: false });
     await h.start();
     await h.runScheduled();
     assert.equal(h.benchStore.read().history.aa?.length, 1);
@@ -155,7 +174,7 @@ test('the AA cache becomes the day\u2019s snapshot in the store, so a later re-b
 test('/route-status reports each source, what they said about the chosen model, and credits them', async () => {
   const net = failingFetch();
   try {
-    const h = harness({ seedBench: true });
+    const h = await harness({ seedBench: true });
     await h.start();
     await h.runScheduled();
     await h.turn();
@@ -175,11 +194,40 @@ test('/route-status reports each source, what they said about the chosen model, 
 test('with no benchmark evidence at all the router still routes and /route-status simply has no benchmark section', async () => {
   const net = failingFetch();
   try {
-    const h = harness({ seedBench: false, seedAa: false });
+    const h = await harness({ seedBench: false, seedAa: false });
     await h.start();
     await h.runScheduled();
     assert.ok(await h.turn(), 'a model was chosen from the shipped policy');
     assert.doesNotMatch(await h.routeStatus(), /Epoch AI:|LMArena:/);
+  } finally {
+    net.restore();
+  }
+});
+
+test('a late source snapshot changes the pick even when another source has a newer timestamp', async () => {
+  const net = failingFetch();
+  try {
+    const h = await harness({ seedBench: true });
+    const initial = h.benchStore.read();
+    const latestOther = Math.max(...Object.values(initial.history).flatMap((snapshots) => snapshots?.map((s) => s.fetchedAt) ?? []));
+    delete initial.history.benchlm;
+    fs.writeFileSync(h.benchStore.filename, JSON.stringify(initial));
+    await h.start();
+    await h.runScheduled();
+    assert.equal(await h.turn(), 'claude-sonnet-5-5');
+
+    const late = liveHistory().benchlm?.[0];
+    assert.ok(late);
+    await h.benchStore.append({
+      ...late,
+      fetchedAt: latestOther - HOUR,
+      rows: late.rows.map((row) => row.model === 'anthropic/claude-sonnet-5.5'
+        ? { ...row, observations: row.observations.map((observation) => ({ ...observation, value: 0, confidence: 1 })) }
+        : row),
+    });
+    await h.start();
+    await h.runScheduled();
+    assert.equal(await h.turn(), 'claude-sonnet-5');
   } finally {
     net.restore();
   }

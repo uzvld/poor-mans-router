@@ -182,8 +182,39 @@ export function parseEpoch(files: Record<string, string>, fetchedAt: number): Be
 export async function fetchEpoch(fetchImpl: typeof fetch = fetch, now = Date.now()): Promise<BenchSnapshot> {
   const response = await fetchImpl(ZIP_URL, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
   if (!response.ok) throw new Error(`Epoch: HTTP ${response.status}`);
-  const body = new Uint8Array(await response.arrayBuffer());
-  if (body.length > MAX_ARCHIVE_BYTES) throw new Error('Epoch: the archive is larger than expected');
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Epoch: response has no body');
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = value!;
+      total += chunk.byteLength;
+      if (total > MAX_ARCHIVE_BYTES) {
+        try {
+          await reader.cancel();
+        } catch {
+          // Preserve the size violation if the stream cannot cancel cleanly.
+        }
+        throw new Error('Epoch: the archive is larger than expected');
+      }
+      chunks.push(chunk);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const body = chunks.length === 1 ? chunks[0]! : new Uint8Array(total);
+  if (chunks.length > 1) {
+    let offset = 0;
+    for (const chunk of chunks) {
+      body.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+  }
   const entries = readZipEntries(body, (name) => name === METADATA || name in FACET_BY_FILE, MAX_ENTRY_BYTES);
   return parseEpoch(entries, now);
 }

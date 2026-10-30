@@ -9,6 +9,8 @@ export const BENCH_TTL_MS = 24 * 3_600_000;
 export const BENCH_RETRY_FLOOR_MS = 15 * 60_000;
 /** Snapshots kept per source: a month of daily refreshes is what the nerf trend and the re-baseline check read. */
 const RETENTION = 30;
+const WRITER_LOCK_POLL_MS = 10;
+const WRITER_LOCK_WAIT_ATTEMPTS = 500;
 
 const FACETS: readonly string[] = ['coding', 'agentic', 'general'];
 const EFFORTS: readonly string[] = ['low', 'medium', 'high', 'xhigh', 'max'];
@@ -106,30 +108,107 @@ export class BenchStore {
 
   /**
    * Add one snapshot to its source's history. Refuses one with no usable row: a source that answers
-   * 200 with nothing must leave the last good snapshot in place. Merges with what a peer wrote since,
-   * and replaces the file atomically.
+   * 200 with nothing must leave the last good snapshot in place. Merges under a short sidecar writer
+   * lock, never the network-refresh claim, so a long fetch cannot let a second process overwrite it.
    */
-  append(snapshot: BenchSnapshot, now = Date.now()): BenchHistory {
-    const valid = snapshotOf(snapshot, snapshot.source, now);
+  async append(snapshot: BenchSnapshot, now = Date.now()): Promise<BenchHistory> {
+    const valid = snapshotOf(snapshot, snapshot.source, Math.max(now, Date.now()));
     if (!valid) throw new Error(`refusing an empty or invalid ${snapshot.source} snapshot`);
-    const state = this.read(now);
-    state.history[valid.source] = retained([...(state.history[valid.source] ?? []), valid]);
-    this.write(state);
+    const state = await this.update((current) => {
+      current.history[valid.source] = retained([...(current.history[valid.source] ?? []), valid]);
+    }, now);
     return state.history;
   }
 
-  recordAttempt(source: BenchSource, now = Date.now()): void {
-    const state = this.read(now);
-    state.attempts[source] = Math.max(state.attempts[source] ?? 0, now);
-    this.write(state);
+  async recordAttempt(source: BenchSource, now = Date.now()): Promise<void> {
+    await this.update((state) => {
+      state.attempts[source] = Math.max(state.attempts[source] ?? 0, now);
+    }, now);
   }
 
   /**
-   * Machine-wide right to spend one refresh: the same exclusive-create lock `IntelStore` uses, taken on
-   * this file. Returns the release function, or `undefined` while a live peer holds it.
+   * Machine-wide right to spend one refresh: the network claim shared with `IntelStore`. It is not
+   * used to serialize writes; the claim may expire while a multi-page fetch is still in flight.
    */
   claim(now = Date.now()): (() => void) | undefined {
     return new IntelStore(this.filename).claim(now);
+  }
+
+  private async update(change: (state: BenchState) => void, now: number): Promise<BenchState> {
+    const release = await this.claimWriter();
+    try {
+      // A caller's fetch-start time may predate a peer's completed fetch. Read at the current
+      // wall-clock time so that peer snapshot is not discarded as future-dated.
+      const state = this.read(Math.max(now, Date.now()));
+      change(state);
+      this.write(state);
+      return state;
+    } finally {
+      release();
+    }
+  }
+
+  private async claimWriter(): Promise<() => void> {
+    const lock = `${this.filename}.write.lock`;
+    const owner = `pmr-bench-writer:${process.pid}:${randomUUID()}`;
+    fs.mkdirSync(path.dirname(lock), { recursive: true });
+
+    for (let attempt = 0; attempt <= WRITER_LOCK_WAIT_ATTEMPTS; attempt++) {
+      try {
+        fs.symlinkSync(owner, lock);
+        return () => {
+          try {
+            if (fs.readlinkSync(lock) === owner) fs.unlinkSync(lock);
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+          }
+        };
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      }
+
+      let existing: string;
+      try {
+        existing = fs.readlinkSync(lock);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
+        throw new Error('malformed benchmark writer lock');
+      }
+      const match = /^pmr-bench-writer:(\d+):([^:]+)$/.exec(existing);
+      const pid = match ? Number(match[1]) : NaN;
+      if (!Number.isSafeInteger(pid) || pid <= 0) throw new Error('malformed benchmark writer lock');
+
+      let alive = true;
+      try {
+        process.kill(pid, 0);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code === 'ESRCH') alive = false;
+        else if (code !== 'EPERM') throw new Error('cannot verify benchmark writer lock owner');
+      }
+
+      if (!alive) {
+        let current: string;
+        try {
+          current = fs.readlinkSync(lock);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
+          throw new Error('malformed benchmark writer lock');
+        }
+        if (current !== existing) continue;
+        try {
+          fs.unlinkSync(lock);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
+          throw error;
+        }
+        continue;
+      }
+
+      if (attempt === WRITER_LOCK_WAIT_ATTEMPTS) break;
+      await new Promise<void>((resolve) => setTimeout(resolve, WRITER_LOCK_POLL_MS));
+    }
+    throw new Error('timed out waiting for benchmark writer lock');
   }
 
   private write(state: BenchState): void {

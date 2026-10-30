@@ -1,7 +1,7 @@
 export interface ModelIntel {
   coding?: number;
   agentic?: number;
-  /** Artificial Analysis overall Intelligence Index; the only index published for a brand-new model. */
+  /** Raw AA-origin Intelligence Index; external general scores and nerf penalties never rewrite it. */
   intelligence?: number;
   /**
    * The general facet on the coding scale: the intelligence index, with the other sources blended in, mapped

@@ -108,7 +108,9 @@ async function board(fetchImpl: typeof fetch, config: string, category: string, 
   for (let index = 0; index < MAX_PAGES; index++) {
     const { rows: chunk, total } = await page(fetchImpl, config, category, rows.length, paceMs);
     rows.push(...chunk);
-    if (chunk.length === 0 || rows.length >= total) break;
+    if (rows.length >= total) break;
+    if (chunk.length === 0) throw new Error(`LMArena ${config}/${category}: incomplete board (${rows.length} of ${total} rows)`);
+    if (index === MAX_PAGES - 1) throw new Error(`LMArena ${config}/${category}: board exceeds ${MAX_PAGES} pages`);
     await delay(paceMs);
   }
   return rows;

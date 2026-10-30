@@ -151,7 +151,7 @@ extension/          the OMP extension (TypeScript, loaded by Bun)
   bench-*.ts          benchmark sources (AA, Epoch, LMArena, BenchLM), snapshot store, re-base detection, blend and nerf penalty
   state.ts            persisted per-route cooldowns and telemetry (state.json), the OpenRouter intel snapshot (state.intel.json) and the benchmark snapshots (state.bench.json), all gitignored
   compaction-guard.ts holds a switch that would strand a remote compaction (BUG C)
-  tests/              bun test — 351 tests, run from extension/
+  tests/              bun test — 369 tests, run from extension/ (exclude macOS ._* sidecars)
 hermes/omp-bridge/  the Hermes model-provider bridge (Python) — thin host over
                     `omp --mode rpc-ui`, the tool rail, the launcher wrapper that
                     survives `hermes update`, and their tests

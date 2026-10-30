@@ -36,14 +36,18 @@ export async function refreshKeylessSources(
 ): Promise<boolean> {
   let landed = false;
   for (const source of KEYLESS) {
-    if (!benchRefreshDue(store.read(now), source, now)) continue;
-    const release = store.claim(now);
+    const dueAt = Math.max(now, Date.now());
+    if (!benchRefreshDue(store.read(dueAt), source, dueAt)) continue;
+    const release = store.claim(Math.max(now, Date.now()));
     if (!release) continue;
     try {
       // A peer may have finished while this process waited for the claim.
-      if (!benchRefreshDue(store.read(now), source, now)) continue;
-      store.recordAttempt(source, now);
-      store.append(await fetchers[source](now), now);
+      const recheckAt = Math.max(now, Date.now());
+      if (!benchRefreshDue(store.read(recheckAt), source, recheckAt)) continue;
+      const attemptAt = Math.max(now, Date.now());
+      await store.recordAttempt(source, attemptAt);
+      const fetchStartedAt = Math.max(now, Date.now());
+      await store.append(await fetchers[source](fetchStartedAt), fetchStartedAt);
       landed = true;
     } catch (error) {
       log(`pmr ${source} benchmark refresh failed`, { error: String(error) });
@@ -58,14 +62,14 @@ export async function refreshKeylessSources(
  * Keep the OpenRouter/AA cache (which refreshes every six hours) as one snapshot per day, so the history
  * can tell a re-baseline from an ordinary day. Returns whether a snapshot was stored. Never throws.
  */
-export function recordAaSnapshot(store: BenchStore, intel: IntelCache, now: number): boolean {
+export async function recordAaSnapshot(store: BenchStore, intel: IntelCache, now: number): Promise<boolean> {
   try {
     if (intel.fetchedAt <= 0) return false;
     const newest = store.read(now).history.aa?.at(-1);
     if (newest && intel.fetchedAt - newest.fetchedAt < BENCH_TTL_MS) return false;
     const snapshot = aaSnapshot(intel.data, intel.fetchedAt);
     if (snapshot.rows.length === 0) return false;
-    store.append(snapshot, now);
+    await store.append(snapshot, now);
     return true;
   } catch {
     return false;

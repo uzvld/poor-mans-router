@@ -19,7 +19,8 @@ const NERF_MIN_SNAPSHOTS = 3;
 const MIN_OVERLAP = 5;
 
 const FACETS: readonly Facet[] = ['coding', 'agentic', 'general'];
-const FIELD: Record<Facet, 'coding' | 'agentic' | 'intelligence'> = { coding: 'coding', agentic: 'agentic', general: 'intelligence' };
+const FIELD = { coding: 'coding', agentic: 'agentic' } as const;
+const PENALIZED_FIELDS = ['coding', 'agentic', 'general'] as const;
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
@@ -127,8 +128,12 @@ export function nerfPenalties(history: BenchHistory): Map<string, number> {
   const latest = snapshots.at(-1);
   if (!latest || snapshots.length < NERF_MIN_SNAPSHOTS) return penalties;
   if (detectRebaseline(snapshots.at(-2), latest).rebaselined) return penalties;
+  let windowStart = Math.max(0, snapshots.length - 1 - NERF_WINDOW);
+  for (let i = 1; i < snapshots.length - 1; i++) {
+    if (detectRebaseline(snapshots[i - 1], snapshots[i]).rebaselined) windowStart = Math.max(windowStart, i);
+  }
 
-  const earlier = snapshots.slice(-1 - NERF_WINDOW, -1).map(readGroups);
+  const earlier = snapshots.slice(windowStart, -1).map(readGroups);
   for (const [key, group] of readGroups(latest)) {
     const deltas = new Map<string, number>();
     for (const [model, now] of group.readings) {
@@ -234,32 +239,44 @@ export function blendIntel(base: IntelMap, history: BenchHistory): { intel: Inte
     const key = intelAliases(model).map((alias) => aliasToKey.get(alias)).find((k) => k !== undefined) ?? model;
     const entry = { ...(intel[key] ?? {}) };
     for (const facet of FACETS) {
+      if (facet === 'general') continue;
       const parts = facets.get(facet);
       if (!parts) continue;
       const weight = parts.reduce((sum, p) => sum + p.confidence, 0);
       if (weight <= 0) continue;
-      entry[FIELD[facet]] = Math.max(0, parts.reduce((sum, p) => sum + p.confidence * p.mapped, 0) / weight - penalty);
+      entry[FIELD[facet]] = parts.reduce((sum, p) => sum + p.confidence * p.mapped, 0) / weight;
     }
     intel[key] = entry;
     report.byModel[model] = Object.fromEntries(FACETS.flatMap((f) => (facets.has(f) ? [[f, facets.get(f)]] : [])));
     if (penalty > 0) report.penalties[model] = penalty;
   }
 
-  // `general` on the coding scale. The intelligence index runs far below coding and agentic (0.2-0.5 against
-  // 0.4-0.8), so it cannot be averaged in as it is: a model rated on it would lose to one that was not, and
-  // every measured model would lose to an unmeasured one's neutral prior. The line that relates the two
-  // indices, drawn through the models that have both, puts it on the scale the other facets use. Without
-  // five such models there is no line and no general is made up. The nerf penalty comes off as everywhere.
+  // Keep `intelligence` as AA's raw coordinate. Blend general readings on that shared reference scale,
+  // then project the result to coding; an external general score must not become a synthetic AA anchor.
   const coded = Object.values(intel).flatMap((entry) => (entry.coding !== undefined && entry.intelligence !== undefined ? [{ x: entry.intelligence, y: entry.coding }] : []));
   const toCodingScale = fitLine(coded);
   if (toCodingScale) {
-    const penaltyOf = new Map<string, number>();
-    for (const [model, penalty] of penalties) {
-      const key = intelAliases(model).map((alias) => aliasToKey.get(alias)).find((k) => k !== undefined) ?? model;
-      penaltyOf.set(key, penalty);
+    for (const entry of Object.values(intel)) {
+      if (entry.intelligence !== undefined) entry.general = toCodingScale(entry.intelligence);
     }
-    for (const [key, entry] of Object.entries(intel)) {
-      if (entry.intelligence !== undefined) entry.general = Math.max(0, toCodingScale(entry.intelligence) - (penaltyOf.get(key) ?? 0));
+    for (const model of external) {
+      const parts = contributions.get(model)?.get('general');
+      if (!parts) continue;
+      const weight = parts.reduce((sum, p) => sum + p.confidence, 0);
+      if (weight <= 0) continue;
+      const key = intelAliases(model).map((alias) => aliasToKey.get(alias)).find((k) => k !== undefined) ?? model;
+      const entry = intel[key];
+      if (entry) entry.general = toCodingScale(parts.reduce((sum, p) => sum + p.confidence * p.mapped, 0) / weight);
+    }
+  }
+  // Calibrate before applying model-local penalties: penalized input would change the fit for
+  // every peer. Apply the penalty once to each composite facet, never to AA's raw intelligence.
+  for (const [model, penalty] of penalties) {
+    const key = intelAliases(model).map((alias) => aliasToKey.get(alias)).find((k) => k !== undefined) ?? model;
+    const entry = intel[key];
+    if (!entry) continue;
+    for (const field of PENALIZED_FIELDS) {
+      if (entry[field] !== undefined) entry[field] = Math.max(0, entry[field] - penalty);
     }
   }
   return { intel, report };

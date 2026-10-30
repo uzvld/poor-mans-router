@@ -117,6 +117,7 @@ export function canonicalBenchModel(name: string, organization?: string): { mode
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9.\-_:~]/g, '')
     .replace(/^~/, '')
+    .replace(/-\d{4}-\d{2}-\d{2}$/, '')
     .replace(/-\d{8}$/, '')
     .replace(/-{2,}/g, '-')
     .replace(/^-|-$/g, '')

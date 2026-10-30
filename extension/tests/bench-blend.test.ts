@@ -4,7 +4,7 @@ import { blendIntel, mapToReference, pickEffortRows } from '../bench-blend.ts';
 import type { BenchHistory } from '../bench-store.ts';
 import type { BenchObservation, BenchSnapshot } from '../bench-types.ts';
 import type { IntelMap } from '../openrouter-intel.ts';
-import { selectForTier } from '../ranking.ts';
+import { buildRoutes, selectForTier } from '../ranking.ts';
 import { DEFAULT_POLICY, DEFAULT_WEIGHTS } from '../policy.ts';
 import { AA_INTEL, liveHistory, routesWith, synthetic } from './bench-fixtures.ts';
 
@@ -173,6 +173,29 @@ test('a source that measures general adds to it on the same scale, with its conf
   const rows = Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`v/m${i}`, { general: 1000 + i * 100 }]));
   const { intel } = blendIntel(scaled, history(synthetic('lmarena', rows)));
   for (let i = 0; i < 8; i++) near(intel[`v/m${i}-20260101`]?.general, 0.4 + i * 0.05, 1e-9);
+});
+
+test('external general blends with AA general without changing the raw AA intelligence coordinate', () => {
+  const blended = blendIntel(scaled, history(synthetic('lmarena', { 'v/m3': { general: 1000 } }))).intel;
+  near(blended['v/m3-20260101']?.intelligence, 0.275);
+  near(blended['v/m3-20260101']?.general, 0.5625);
+});
+
+test('an external-only general reading is scored as general, not fabricated AA intelligence', () => {
+  const referenceIntel: IntelMap = Object.fromEntries(Array.from({ length: 8 }, (_, i) => [
+    `anthropic/claude-sonnet-4-${i + 1}`,
+    { coding: 0.4 + i * 0.05, intelligence: 0.2 + i * 0.025 },
+  ]));
+  const intel = blendIntel(referenceIntel, history(synthetic('benchlm', {
+    'anthropic/claude-sonnet-5.6': { general: 80 },
+  }))).intel;
+  assert.equal(intel['anthropic/claude-sonnet-5.6']?.intelligence, undefined);
+  near(intel['anthropic/claude-sonnet-5.6']?.general, 0.575);
+
+  const [route] = buildRoutes([{ provider: 'anthropic', id: 'claude-sonnet-5-6' }], {
+    ompReports: [], codexbar: [], localState: {}, history: {}, intel, reservePct: 10, now: 0,
+  });
+  near(route?.qualityScore, 0.7035);
 });
 
 // Live 2026-10-30: opencode-go/glm-5.3-flash beats deepseek-v4-flash-vision-exp on both of AA's axes (coding

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildRoutes } from '../ranking.ts';
+import { buildRoutes, selectForTier } from '../ranking.ts';
 import { benchmarkPower, computeLadders } from '../rungs.ts';
 import { DEFAULT_POLICY, DEFAULT_WEIGHTS, normalizePolicy } from '../policy.ts';
 import type { IntelMap } from '../openrouter-intel.ts';
@@ -138,4 +138,41 @@ test('general counts under the tier weights: a much stronger general score beats
 test('the raw intelligence index is not power: on its own scale it would drag every model that has one below one that has none', () => {
   assert.equal(benchmarkPower({ intelligence: 0.5 }, DEFAULT_WEIGHTS.balanced), undefined);
   assert.equal(benchmarkPower({ coding: 0.7, intelligence: 0.1 }, DEFAULT_WEIGHTS.balanced), 0.7);
+});
+
+function intelligenceSuccessorWinner(facet: 'general' | 'agentic', value: number, weights: FacetWeights): string | undefined {
+  const routes = buildRoutes(['claude-sonnet-5', 'claude-sonnet-5-5'].map((id) => ({
+    provider: 'anthropic', id, cost: { input: 2, output: 10 },
+  })), {
+    ompReports: [], codexbar: [], localState: {}, history: {}, reservePct: 10, now: 0, weights,
+    intel: {
+      'anthropic/claude-sonnet-5': { coding: 0.8, agentic: 0.7, intelligence: 0.3 },
+      'anthropic/claude-sonnet-5.5': { intelligence: 0.8, [facet]: value },
+    },
+  });
+  return selectForTier(routes, ['sonnet'], { preference: 'quality' })?.route.modelId;
+}
+
+test('usable general or agentic evidence decides a successor instead of its intelligence anchor', () => {
+  for (const facet of ['general', 'agentic'] as const) {
+    assert.equal(intelligenceSuccessorWinner(facet, 0.2, DEFAULT_WEIGHTS.balanced), 'claude-sonnet-5', facet);
+    assert.equal(intelligenceSuccessorWinner(facet, 0.95, DEFAULT_WEIGHTS.balanced), 'claude-sonnet-5-5', facet);
+  }
+});
+
+test('a facet excluded by tier weights leaves the intelligence-only fallback available', () => {
+  assert.equal(
+    intelligenceSuccessorWinner('general', 0.2, { coding: 0.5, agentic: 0.5, general: 0 }),
+    'claude-sonnet-5-5',
+  );
+});
+
+test('measured general evidence beats an otherwise tied unmeasured successor', () => {
+  const routes = buildRoutes(['claude-sonnet-5', 'claude-sonnet-5-5'].map((id) => ({
+    provider: 'anthropic', id, cost: { input: 2, output: 10 },
+  })), {
+    ompReports: [], codexbar: [], localState: {}, history: {}, reservePct: 10, now: 0,
+    intel: { 'anthropic/claude-sonnet-5': { general: 0.5 } },
+  });
+  assert.equal(selectForTier(routes, ['sonnet'], { preference: 'quality' })?.route.modelId, 'claude-sonnet-5');
 });

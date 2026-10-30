@@ -59,3 +59,11 @@ test('a model whose vendor cannot be determined is dropped, never keyed under a 
   assert.equal(canonicalBenchModel('Totally Unknown Model 9', 'Nobody Labs'), undefined);
   assert.equal(canonicalBenchModel('', 'Anthropic'), undefined);
 });
+
+test('ISO release dates are removed after effort suffixes without merging distinct model identities', () => {
+  const o3 = canonicalBenchModel('o3-2025-04-16_medium');
+  const gpt = canonicalBenchModel('gpt-4.1-mini-2025-04-14');
+  assert.deepEqual(o3, { model: 'openai/o3', effort: 'medium' });
+  assert.deepEqual(gpt, { model: 'openai/gpt-4.1-mini' });
+  assert.notEqual(o3?.model, gpt?.model);
+});

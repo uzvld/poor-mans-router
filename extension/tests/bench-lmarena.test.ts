@@ -127,3 +127,34 @@ test('a throttled or failing server is retried once; a network error is not, sin
   await assert.rejects(fetchLmarena(flaky, 1, 0));
   assert.deepEqual(statuses, [502, 404], 'a 5xx is retried once, and a 4xx that is not throttling ends it');
 });
+test('an empty page before the declared total rejects the incomplete board', async () => {
+  let calls = 0;
+  const incomplete = (async (url: string | URL | Request) => {
+    const parsed = new URL(String(url));
+    if (parsed.searchParams.get('config') === 'agent') {
+      calls += 1;
+      return Response.json(calls === 1
+        ? { rows: input.agent.map((row) => ({ row })), num_rows_total: input.agent.length + 1 }
+        : { rows: [], num_rows_total: input.agent.length + 1 });
+    }
+    return Response.json({ rows: [], num_rows_total: 0 });
+  }) as typeof fetch;
+
+  await assert.rejects(fetchLmarena(incomplete, 1, 0));
+  assert.equal(calls, 2);
+});
+
+test('a board that exceeds the page cap rejects instead of returning a partial snapshot', async () => {
+  let agentPages = 0;
+  const tooManyPages = (async (url: string | URL | Request) => {
+    const parsed = new URL(String(url));
+    if (parsed.searchParams.get('config') === 'agent') {
+      agentPages += 1;
+      return Response.json({ rows: input.agent.map((row) => ({ row })), num_rows_total: 2001 });
+    }
+    return Response.json({ rows: [], num_rows_total: 0 });
+  }) as typeof fetch;
+
+  await assert.rejects(fetchLmarena(tooManyPages, 1, 0));
+  assert.equal(agentPages, 20);
+});

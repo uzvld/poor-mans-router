@@ -15,6 +15,8 @@ export interface StatusSources {
 
 export interface BenchStatus {
   source: BenchSource;
+  /** Methodology version, distinct from the data publication date. */
+  sourceVersion?: string;
   ageMs: number;
   /** The date the source states for its own data. */
   publishedAt?: string;
@@ -73,6 +75,7 @@ function benchLines(bench: BenchStatus[], contributions?: StatusContributions): 
       `${entry.models} models`,
       ...(entry.rebaselined ? ['re-based'] : []),
       ...(entry.stale ? ['stale'] : []),
+      ...(entry.sourceVersion ? [`version ${entry.sourceVersion}`] : []),
     ];
     lines.push(`  ${SOURCE_LABEL[entry.source]}: ${facts.join(' · ')}`);
   }

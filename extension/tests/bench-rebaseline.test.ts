@@ -46,6 +46,15 @@ test('every score moving together is a re-baseline even though no model lost any
   assert.match(verdict.reason ?? '', /coding/);
 });
 
+test('opposed cohort movements are not a shared re-baseline shift', () => {
+  const previous = spread();
+  const next = Object.fromEntries(Object.entries(previous).map(([model, facets], i) => [
+    model,
+    { coding: (facets.coding ?? 0) + (i < 5 ? 0.06 : -0.06) },
+  ]));
+  assert.deepEqual(detectRebaseline(snapshot(previous), snapshot(next)), { rebaselined: false });
+});
+
 test('a facet that a third of the measured models stop carrying is a re-baseline', () => {
   const previous = snapshot(spread());
   const next = snapshot(Object.fromEntries(Object.entries(spread()).map(([model, facets], i) => [model, i < 4 ? {} : facets])));

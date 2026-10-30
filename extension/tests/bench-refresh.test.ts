@@ -36,6 +36,49 @@ test('every source never fetched is fetched once, and none again inside 24 h', a
   assert.equal(f.calls.length, 6);
   assert.equal(s.read(NOW + 25 * HOUR).history.epoch?.length, 2);
 });
+test('a later peer snapshot is not refetched after an earlier source is slow', async () => {
+  const s = store();
+  const peer = new BenchStore(s.filename);
+  const start = Date.now();
+  let clock = start;
+  const originalNow = Date.now;
+  const fetchStarts: Partial<Record<Exclude<BenchSource, 'aa'>, number>> = {};
+  const calls: string[] = [];
+  const all: BenchFetchers = {
+    epoch: async (now) => {
+      fetchStarts.epoch = now;
+      calls.push('epoch');
+      clock = start + HOUR;
+      await peer.append(synthetic('benchlm', { 'v/m0': { coding: 0.9 } }, { fetchedAt: clock }), clock);
+      await peer.recordAttempt('benchlm', clock);
+      return synthetic('epoch', { 'v/m0': { coding: 0.5 } }, { fetchedAt: now });
+    },
+    benchlm: async (now) => {
+      fetchStarts.benchlm = now;
+      calls.push('benchlm');
+      return synthetic('benchlm', { 'v/m0': { coding: 0.5 } }, { fetchedAt: now });
+    },
+    lmarena: async (now) => {
+      fetchStarts.lmarena = now;
+      calls.push('lmarena');
+      return synthetic('lmarena', { 'v/m0': { coding: 0.5 } }, { fetchedAt: now });
+    },
+  };
+
+  Date.now = () => clock;
+  try {
+    await refreshKeylessSources(s, all, start, quiet);
+    assert.deepEqual(calls, ['epoch', 'lmarena']);
+    assert.equal(fetchStarts.lmarena, clock);
+    assert.equal(s.read(clock).history.benchlm?.[0]?.fetchedAt, clock);
+    assert.equal(s.read(clock).attempts.benchlm, clock);
+    assert.equal(s.read(clock).attempts.epoch, start);
+    assert.equal(s.read(clock).history.epoch?.[0]?.fetchedAt, start);
+    assert.equal(s.read(clock).attempts.lmarena, clock);
+  } finally {
+    Date.now = originalNow;
+  }
+});
 
 test('one source failing leaves the others stored and is not retried inside 15 minutes', async () => {
   const s = store();
@@ -86,19 +129,19 @@ test('the claim is released after a failure, so a failing source never wedges th
 
 const cache = (fetchedAt: number, data: IntelCache['data'] = { 'anthropic/claude-sonnet-5-20260630': { coding: 0.7 } }): IntelCache => ({ data, fetchedAt, lastAttemptAt: fetchedAt });
 
-test('the AA cache is stored as a snapshot at most once in 24 h', () => {
+test('the AA cache is stored as a snapshot at most once in 24 h', async () => {
   const s = store();
-  assert.equal(recordAaSnapshot(s, cache(NOW - 30 * HOUR), NOW), true);
-  assert.equal(recordAaSnapshot(s, cache(NOW - 30 * HOUR), NOW), false, 'the same cache twice is one snapshot');
-  assert.equal(recordAaSnapshot(s, cache(NOW - 10 * HOUR), NOW), false, 'a six-hourly refresh inside the day is not a new day');
-  assert.equal(recordAaSnapshot(s, cache(NOW - 30 * HOUR + BENCH_TTL_MS + HOUR), NOW), true);
+  assert.equal(await recordAaSnapshot(s, cache(NOW - 30 * HOUR), NOW), true);
+  assert.equal(await recordAaSnapshot(s, cache(NOW - 30 * HOUR), NOW), false, 'the same cache twice is one snapshot');
+  assert.equal(await recordAaSnapshot(s, cache(NOW - 10 * HOUR), NOW), false, 'a six-hourly refresh inside the day is not a new day');
+  assert.equal(await recordAaSnapshot(s, cache(NOW - 30 * HOUR + BENCH_TTL_MS + HOUR), NOW), true);
   assert.equal(s.read(NOW).history.aa?.length, 2);
 });
 
-test('an empty or never-fetched AA cache stores nothing and does not throw', () => {
+test('an empty or never-fetched AA cache stores nothing and does not throw', async () => {
   const s = store();
-  assert.equal(recordAaSnapshot(s, cache(0), NOW), false);
-  assert.equal(recordAaSnapshot(s, cache(NOW - HOUR, {}), NOW), false);
-  assert.equal(recordAaSnapshot(s, cache(NOW - HOUR, { 'anthropic/claude-x': { popularity: 0.9 } }), NOW), false);
+  assert.equal(await recordAaSnapshot(s, cache(0), NOW), false);
+  assert.equal(await recordAaSnapshot(s, cache(NOW - HOUR, {}), NOW), false);
+  assert.equal(await recordAaSnapshot(s, cache(NOW - HOUR, { 'anthropic/claude-x': { popularity: 0.9 } }), NOW), false);
   assert.equal(s.read(NOW).history.aa, undefined);
 });

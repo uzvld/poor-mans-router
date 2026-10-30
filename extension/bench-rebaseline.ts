@@ -63,7 +63,7 @@ export function detectRebaseline(previous: BenchSnapshot | undefined, next: Benc
     const old = common.map((model) => before.get(model) as number);
     const range = Math.max(...old) - Math.min(...old);
     if (range <= 0) continue;
-    const shift = median(common.map((model) => Math.abs((after.get(model) as number) - (before.get(model) as number)))) / range;
+    const shift = Math.abs(median(common.map((model) => (after.get(model) as number) - (before.get(model) as number)))) / range;
     if (shift > SHIFT_SHARE) {
       return { rebaselined: true, reason: `${facet}: scores moved together by ${(shift * 100).toFixed(0)}% of their range` };
     }

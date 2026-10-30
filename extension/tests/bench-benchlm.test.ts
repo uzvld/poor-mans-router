@@ -62,3 +62,26 @@ test('fetch returns the parsed leaderboard and refuses an error status or a chan
   const changed = (async () => Response.json({ schemaVersion: '2.0', rows: [] })) as unknown as typeof fetch;
   await assert.rejects(fetchBenchlm(changed, 9));
 });
+
+test('only finite scores within 0..100 become benchmark observations', () => {
+  const parsed = parseBenchlm({
+    rankingMode: 'bench-align-v5',
+    items: [
+      { canonicalModelKey: 'claude-opus-5-5', creator: 'Anthropic', score: 0 },
+      { canonicalModelKey: 'claude-sonnet-5-5', creator: 'Anthropic', score: 100 },
+      { canonicalModelKey: 'claude-sonnet-5', creator: 'Anthropic', score: -0.1 },
+      { canonicalModelKey: 'claude-opus-5', creator: 'Anthropic', score: 100.1 },
+    ],
+    categories: { coding: [], agentic: [] },
+  }, 1);
+
+  assert.deepEqual(parsed.rows.map((row) => [row.model, row.observations[0]?.value]), [
+    ['anthropic/claude-opus-5.5', 0],
+    ['anthropic/claude-sonnet-5.5', 1],
+  ]);
+  assert.throws(() => parseBenchlm({
+    rankingMode: 'bench-align-v5',
+    items: [{ canonicalModelKey: 'claude-sonnet-5', creator: 'Anthropic', score: 101 }],
+    categories: { coding: [], agentic: [] },
+  }, 1));
+});
