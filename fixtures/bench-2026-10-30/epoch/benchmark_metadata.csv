@@ -1,0 +1,7 @@
+benchmark,in_eci,source_file,score_column,scale,random_baseline,score_ceiling,release_date,superseded_by
+SWE-Bench verified,True,swe_bench_verified.csv,Best score (across scorers),1.0,0.0,1.0,2024-08-13,
+Aider polyglot,True,aider_polyglot_external.csv,Percent correct,0.01,0.0,1.0,2024-12-21,
+Terminal Bench,True,terminalbench_external.csv,Accuracy mean,1.0,0.0,1.0,2025-05-19,
+APEX-Agents,True,apex_agents_external.csv,Pass@1 score,1.0,0.0,1.0,2026-01-21,
+OSWorld 2.0,True,osworld_2_external.csv,Binary accuracy,1.0,0.0,1.0,2026-06-26,
+FrontierSWE,True,frontierswe_external.csv,Score,1.0,0.0,1.0,2026-09-02,

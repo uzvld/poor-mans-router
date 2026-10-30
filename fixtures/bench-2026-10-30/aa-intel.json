@@ -1,0 +1,755 @@
+{
+ "data": {
+  "amazon/nova-2-lite-v1": {
+   "coding": 0.23
+  },
+  "anthropic/claude-2": {
+   "coding": 0.129
+  },
+  "anthropic/claude-2.1": {
+   "coding": 0.14
+  },
+  "anthropic/claude-3-5-haiku": {
+   "coding": 0.159
+  },
+  "anthropic/claude-3-opus": {
+   "coding": 0.195
+  },
+  "anthropic/claude-3.5-sonnet": {
+   "coding": 0.302
+  },
+  "anthropic/claude-3.5-sonnet-20240620": {
+   "coding": 0.26
+  },
+  "anthropic/claude-4-sonnet-20250522": {
+   "coding": 0.376
+  },
+  "anthropic/claude-4.5-haiku-20251001": {
+   "agentic": 0.08,
+   "coding": 0.439
+  },
+  "anthropic/claude-4.5-sonnet-20250929": {
+   "agentic": 0.158,
+   "coding": 0.521
+  },
+  "anthropic/claude-4.6-sonnet-20260217": {
+   "agentic": 0.318,
+   "coding": 0.63
+  },
+  "anthropic/claude-4.7-opus-20260416": {
+   "agentic": 0.386,
+   "coding": 0.736
+  },
+  "anthropic/claude-4.8-opus-20260528": {
+   "agentic": 0.419,
+   "coding": 0.743
+  },
+  "anthropic/claude-5-fable-20260609": {
+   "agentic": 0.507,
+   "coding": 0.765
+  },
+  "anthropic/claude-fable-5.1-20260831": {
+   "agentic": 0.579,
+   "coding": 0.816,
+   "intelligence": 0.49700000000000005,
+   "popularity": 0.8187034378149846
+  },
+  "anthropic/claude-haiku-5.5-20261007": {
+   "intelligence": 0.36200000000000004,
+   "popularity": 0.9110191011097204,
+   "taskFit": 0.067
+  },
+  "anthropic/claude-instant-1": {
+   "coding": 0.078
+  },
+  "anthropic/claude-opus-5-20260723": {
+   "agentic": 0.565,
+   "coding": 0.78,
+   "popularity": 0.8026894685666967
+  },
+  "anthropic/claude-opus-5.5-20260921": {
+   "intelligence": 0.584,
+   "popularity": 0.9461975979775074,
+   "taskFit": 0.026
+  },
+  "anthropic/claude-sonnet-5-20260630": {
+   "agentic": 0.436,
+   "coding": 0.715,
+   "popularity": 0.8608970435752289
+  },
+  "anthropic/claude-sonnet-5.5-20260928": {
+   "intelligence": 0.542,
+   "popularity": 0.9113452130902125
+  },
+  "arcee-ai/trinity-large-thinking": {
+   "agentic": 0.01,
+   "coding": 0.258
+  },
+  "cohere/command-a-plus-05-2026": {
+   "agentic": 0.01,
+   "coding": 0.278,
+   "intelligence": 0.062
+  },
+  "cohere/north-mini-code-20260617": {
+   "agentic": 0.011000000000000001,
+   "coding": 0.365
+  },
+  "deepseek/deepseek-chat": {
+   "agentic": 0.008,
+   "coding": 0.23
+  },
+  "deepseek/deepseek-chat-v3-0324": {
+   "agentic": 0.008,
+   "coding": 0.212
+  },
+  "deepseek/deepseek-r1": {
+   "agentic": 0.011000000000000001,
+   "coding": 0.24600000000000002
+  },
+  "deepseek/deepseek-v3.1-terminus": {
+   "agentic": 0.068,
+   "coding": 0.435
+  },
+  "deepseek/deepseek-v3.2-20251201": {
+   "coding": 0.442,
+   "popularity": 0.781871522570805
+  },
+  "deepseek/deepseek-v4-flash-20260423": {
+   "agentic": 0.263,
+   "coding": 0.562,
+   "popularity": 0.9138072020339666,
+   "taskFit": 0.041
+  },
+  "deepseek/deepseek-v4-flash-20260731": {
+   "agentic": 0.41,
+   "coding": 0.691,
+   "popularity": 0.9246994731590533,
+   "taskFit": 0.026
+  },
+  "deepseek/deepseek-v4-flash-vision-exp-20260821": {
+   "agentic": 0.475,
+   "coding": 0.65
+  },
+  "deepseek/deepseek-v4-pro-20260423": {
+   "agentic": 0.263,
+   "coding": 0.594,
+   "popularity": 0.8645440343354733
+  },
+  "deepseek/deepseek-v4-pro-20260813": {
+   "agentic": 0.413,
+   "coding": 0.688,
+   "intelligence": 0.231,
+   "popularity": 0.8744236686017434
+  },
+  "deepseek/deepseek-v4.1-flash-20260910": {
+   "popularity": 0.9686924625197447,
+   "taskFit": 0.087
+  },
+  "deepseek/deepseek-v4.1-flash-20261017": {
+   "popularity": 1,
+   "taskFit": 0.262
+  },
+  "dots-studio/dots-3-note-preview-20260813": {
+   "popularity": 0.8689575290604846
+  },
+  "google/gemini-2.5-pro": {
+   "agentic": 0.016,
+   "coding": 0.33299999999999996
+  },
+  "google/gemini-2.5-pro-exp-03-25": {
+   "coding": 0.467
+  },
+  "google/gemini-3-flash-preview-20251217": {
+   "popularity": 0.8670124231628521
+  },
+  "google/gemini-3.1-flash-lite-20260507": {
+   "popularity": 0.8652417951271597
+  },
+  "google/gemini-3.1-flash-lite-preview-20260303": {
+   "agentic": 0.016,
+   "coding": 0.34700000000000003
+  },
+  "google/gemini-3.1-pro-preview-20260219": {
+   "agentic": 0.08199999999999999,
+   "coding": 0.688
+  },
+  "google/gemini-3.5-flash-20260519": {
+   "agentic": 0.26,
+   "coding": 0.701
+  },
+  "google/gemini-3.5-flash-lite-20260721": {
+   "agentic": 0.14300000000000002,
+   "coding": 0.493,
+   "intelligence": 0.11699999999999999
+  },
+  "google/gemini-3.6-flash-20260721": {
+   "agentic": 0.29,
+   "coding": 0.6920000000000001
+  },
+  "google/gemini-3.7-flash-20260813": {
+   "agentic": 0.35200000000000004,
+   "coding": 0.7609999999999999,
+   "popularity": 0.8328350308452536
+  },
+  "google/gemini-3.8-flash-20260902": {
+   "agentic": 0.402,
+   "coding": 0.763,
+   "intelligence": 0.305,
+   "popularity": 0.8943076437432151
+  },
+  "google/gemini-4-argon-20261013": {
+   "intelligence": 0.504,
+   "popularity": 0.879414074945981
+  },
+  "google/gemini-pro-1.5": {
+   "coding": 0.23600000000000002
+  },
+  "google/gemma-3-12b-it": {
+   "agentic": 0.1,
+   "coding": 0.057999999999999996
+  },
+  "google/gemma-3-27b-it": {
+   "agentic": 0.1,
+   "coding": 0.10099999999999999
+  },
+  "google/gemma-3-4b-it": {
+   "coding": 0.027000000000000003
+  },
+  "google/gemma-3n-e4b-it": {
+   "coding": 0.032
+  },
+  "google/gemma-4-26b-a4b-it-20260403": {
+   "agentic": 0.028999999999999998,
+   "coding": 0.39299999999999996,
+   "popularity": 0.8373888883308114
+  },
+  "google/gemma-4-31b-it-20260402": {
+   "agentic": 0.042,
+   "coding": 0.434,
+   "popularity": 0.8550925395954603
+  },
+  "ibm-granite/granite-4.1-8b-20260429": {
+   "coding": 0.095
+  },
+  "ibm-granite/granite-4.2-8b-20260831": {
+   "agentic": 0.013000000000000001,
+   "coding": 0.22399999999999998
+  },
+  "inception/mercury-2-20260304": {
+   "agentic": 0.016,
+   "coding": 0.311
+  },
+  "inclusionai/ling-2.6-flash-20260421": {
+   "coding": 0.253
+  },
+  "inclusionai/ling-3.0-flash-20260723": {
+   "agentic": 0.193,
+   "coding": 0.506
+  },
+  "inclusionai/ling-3.0-flash-fin-20260827": {
+   "agentic": 0.27899999999999997,
+   "coding": 0.556
+  },
+  "inclusionai/ling-3.0-flash-vl-20260910": {
+   "agentic": 0.287,
+   "coding": 0.57
+  },
+  "inclusionai/ling-3.0-tiny-20260806": {
+   "agentic": 0.044000000000000004,
+   "coding": 0.265
+  },
+  "inclusionai/ring-2.6-1t-20260508": {
+   "agentic": 0.107,
+   "coding": 0.428
+  },
+  "kwaipilot/kat-coder-pro-v2-20260327": {
+   "coding": 0.595
+  },
+  "liquid/lfm-2.5-2.6b-20260811": {
+   "coding": 0.077
+  },
+  "meituan/longcat-2.0-20260720": {
+   "agentic": 0.14,
+   "coding": 0.45299999999999996
+  },
+  "meta-llama/llama-3.1-8b-instruct": {
+   "coding": 0.054000000000000006
+  },
+  "meta-llama/llama-3.3-70b-instruct": {
+   "coding": 0.11900000000000001
+  },
+  "meta-llama/llama-4-maverick-17b-128e-instruct": {
+   "agentic": 0.6,
+   "coding": 0.163
+  },
+  "meta-llama/llama-4-scout-17b-16e-instruct": {
+   "agentic": 0.5,
+   "coding": 0.08199999999999999
+  },
+  "meta/muse-glimmer-30b-20260810": {
+   "agentic": 0.085,
+   "coding": 0.49,
+   "intelligence": 0.063
+  },
+  "meta/muse-spark-1.1-20260709": {
+   "agentic": 0.258,
+   "coding": 0.713
+  },
+  "meta/muse-spark-1.2-20260805": {
+   "agentic": 0.43200000000000005,
+   "coding": 0.722
+  },
+  "meta/muse-spark-1.3-20260902": {
+   "agentic": 0.555,
+   "coding": 0.765,
+   "intelligence": 0.364
+  },
+  "meta/muse-spark-1.3-contributor-20260902": {
+   "popularity": 0.9115077792513826,
+   "taskFit": 0.063
+  },
+  "microsoft/phi-4-mini-instruct": {
+   "coding": 0.038
+  },
+  "minimax/minimax-m2.7-20260318": {
+   "agentic": 0.153,
+   "coding": 0.526
+  },
+  "minimax/minimax-m3-20260531": {
+   "agentic": 0.295,
+   "coding": 0.586,
+   "intelligence": 0.187,
+   "popularity": 0.8816162147672971
+  },
+  "minimax/minimax-m3.1-flash-20261019": {
+   "intelligence": 0.289,
+   "popularity": 0.9257262016657027,
+   "taskFit": 0.024
+  },
+  "mistralai/devstral-2512": {
+   "agentic": 0.023,
+   "coding": 0.313
+  },
+  "mistralai/devstral-small-2507": {
+   "agentic": 0.02,
+   "coding": 0.293
+  },
+  "mistralai/ministral-14b-2512": {
+   "agentic": 0.011000000000000001,
+   "coding": 0.14400000000000002
+  },
+  "mistralai/ministral-3b-2512": {
+   "agentic": 0.008,
+   "coding": 0.048
+  },
+  "mistralai/ministral-8b-2512": {
+   "agentic": 0.6,
+   "coding": 0.09699999999999999
+  },
+  "mistralai/mistral-large-2512": {
+   "agentic": 0.01,
+   "coding": 0.201
+  },
+  "mistralai/mistral-large-4-0-20261006": {
+   "intelligence": 0.26
+  },
+  "mistralai/mistral-medium-3.1": {
+   "agentic": 0.019,
+   "coding": 0.205
+  },
+  "mistralai/mistral-medium-3.5-20260430": {
+   "agentic": 0.07,
+   "coding": 0.469
+  },
+  "mistralai/mistral-nemo": {
+   "popularity": 0.7829592920533306
+  },
+  "mistralai/mistral-small": {
+   "agentic": 0.012,
+   "coding": 0.263
+  },
+  "mistralai/mistral-small-2603": {
+   "agentic": 0.008,
+   "coding": 0.266,
+   "intelligence": 0.043
+  },
+  "moonshotai/kimi-k2-thinking-20251106": {
+   "coding": 0.21
+  },
+  "moonshotai/kimi-k2.5-0127": {
+   "coding": 0.46799999999999997
+  },
+  "moonshotai/kimi-k2.6-20260420": {
+   "agentic": 0.205,
+   "coding": 0.618
+  },
+  "moonshotai/kimi-k2.7-code-20260612": {
+   "agentic": 0.21,
+   "coding": 0.608
+  },
+  "moonshotai/kimi-k3-20260715": {
+   "agentic": 0.5,
+   "coding": 0.762,
+   "intelligence": 0.174,
+   "popularity": 0.8995745332428011
+  },
+  "moonshotai/kimi-k3.1-pro-20261023": {
+   "intelligence": 0.46,
+   "popularity": 0.8952280544356847
+  },
+  "nex-agi/nex-n2-pro": {
+   "agentic": 0.237,
+   "coding": 0.591
+  },
+  "nvidia/nemotron-3-nano-30b-a3b": {
+   "agentic": 0.01,
+   "coding": 0.14400000000000002
+  },
+  "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning-20260428": {
+   "coding": 0.138
+  },
+  "nvidia/nemotron-3-super-120b-a12b-20230311": {
+   "agentic": 0.017,
+   "coding": 0.377
+  },
+  "nvidia/nemotron-3-ultra-550b-a55b-20260604": {
+   "agentic": 0.201,
+   "coding": 0.493,
+   "intelligence": 0.11800000000000001,
+   "popularity": 0.9240802616240922,
+   "taskFit": 0.033
+  },
+  "nvidia/nemotron-3.5-lightning-20260807": {
+   "agentic": 0.035,
+   "coding": 0.268,
+   "intelligence": 0.055,
+   "popularity": 0.8773644505235056,
+   "taskFit": 0.022
+  },
+  "nvidia/nemotron-3.5-super-vl-20261015": {
+   "intelligence": 0.136,
+   "popularity": 0.9024483103051744
+  },
+  "openai/gpt-3.5-turbo": {
+   "coding": 0.107
+  },
+  "openai/gpt-4": {
+   "coding": 0.131
+  },
+  "openai/gpt-4-turbo": {
+   "coding": 0.215
+  },
+  "openai/gpt-4.1-mini-2025-04-14": {
+   "coding": 0.20199999999999999
+  },
+  "openai/gpt-4.1-nano-2025-04-14": {
+   "coding": 0.111
+  },
+  "openai/gpt-4o-2024-05-13": {
+   "coding": 0.242
+  },
+  "openai/gpt-4o-mini": {
+   "coding": 0.114
+  },
+  "openai/gpt-5-2025-08-07": {
+   "coding": 0.37799999999999995
+  },
+  "openai/gpt-5-mini-2025-08-07": {
+   "agentic": 0.068,
+   "coding": 0.156
+  },
+  "openai/gpt-5.1-20251113": {
+   "coding": 0.494
+  },
+  "openai/gpt-5.4-20260305": {
+   "coding": 0.711
+  },
+  "openai/gpt-5.4-mini-20260317": {
+   "agentic": 0.179,
+   "coding": 0.561
+  },
+  "openai/gpt-5.4-nano-20260317": {
+   "agentic": 0.16,
+   "coding": 0.561
+  },
+  "openai/gpt-5.5-20260423": {
+   "agentic": 0.364,
+   "coding": 0.7490000000000001
+  },
+  "openai/gpt-5.6-luna-20260709": {
+   "agentic": 0.42100000000000004,
+   "coding": 0.7140000000000001,
+   "popularity": 0.9062945678034304,
+   "taskFit": 0.047
+  },
+  "openai/gpt-5.6-sol-20260709": {
+   "agentic": 0.502,
+   "coding": 0.7829999999999999,
+   "popularity": 0.7962950919388954
+  },
+  "openai/gpt-5.6-terra-20260709": {
+   "agentic": 0.43200000000000005,
+   "coding": 0.767
+  },
+  "openai/gpt-6-astra-20260903": {
+   "agentic": 0.51,
+   "coding": 0.7709999999999999,
+   "intelligence": 0.569,
+   "popularity": 0.8529269485416122
+  },
+  "openai/gpt-6-luna-20260922": {
+   "intelligence": 0.278,
+   "popularity": 0.9580176960846003,
+   "taskFit": 0.172
+  },
+  "openai/gpt-6-luna-decisions-20261006": {
+   "popularity": 0.7900283982239263
+  },
+  "openai/gpt-6-luna-pro-20260922": {
+   "popularity": 0.8600787357899746
+  },
+  "openai/gpt-6-sol-20260922": {
+   "popularity": 0.7895382738220851
+  },
+  "openai/gpt-6.1-sol-20260929": {
+   "intelligence": 0.545,
+   "popularity": 0.9227313519699414,
+   "taskFit": 0.057
+  },
+  "openai/gpt-6.1-terra-20261026": {
+   "intelligence": 0.51,
+   "popularity": 0.8439196557669837
+  },
+  "openai/gpt-oss-120b": {
+   "agentic": 0.037000000000000005,
+   "coding": 0.304,
+   "popularity": 0.8431737804519135
+  },
+  "openai/gpt-oss-20b": {
+   "agentic": 0.012,
+   "coding": 0.207
+  },
+  "openai/o1-2024-12-17": {
+   "coding": 0.397
+  },
+  "openai/o3-mini-high-2025-01-31": {
+   "agentic": 0.009000000000000001,
+   "coding": 0.163
+  },
+  "perplexity/pplx-decider-v1.2-20261016": {
+   "popularity": 0.7897372699842701
+  },
+  "poolside/laguna-s-2.1-20260720": {
+   "popularity": 0.8768634253526078
+  },
+  "qwen/qwen3-14b-04-28": {
+   "agentic": 0.009000000000000001,
+   "coding": 0.138
+  },
+  "qwen/qwen3-235b-a22b-thinking-2507": {
+   "agentic": 0.013000000000000001,
+   "coding": 0.221
+  },
+  "qwen/qwen3-30b-a3b-thinking-2507": {
+   "agentic": 0.009000000000000001,
+   "coding": 0.121
+  },
+  "qwen/qwen3-32b-04-28": {
+   "agentic": 0.009000000000000001,
+   "coding": 0.153
+  },
+  "qwen/qwen3-8b-04-28": {
+   "agentic": 0.008,
+   "coding": 0.09
+  },
+  "qwen/qwen3-coder-next-2025-02-03": {
+   "agentic": 0.009000000000000001,
+   "coding": 0.36200000000000004
+  },
+  "qwen/qwen3-next-80b-a3b-thinking-2509": {
+   "coding": 0.174
+  },
+  "qwen/qwen3.5-122b-a10b-20260224": {
+   "agentic": 0.076,
+   "coding": 0.457
+  },
+  "qwen/qwen3.5-35b-a3b-20260224": {
+   "coding": 0.37
+  },
+  "qwen/qwen3.5-397b-a17b-20260216": {
+   "agentic": 0.083,
+   "coding": 0.48200000000000004
+  },
+  "qwen/qwen3.5-9b-20260310": {
+   "agentic": 0.012,
+   "coding": 0.287
+  },
+  "qwen/qwen3.6-27b-20260422": {
+   "agentic": 0.185,
+   "coding": 0.537
+  },
+  "qwen/qwen3.6-35b-a3b-20260415": {
+   "agentic": 0.131,
+   "coding": 0.419
+  },
+  "qwen/qwen3.6-plus-04-02": {
+   "coding": 0.545
+  },
+  "qwen/qwen3.7-flash-20260727": {
+   "popularity": 0.8464801810138853
+  },
+  "qwen/qwen3.7-max-20260520": {
+   "agentic": 0.225,
+   "coding": 0.66
+  },
+  "qwen/qwen3.7-plus-20260602": {
+   "agentic": 0.175,
+   "coding": 0.5589999999999999
+  },
+  "qwen/qwen3.8-2.4t-a95b-20260812": {
+   "agentic": 0.501,
+   "coding": 0.7190000000000001
+  },
+  "qwen/qwen3.8-27b-20260814": {
+   "agentic": 0.45799999999999996,
+   "coding": 0.6809999999999999,
+   "intelligence": 0.201,
+   "popularity": 0.8616410789222813
+  },
+  "qwen/qwen3.8-flash-20260826": {
+   "popularity": 0.8709075821924275
+  },
+  "qwen/qwen3.8-max-20260803": {
+   "agentic": 0.499,
+   "coding": 0.6890000000000001,
+   "intelligence": 0.534
+  },
+  "qwen/qwen3.8-max-20260902": {
+   "agentic": 0.56,
+   "coding": 0.762,
+   "intelligence": 0.336
+  },
+  "stepfun/step-3.7-flash-20260528": {
+   "coding": 0.396,
+   "popularity": 0.8440994173498163
+  },
+  "stepfun/step-5-preview-20261008": {
+   "intelligence": 0.285,
+   "popularity": 0.9372718302892822
+  },
+  "tencent/hy3-20260706": {
+   "popularity": 0.9160992509409255,
+   "taskFit": 0.042
+  },
+  "tencent/hy3-preview-20260421": {
+   "agentic": 0.24100000000000002,
+   "coding": 0.588
+  },
+  "tencent/hy4-preview-20260827": {
+   "popularity": 0.9512114641108995,
+   "taskFit": 0.083
+  },
+  "thinkingmachines/inkling-20260715": {
+   "agentic": 0.225,
+   "coding": 0.521,
+   "intelligence": 0.125,
+   "popularity": 0.8386416927563922
+  },
+  "thinkingmachines/inkling-small-20260730": {
+   "agentic": 0.235,
+   "coding": 0.529,
+   "intelligence": 0.129
+  },
+  "typesafe/jev-1.13-20260917": {
+   "popularity": 0.91765347655762,
+   "taskFit": 0.107
+  },
+  "typesafe/jev-1.14-20261014": {
+   "popularity": 0.8996582547215403,
+   "taskFit": 0.023
+  },
+  "upstage/solar-mini4-20260922": {
+   "popularity": 0.8902383827338366
+  },
+  "upstage/solar-pro-3": {
+   "agentic": 0.013999999999999999,
+   "coding": 0.162
+  },
+  "upstage/solar-pro4-20260810": {
+   "agentic": 0.28800000000000003,
+   "coding": 0.527,
+   "intelligence": 0.282,
+   "popularity": 0.8525516272663276
+  },
+  "x-ai/grok-4.3-20260430": {
+   "agentic": 0.155,
+   "coding": 0.42200000000000004
+  },
+  "x-ai/grok-4.5-20260708": {
+   "agentic": 0.41200000000000003,
+   "coding": 0.7240000000000001
+  },
+  "x-ai/grok-4.6-20260810": {
+   "agentic": 0.53,
+   "coding": 0.768
+  },
+  "x-ai/grok-4.7-20260916": {
+   "intelligence": 0.35,
+   "popularity": 0.8328447399929398
+  },
+  "x-ai/grok-build-0.1-20260520": {
+   "coding": 0.515
+  },
+  "xiaomi/mimo-v2-flash-20251210": {
+   "coding": 0.498
+  },
+  "xiaomi/mimo-v2.5-20260422": {
+   "agentic": 0.158,
+   "coding": 0.568
+  },
+  "xiaomi/mimo-v2.5-pro-20260422": {
+   "agentic": 0.213,
+   "coding": 0.602
+  },
+  "xiaomi/mimo-v2.6-flash-20260921": {
+   "intelligence": 0.267,
+   "popularity": 0.9212384445536868,
+   "taskFit": 0.052
+  },
+  "xiaomi/mimo-v2.6-pro-20260921": {
+   "intelligence": 0.299,
+   "popularity": 0.8916679033185403
+  },
+  "z-ai/glm-4.6": {
+   "coding": 0.45799999999999996
+  },
+  "z-ai/glm-4.7-20251222": {
+   "coding": 0.45299999999999996
+  },
+  "z-ai/glm-5.1-20260406": {
+   "agentic": 0.239,
+   "coding": 0.5579999999999999
+  },
+  "z-ai/glm-5.2-20260616": {
+   "agentic": 0.384,
+   "coding": 0.688,
+   "popularity": 0.8794684156164165,
+   "taskFit": 0.031
+  },
+  "z-ai/glm-5.3-20260816": {
+   "agentic": 0.531,
+   "coding": 0.748,
+   "intelligence": 0.317,
+   "popularity": 0.9312133467463622,
+   "taskFit": 0.035
+  },
+  "z-ai/glm-5.3-flash-20260826": {
+   "agentic": 0.509,
+   "coding": 0.715,
+   "intelligence": 0.278,
+   "popularity": 0.9681471368327487,
+   "taskFit": 0.136
+  }
+ },
+ "fetchedAt": 1793379448780
+}

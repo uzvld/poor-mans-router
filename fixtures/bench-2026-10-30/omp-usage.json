@@ -1,0 +1,267 @@
+{
+ "generatedAt": 1793382486252,
+ "reports": [
+  {
+   "fetchedAt": 1793382439105,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 100,
+      "remainingFraction": 1,
+      "unit": "percent",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "openai-codex:primary",
+     "label": "5 hours",
+     "scope": {
+      "provider": "openai-codex",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 hours",
+      "resetsAt": 1793399696000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "openai-codex:secondary",
+     "label": "7 days",
+     "scope": {
+      "provider": "openai-codex",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "warning",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 days",
+      "resetsAt": 1793781876000
+     }
+    }
+   ],
+   "provider": "openai-codex"
+  },
+  {
+   "fetchedAt": 1793382460351,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 41,
+      "remainingFraction": 0.41000000000000003,
+      "unit": "percent",
+      "used": 59,
+      "usedFraction": 0.59
+     },
+     "id": "anthropic:5h",
+     "label": "Claude 5 Hour",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour",
+      "resetsAt": 1793392800000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 71,
+      "remainingFraction": 0.71,
+      "unit": "percent",
+      "used": 28.999999999999996,
+      "usedFraction": 0.29
+     },
+     "id": "anthropic:7d",
+     "label": "Claude 7 Day",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1793952000000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 100,
+      "remainingFraction": 1,
+      "unit": "percent",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "anthropic:7d:fable",
+     "label": "Claude 7 Day (Fable)",
+     "scope": {
+      "provider": "anthropic",
+      "tier": "fable",
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1793952000000
+     }
+    }
+   ],
+   "provider": "anthropic"
+  },
+  {
+   "fetchedAt": 1793381917647,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "anthropic:5h",
+     "label": "Claude 5 Hour",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "exhausted",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5 Hour",
+      "resetsAt": 1793385599552
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 20,
+      "remainingFraction": 0.19999999999999996,
+      "unit": "percent",
+      "used": 80,
+      "usedFraction": 0.8
+     },
+     "id": "anthropic:7d",
+     "label": "Claude 7 Day",
+     "scope": {
+      "provider": "anthropic",
+      "shared": true,
+      "windowId": "7d"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 604800000,
+      "id": "7d",
+      "label": "7 Day",
+      "resetsAt": 1793869200552
+     }
+    }
+   ],
+   "provider": "anthropic"
+  },
+  {
+   "fetchedAt": 1793382361836,
+   "limits": [
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 100,
+      "remainingFraction": 1,
+      "unit": "unknown",
+      "used": 0,
+      "usedFraction": 0
+     },
+     "id": "kimi-code:0",
+     "label": "5h limit",
+     "scope": {
+      "provider": "kimi-code",
+      "shared": true,
+      "windowId": "5h"
+     },
+     "status": "ok",
+     "window": {
+      "durationMs": 18000000,
+      "id": "5h",
+      "label": "5h limit",
+      "resetsAt": 1793382534133
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "kimi-code:1",
+     "label": "Monthly total",
+     "scope": {
+      "provider": "kimi-code",
+      "shared": true,
+      "windowId": "limit_month_total"
+     },
+     "status": "exhausted",
+     "window": {
+      "id": "limit_month_total",
+      "label": "Monthly total",
+      "resetsAt": 1795737600000
+     }
+    },
+    {
+     "amount": {
+      "limit": 100,
+      "remaining": 0,
+      "remainingFraction": 0,
+      "unit": "percent",
+      "used": 100,
+      "usedFraction": 1
+     },
+     "id": "kimi-code:2",
+     "label": "Monthly code",
+     "scope": {
+      "provider": "kimi-code",
+      "shared": true,
+      "windowId": "limit_month_code"
+     },
+     "status": "exhausted",
+     "window": {
+      "id": "limit_month_code",
+      "label": "Monthly code",
+      "resetsAt": 1795737600000
+     }
+    }
+   ],
+   "provider": "kimi-code"
+  }
+ ]
+}

@@ -1,11 +1,12 @@
+import type { FacetWeights } from './bench-types.ts';
 import type { NormalizedRoute, PriceVector } from './types.ts';
 import type { OmpCredentialUsage, CodexBarUsage } from './telemetry.ts';
 import type { LocalRouteState } from './health.ts';
 import type { HistoryMap } from './history.ts';
 import type { IntelMap } from './openrouter-intel.ts';
 import { buildIntelLookup, canonicalModelSlug, intelMatchForRoute, type IntelMatch } from './openrouter-intel.ts';
-import { classifyModelId, decorateClasses } from './policy.ts';
 import { benchmarkPower } from './rungs.ts';
+import { classifyModelId, decorateClasses, DEFAULT_WEIGHTS } from './policy.ts';
 import { evaluateRouteHealth } from './health.ts';
 
 const MIX = { input: 1.0, output: 0.35, cacheRead: 4.0, cacheWrite: 0.05 };
@@ -238,6 +239,8 @@ export interface BuildRoutesInputs {
   intel: IntelMap;
   reservePct: number;
   now: number;
+  /** What each benchmark facet counts for in the tier being scored; the balanced weights when absent. */
+  weights?: FacetWeights;
 }
 
 function freeFromSelector(selector: string): boolean {
@@ -298,13 +301,13 @@ function lineageOf(snapshotKey: string): string {
 }
 
 /** Measured models (coding and intelligence both published) grouped by lineage. */
-function buildReferencePools(intel: IntelMap): Map<string, IntelReference[]> {
+function buildReferencePools(intel: IntelMap, weights: FacetWeights): Map<string, IntelReference[]> {
   const pools = new Map<string, IntelReference[]>();
   for (const [key, value] of Object.entries(intel)) {
     if (value.coding === undefined || value.intelligence === undefined) continue;
     const lineage = lineageOf(key);
     const pool = pools.get(lineage) ?? [];
-    pool.push({ key, intelligence: value.intelligence, quality: qualityFromIntel(value, 0) });
+    pool.push({ key, intelligence: value.intelligence, quality: qualityFromIntel(value, 0, weights) });
     pools.set(lineage, pool);
   }
   return pools;
@@ -436,22 +439,24 @@ function orderByIntelligence(anchors: (ScoredAnchor | undefined)[]): (number | u
   return ordered;
 }
 
-function qualityFromIntel(intel: IntelMap[string] | undefined, reliability: number): number {
-  const coding = intel?.coding ?? 0.5;
-  const agentic = intel?.agentic ?? 0.5;
+function qualityFromIntel(intel: IntelMap[string] | undefined, reliability: number, weights: FacetWeights): number {
+  // The benchmark budget (0.38) is the weight the formula always gave coding plus agentic; the tier's
+  // weights split it across coding, agentic and general. No measured facet at all is the neutral prior.
+  const benchmark = benchmarkPower(intel, weights) ?? 0.5;
   const taskFit = intel?.taskFit ?? 0.5;
   const popularity = intel?.popularity ?? 0.5;
   // Tier/class fit is enforced structurally by class order. Public traffic popularity is
   // deliberately weak: it only nudges otherwise comparable candidates inside a class.
-  return 0.35 + 0.24 * coding + 0.14 * agentic + 0.10 * taskFit + 0.10 * reliability + 0.07 * popularity;
+  return 0.35 + 0.38 * benchmark + 0.10 * taskFit + 0.10 * reliability + 0.07 * popularity;
 }
 
 export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): NormalizedRoute[] {
+  const weights = input.weights ?? DEFAULT_WEIGHTS.balanced;
   const subscriptionProviders = new Set(input.ompReports.map((r) => r.provider));
   // One index per call: the snapshot is shared by every route, and resolving per route would repeat
   // the alias expansion 1200 times for no reason.
   const intelLookup = buildIntelLookup(input.intel);
-  const referencePools = buildReferencePools(input.intel);
+  const referencePools = buildReferencePools(input.intel, weights);
 
   const catalog = models.filter((model) => !/:batch$/i.test(model.selector ?? model.id));
   const catalogMatches = catalog.map((model) => intelMatchForRoute(intelLookup, model.provider, model.id));
@@ -508,10 +513,10 @@ export function buildRoutes(models: OmpModelLike[], input: BuildRoutesInputs): N
       price: model.cost ?? {},
       health,
       // Only a route scored from a measured lineage leaves the coding/agentic formula.
-      qualityScore: anchoredScore ?? qualityFromIntel(intel, reliabilityScore),
+      qualityScore: anchoredScore ?? qualityFromIntel(intel, reliabilityScore, weights),
       benchmarked: intel?.coding !== undefined || intel?.agentic !== undefined || intel?.intelligence !== undefined,
       agenticScore: intel?.agentic ?? 0.5,
-      benchmarkPower: benchmarkPower(intel),
+      benchmarkPower: benchmarkPower(intel, weights),
       reliabilityScore,
       latencyMs: history?.ttftMs,
       throughput: history?.throughput,

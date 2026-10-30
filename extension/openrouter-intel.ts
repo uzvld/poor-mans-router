@@ -3,6 +3,12 @@ export interface ModelIntel {
   agentic?: number;
   /** Artificial Analysis overall Intelligence Index; the only index published for a brand-new model. */
   intelligence?: number;
+  /**
+   * The general facet on the coding scale: the intelligence index, with the other sources blended in, mapped
+   * through the line that relates it to coding. Written by the blend only. It is what counts as power: the raw
+   * index sits far below coding and agentic, and averaging it in unchanged would penalise every model that has one.
+   */
+  general?: number;
   taskFit?: number;
   popularity?: number;
 }
@@ -42,6 +48,16 @@ function boundedScore(value: unknown): number | undefined {
   if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
   const normalized = value > 1 ? value / 100 : value;
   return Math.min(1, Math.max(0, normalized));
+}
+
+/**
+ * An Artificial Analysis index is points out of 100 (live: agentic tops out at 57.9, the weakest models score
+ * 0.1–1 points). Always divide: `boundedScore` reads a value up to 1 as a fraction already, which turned one
+ * agentic point into a perfect 1.0. Usage shares are fractions and keep `boundedScore`.
+ */
+function indexScore(value: unknown): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
+  return Math.min(1, Math.max(0, value / 100));
 }
 
 // --- Intel key matching -------------------------------------------------------------------------
@@ -153,7 +169,7 @@ export function normalizeBenchmarkRows(payload: any, kind: 'coding' | 'agentic' 
     const slug = typeof row?.model_permaslug === 'string' ? stripVariants(row.model_permaslug.toLowerCase()) : undefined;
     if (!slug) continue;
     const raw = kind === 'coding' ? row.coding_index : kind === 'agentic' ? row.agentic_index : row.intelligence_index;
-    const score = boundedScore(raw);
+    const score = indexScore(raw);
     if (score !== undefined) out[slug] = { [kind]: score };
   }
   return out;

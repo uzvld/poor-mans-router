@@ -1,3 +1,5 @@
+import type { FacetWeights } from './bench-types.ts';
+
 export type Tier = 'frontier' | 'balanced' | 'small' | 'free';
 export type RouteState = 'AVAILABLE' | 'DRAINING' | 'COOLDOWN';
 export type Freshness = 'FRESH' | 'STALE' | 'UNKNOWN';
@@ -49,6 +51,8 @@ export interface TierPolicy {
 
 export interface RouterPolicy {
   tiers: Record<Tier, TierPolicy>;
+  /** What each benchmark facet counts for in each tier; absent means the shipped defaults. */
+  weights?: Record<Tier, FacetWeights>;
 }
 
 export interface SessionIdentity {

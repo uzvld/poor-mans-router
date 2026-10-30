@@ -1,3 +1,4 @@
+import { ANCHORING_WEIGHTS } from './anchoring-weights.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildRoutes, selectForTier } from '../ranking.ts';
@@ -20,7 +21,7 @@ type Spec = readonly [provider: string, id: string];
 function build(intel: IntelMap, specs: Spec[], history: Record<string, typeof CLEAN> = {}): NormalizedRoute[] {
   return buildRoutes(
     specs.map(([provider, id]) => ({ provider, id, selector: `${provider}/${id}`, cost: { input: 2, output: 10 } })),
-    { ompReports: [], codexbar: [], localState: {}, history, intel, reservePct: 10, now: NOW },
+    { ompReports: [], codexbar: [], localState: {}, history, intel, reservePct: 10, now: NOW, weights: ANCHORING_WEIGHTS },
   );
 }
 

@@ -1,4 +1,6 @@
+import type { FacetWeights } from './bench-types.ts';
 import type { IntelMap } from './openrouter-intel.ts';
+import { DEFAULT_WEIGHTS } from './policy.ts';
 import type { NormalizedRoute, RouterPolicy, Tier } from './types.ts';
 
 // Rung strength is measured, not named. A class's power is the best benchmark power among the
@@ -29,9 +31,6 @@ import type { NormalizedRoute, RouterPolicy, Tier } from './types.ts';
 
 export const RUNG_HYSTERESIS = 0.02;
 
-/** Capability blend, mirroring the coding:agentic ratio of `qualityFromIntel` (0.24 : 0.14). */
-const CAPABILITY_WEIGHTS = { coding: 0.63, agentic: 0.37 };
-
 export type ClassEconomics = 'subscription' | 'paid' | 'free' | 'mixed';
 
 export interface ClassProfile {
@@ -53,19 +52,25 @@ export interface ComputedLadder {
 }
 
 /**
- * Benchmark power of one model, 0..1, or undefined when the snapshot says nothing about it.
- * coding dominates agentic at the same ratio `qualityFromIntel` uses; a model measured on only
- * one of the two is scored on that one rather than being treated as half-measured.
+ * Benchmark power of one model, 0..1, or undefined when no source measured it: the mean of the facets it
+ * has under the tier's weights, renormalised over those facets, so a facet nobody measured is neither a
+ * penalty nor a bonus (I7). `general` is the intelligence index already on the coding scale (written by the
+ * blend); the raw `intelligence` index is not power. A facet a tier gives no weight is ignored.
  */
-export function benchmarkPower(intel: IntelMap[string] | undefined): number | undefined {
-  const coding = intel?.coding;
-  const agentic = intel?.agentic;
-  if (typeof coding === 'number' && typeof agentic === 'number') {
-    return CAPABILITY_WEIGHTS.coding * coding + CAPABILITY_WEIGHTS.agentic * agentic;
+export function benchmarkPower(intel: IntelMap[string] | undefined, weights: FacetWeights = DEFAULT_WEIGHTS.balanced): number | undefined {
+  const facets: Array<[number | undefined, number]> = [
+    [intel?.coding, weights.coding],
+    [intel?.agentic, weights.agentic],
+    [intel?.general, weights.general],
+  ];
+  let sum = 0;
+  let total = 0;
+  for (const [value, weight] of facets) {
+    if (typeof value !== 'number' || weight <= 0) continue;
+    sum += value * weight;
+    total += weight;
   }
-  if (typeof coding === 'number') return coding;
-  if (typeof agentic === 'number') return agentic;
-  return undefined;
+  return total > 0 ? sum / total : undefined;
 }
 
 function economicsOf(route: NormalizedRoute): ClassEconomics {
@@ -186,17 +191,21 @@ export function orderLadder(
   return { order, powers, unmeasured, source: 'snapshot' };
 }
 
-/** Ladder for every tier. `previous` carries the last computed ladders so the margin is sticky. */
+/**
+ * Ladder for every tier. `previous` carries the last computed ladders so the margin is sticky. Routes are
+ * scored with a tier's weights, so a tier is given its own list; one list serves every tier alike.
+ */
 export function computeLadders(
   policy: RouterPolicy,
-  routes: NormalizedRoute[],
+  routes: NormalizedRoute[] | Record<Tier, NormalizedRoute[]>,
   previous: Partial<Record<Tier, string[]>> = {},
 ): Record<Tier, ComputedLadder> {
-  const profiles = profileClasses(routes);
-  return {
-    frontier: orderLadder(policy.tiers.frontier.classes, profiles, previous.frontier),
-    balanced: orderLadder(policy.tiers.balanced.classes, profiles, previous.balanced),
-    small: orderLadder(policy.tiers.small.classes, profiles, previous.small),
-    free: orderLadder(policy.tiers.free.classes, profiles, previous.free),
-  };
+  const shared = Array.isArray(routes) ? profileClasses(routes) : undefined;
+  const perTier = Array.isArray(routes) ? undefined : routes;
+  const ladder = (tier: Tier): ComputedLadder => orderLadder(
+    policy.tiers[tier].classes,
+    shared ?? profileClasses(perTier?.[tier] ?? []),
+    previous[tier],
+  );
+  return { frontier: ladder('frontier'), balanced: ladder('balanced'), small: ladder('small'), free: ladder('free') };
 }

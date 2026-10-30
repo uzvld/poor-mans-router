@@ -1,3 +1,4 @@
+import { ANCHORING_WEIGHTS } from './anchoring-weights.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,7 +17,7 @@ function routesFor(intel: IntelMap, ids: string[]) {
     ids.map((id) => ({ provider: 'anthropic', id, selector: `anthropic/${id}`, cost: { input: 2, output: 10 } })),
     {
       ompReports: normalizeOmpUsage(JSON.parse(fs.readFileSync('fixtures/live-omp-usage-2026-09-19.json', 'utf8'))),
-      codexbar: [], localState: {}, history: {}, intel, reservePct: 10, now: LIVE_NOW,
+      codexbar: [], localState: {}, history: {}, intel, reservePct: 10, now: LIVE_NOW, weights: ANCHORING_WEIGHTS,
     },
   );
 }
@@ -145,7 +146,7 @@ const NOW_HEALTH = { reliability: 1, errorRate: 0, requests: 20 };
 function genericRoutes(intel: IntelMap, ids: string[], history: Record<string, typeof NOW_HEALTH> = {}) {
   return buildRoutes(
     ids.map((id) => ({ provider: 'openrouter', id, selector: `openrouter/${id}`, cost: { input: 2, output: 10 } })),
-    { ompReports: [], codexbar: [], localState: {}, history, intel, reservePct: 10, now: LIVE_NOW },
+    { ompReports: [], codexbar: [], localState: {}, history, intel, reservePct: 10, now: LIVE_NOW, weights: ANCHORING_WEIGHTS },
   );
 }
 
@@ -271,7 +272,9 @@ test('a coding-measured route keeps exactly the score the coding/agentic formula
     const [route] = genericRoutes({ [id]: row }, [id]);
     const expected =
       0.35 + 0.24 * row.coding + 0.14 * row.agentic + 0.10 * (row.taskFit ?? 0.5) + 0.10 * 0.5 + 0.07 * (row.popularity ?? 0.5);
-    assert.equal(route?.qualityScore, expected, id);
+    // The formula is evaluated through the tier weights now (0.38 x a renormalised blend), so equal to the
+    // formula is equal within rounding, not to the bit.
+    assert.ok(Math.abs((route?.qualityScore ?? Number.NaN) - expected) < 1e-12, id);
   });
 });
 

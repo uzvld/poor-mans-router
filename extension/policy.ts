@@ -1,5 +1,19 @@
-import type { RouterPolicy } from './types.ts';
+import type { FacetWeights } from './bench-types.ts';
+import { isFiniteNumber, isRecord } from './bench-util.ts';
+import type { RouterPolicy, Tier } from './types.ts';
 
+/**
+ * How much each benchmark facet counts in a tier (coding / agentic / general). Frontier is hard agentic
+ * work, balanced is strong work at a fair price (the price is already decided by class economics), small
+ * is speed and price with the benchmark only breaking ties; `free` keeps balanced's weights and its own
+ * value preference (docs/design.md §10.1). Judgment, not measurement: policy.yml overrides them.
+ */
+export const DEFAULT_WEIGHTS: Record<Tier, FacetWeights> = {
+  frontier: { coding: 0.4, agentic: 0.45, general: 0.15 },
+  balanced: { coding: 0.45, agentic: 0.35, general: 0.2 },
+  small: { coding: 0.4, agentic: 0.2, general: 0.4 },
+  free: { coding: 0.45, agentic: 0.35, general: 0.2 },
+};
 
 export const DEFAULT_POLICY: RouterPolicy = {
   tiers: {
@@ -9,6 +23,7 @@ export const DEFAULT_POLICY: RouterPolicy = {
     // Free-only by contract: the selector promises no spend, so no paid rung here.
     free: { classes: ['best-free', 'free-chinese-flash', 'healthy-free-fast', 'healthy-free'] },
   },
+  weights: DEFAULT_WEIGHTS,
 };
 
 export interface RouteEconomics {
@@ -93,12 +108,30 @@ export function decorateClasses(base: string[], economics: RouteEconomics): stri
   return [...tags];
 }
 
-export function normalizePolicy(raw: any): import('./types.ts').RouterPolicy {
-  const tiers = {
-    frontier: { classes: Array.isArray(raw?.tiers?.frontier?.classes) ? raw.tiers.frontier.classes.map(String) : [...DEFAULT_POLICY.tiers.frontier.classes] },
-    balanced: { classes: Array.isArray(raw?.tiers?.balanced?.classes) ? raw.tiers.balanced.classes.map(String) : [...DEFAULT_POLICY.tiers.balanced.classes] },
-    small: { classes: Array.isArray(raw?.tiers?.small?.classes) ? raw.tiers.small.classes.map(String) : [...DEFAULT_POLICY.tiers.small.classes] },
-    free: { classes: Array.isArray(raw?.tiers?.free?.classes) ? raw.tiers.free.classes.map(String) : [...DEFAULT_POLICY.tiers.free.classes] },
+/** Three finite, non-negative weights that sum to something; anything else is not a weight set. */
+function weightsOf(value: unknown): FacetWeights | undefined {
+  if (!isRecord(value)) return undefined;
+  const { coding, agentic, general } = value;
+  if (!isFiniteNumber(coding) || !isFiniteNumber(agentic) || !isFiniteNumber(general)) return undefined;
+  if (coding < 0 || agentic < 0 || general < 0 || coding + agentic + general <= 0) return undefined;
+  return { coding, agentic, general };
+}
+
+export function normalizePolicy(raw: unknown): RouterPolicy {
+  const tiers = isRecord(raw) && isRecord(raw.tiers) ? raw.tiers : {};
+  const weights = isRecord(raw) && isRecord(raw.weights) ? raw.weights : {};
+  const classesOf = (tier: Tier): string[] => {
+    const entry = tiers[tier];
+    return isRecord(entry) && Array.isArray(entry.classes) ? entry.classes.map(String) : [...DEFAULT_POLICY.tiers[tier].classes];
   };
-  return { tiers };
+  const weightsFor = (tier: Tier): FacetWeights => weightsOf(weights[tier]) ?? { ...DEFAULT_WEIGHTS[tier] };
+  return {
+    tiers: {
+      frontier: { classes: classesOf('frontier') },
+      balanced: { classes: classesOf('balanced') },
+      small: { classes: classesOf('small') },
+      free: { classes: classesOf('free') },
+    },
+    weights: { frontier: weightsFor('frontier'), balanced: weightsFor('balanced'), small: weightsFor('small'), free: weightsFor('free') },
+  };
 }

@@ -1,0 +1,6569 @@
+{
+"schemaVersion": "1.0",
+"name": "BenchLM leaderboards",
+"attribution": "Data from BenchLM.ai",
+"license": "CC BY-NC 4.0",
+"generatedAt": "2026-10-29T16:50:36.279Z",
+"dataVersion": "sha256:1aeabdef192b1a14445e50eae1a26f8636d34367c46061c061a994c5ccc5496c",
+"rankingMode": "bench-align-v5",
+"items": [
+{
+"slug": "gemini-4-carbon",
+"canonicalModelKey": "gemini-4-carbon",
+"model": "Gemini 4 Carbon",
+"creator": "Google",
+"displayScore": 88.38,
+"score": 88.38,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 78.66,
+"upper": 98.1
+}
+},
+{
+"slug": "claude-opus-5-5",
+"canonicalModelKey": "claude-opus-5-5",
+"model": "Claude Opus 5.5",
+"creator": "Anthropic",
+"displayScore": 86.29,
+"score": 86.29,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 81.63,
+"upper": 90.94
+}
+},
+{
+"slug": "gpt-6-astra",
+"canonicalModelKey": "gpt-6-astra",
+"model": "GPT-6 Astra",
+"creator": "OpenAI",
+"displayScore": 86.07,
+"score": 86.07,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 80.46,
+"upper": 91.69
+}
+},
+{
+"slug": "gpt-6-1-sol",
+"canonicalModelKey": "gpt-6-1-sol",
+"model": "GPT-6.1 Sol",
+"creator": "OpenAI",
+"displayScore": 85.27,
+"score": 85.27,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 80.83,
+"upper": 89.72
+}
+},
+{
+"slug": "gemini-4-argon",
+"canonicalModelKey": "gemini-4-argon",
+"model": "Gemini 4 Argon",
+"creator": "Google",
+"displayScore": 82.28,
+"score": 82.28,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 78.93,
+"upper": 85.63
+}
+},
+{
+"slug": "claude-sonnet-5-5",
+"canonicalModelKey": "claude-sonnet-5-5",
+"model": "Claude Sonnet 5.5",
+"creator": "Anthropic",
+"displayScore": 81.84,
+"score": 81.84,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 77.65,
+"upper": 86.03
+}
+},
+{
+"slug": "claude-fable-5-1",
+"canonicalModelKey": "claude-fable-5-1",
+"model": "Claude Fable 5.1",
+"creator": "Anthropic",
+"displayScore": 81.08,
+"score": 81.08,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 77.45,
+"upper": 84.71
+}
+},
+{
+"slug": "claude-fable",
+"canonicalModelKey": "claude-fable-5",
+"model": "Claude Fable 5",
+"creator": "Anthropic",
+"displayScore": 80.78,
+"score": 80.78,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 77.78,
+"upper": 83.78
+}
+},
+{
+"slug": "gpt-6-1-terra",
+"canonicalModelKey": "gpt-6-1-terra",
+"model": "GPT-6.1 Terra",
+"creator": "OpenAI",
+"displayScore": 80.46,
+"score": 80.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 66.11,
+"upper": 94.8
+}
+},
+{
+"slug": "claude-opus-5",
+"canonicalModelKey": "claude-opus-5",
+"model": "Claude Opus 5",
+"creator": "Anthropic",
+"displayScore": 79.68,
+"score": 79.68,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 77.05,
+"upper": 82.31
+}
+},
+{
+"slug": "gpt-6-sol",
+"canonicalModelKey": "gpt-6-sol",
+"model": "GPT-6 Sol",
+"creator": "OpenAI",
+"displayScore": 77.97,
+"score": 77.97,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 74.67,
+"upper": 81.26
+}
+},
+{
+"slug": "gpt-5-6-sol",
+"canonicalModelKey": "gpt-5-6-sol",
+"model": "GPT-5.6 Sol",
+"creator": "OpenAI",
+"displayScore": 74.83,
+"score": 74.83,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 71.76,
+"upper": 77.9
+}
+},
+{
+"slug": "kimi-3-1-pro",
+"canonicalModelKey": "kimi-3-1-pro",
+"model": "Kimi K3.1 Pro",
+"creator": "Moonshot AI",
+"displayScore": 74.61,
+"score": 74.61,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 60.26,
+"upper": 88.95
+}
+},
+{
+"slug": "gpt-5-5-pro",
+"canonicalModelKey": "gpt-5-5-pro",
+"model": "GPT-5.5 Pro",
+"creator": "OpenAI",
+"displayScore": 72.76,
+"score": 72.76,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 58.41,
+"upper": 87.11
+}
+},
+{
+"slug": "gpt-5-6-terra",
+"canonicalModelKey": "gpt-5-6-terra",
+"model": "GPT-5.6 Terra",
+"creator": "OpenAI",
+"displayScore": 69.81,
+"score": 69.81,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 65.47,
+"upper": 74.16
+}
+},
+{
+"slug": "claude-opus-4-8",
+"canonicalModelKey": "claude-opus-4-8",
+"model": "Claude Opus 4.8",
+"creator": "Anthropic",
+"displayScore": 69.63,
+"score": 69.63,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 65.27,
+"upper": 74
+}
+},
+{
+"slug": "kimi-k3",
+"canonicalModelKey": "kimi-3",
+"model": "Kimi K3",
+"creator": "Moonshot AI",
+"displayScore": 69.34,
+"score": 69.34,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 64.97,
+"upper": 73.71
+}
+},
+{
+"slug": "muse-wonder-full",
+"canonicalModelKey": "muse-wonder-full",
+"model": "Muse Wonder Full",
+"creator": "Meta",
+"displayScore": 68.96,
+"score": 68.96,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 54.61,
+"upper": 83.31
+}
+},
+{
+"slug": "gpt-5-5",
+"canonicalModelKey": "gpt-5-5",
+"model": "GPT-5.5",
+"creator": "OpenAI",
+"displayScore": 68.82,
+"score": 68.82,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 61.79,
+"upper": 75.85
+}
+},
+{
+"slug": "gpt-5-4-pro",
+"canonicalModelKey": "gpt-5-4-pro",
+"model": "GPT-5.4 Pro",
+"creator": "OpenAI",
+"displayScore": 68.23,
+"score": 68.23,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 53.88,
+"upper": 82.58
+}
+},
+{
+"slug": "claude-opus-4-7-adaptive",
+"canonicalModelKey": "claude-opus-4-7-max",
+"model": "Claude Opus 4.7 (Adaptive)",
+"creator": "Anthropic",
+"displayScore": 68.11,
+"score": 68.11,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 53.76,
+"upper": 82.46
+}
+},
+{
+"slug": "grok-4-6",
+"canonicalModelKey": "grok-4-6",
+"model": "Grok 4.6",
+"creator": "xAI",
+"displayScore": 66.62,
+"score": 66.62,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 63.42,
+"upper": 69.82
+}
+},
+{
+"slug": "gemini-3-7-flash",
+"canonicalModelKey": "gemini-3-7-flash",
+"model": "Gemini 3.7 Flash",
+"creator": "Google",
+"displayScore": 66.53,
+"score": 66.53,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 60.23,
+"upper": 72.83
+}
+},
+{
+"slug": "claude-haiku-5-5",
+"canonicalModelKey": "claude-haiku-5-5",
+"model": "Claude Haiku 5.5",
+"creator": "Anthropic",
+"displayScore": 66.42,
+"score": 66.42,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 57.54,
+"upper": 75.3
+}
+},
+{
+"slug": "gpt-5-4",
+"canonicalModelKey": "gpt-5-4",
+"model": "GPT-5.4",
+"creator": "OpenAI",
+"displayScore": 66.4,
+"score": 66.4,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 61.38,
+"upper": 71.41
+}
+},
+{
+"slug": "gpt-5-2-pro",
+"canonicalModelKey": "gpt-5-2-pro",
+"model": "GPT-5.2 Pro",
+"creator": "OpenAI",
+"displayScore": 66.23,
+"score": 66.23,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 56.51,
+"upper": 75.96
+}
+},
+{
+"slug": "gemini-3-8-flash",
+"canonicalModelKey": "gemini-3-8-flash",
+"model": "Gemini 3.8 Flash",
+"creator": "Google",
+"displayScore": 66.22,
+"score": 66.22,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 54.07,
+"upper": 78.36
+}
+},
+{
+"slug": "muse-spark-1-2",
+"canonicalModelKey": "muse-spark-1-2",
+"model": "Muse Spark 1.2",
+"creator": "Meta",
+"displayScore": 65.41,
+"score": 65.41,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 58.97,
+"upper": 71.85
+}
+},
+{
+"slug": "ling-3-1-flash",
+"canonicalModelKey": "ling-3-1-flash",
+"model": "Ling 3.1 Flash",
+"creator": "InclusionAI",
+"displayScore": 65.41,
+"score": 65.41,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 51.06,
+"upper": 79.76
+}
+},
+{
+"slug": "deepseek-v4-1-flash",
+"canonicalModelKey": "deepseek-v4-1-flash",
+"model": "DeepSeek V4.1 Flash 1017",
+"creator": "DeepSeek",
+"displayScore": 65.22,
+"score": 65.22,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 59.83,
+"upper": 70.6
+}
+},
+{
+"slug": "claude-opus-4-7",
+"canonicalModelKey": "claude-opus-4-7",
+"model": "Claude Opus 4.7",
+"creator": "Anthropic",
+"displayScore": 65.18,
+"score": 65.18,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 55.46,
+"upper": 74.9
+}
+},
+{
+"slug": "muse-spark-1-1",
+"canonicalModelKey": "muse-spark-1-1",
+"model": "Muse Spark 1.1",
+"creator": "Meta",
+"displayScore": 65.16,
+"score": 65.16,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 56.11,
+"upper": 74.21
+}
+},
+{
+"slug": "qwen3-8-max",
+"canonicalModelKey": "qwen3-8-max",
+"model": "Qwen3.8 Max",
+"creator": "Alibaba",
+"displayScore": 64.86,
+"score": 64.86,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 56.05,
+"upper": 73.67
+}
+},
+{
+"slug": "gemini-3-1-pro",
+"canonicalModelKey": "gemini-3-1-pro",
+"model": "Gemini 3.1 Pro",
+"creator": "Google",
+"displayScore": 64.41,
+"score": 64.41,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 54.69,
+"upper": 74.13
+}
+},
+{
+"slug": "dots3-note-preview",
+"canonicalModelKey": "dots3-note-preview",
+"model": "dots3-note Preview",
+"creator": "Dots Studio",
+"displayScore": 64.35,
+"score": 64.35,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 50,
+"upper": 78.69
+}
+},
+{
+"slug": "claude-sonnet-5",
+"canonicalModelKey": "claude-sonnet-5",
+"model": "Claude Sonnet 5",
+"creator": "Anthropic",
+"displayScore": 64.25,
+"score": 64.25,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 58.66,
+"upper": 69.85
+}
+},
+{
+"slug": "gpt-5-6-luna",
+"canonicalModelKey": "gpt-5-6-luna",
+"model": "GPT-5.6 Luna",
+"creator": "OpenAI",
+"displayScore": 63.8,
+"score": 63.8,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 58.06,
+"upper": 69.53
+}
+},
+{
+"slug": "sage-a1-5",
+"canonicalModelKey": "sage-a1-5",
+"model": "Sage-A1.5",
+"creator": "InternScience",
+"displayScore": 62.98,
+"score": 62.98,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 48.63,
+"upper": 77.33
+}
+},
+{
+"slug": "grok-4-5",
+"canonicalModelKey": "grok-4-5",
+"model": "Grok 4.5",
+"creator": "xAI",
+"displayScore": 62.92,
+"score": 62.92,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 57.37,
+"upper": 68.47
+}
+},
+{
+"slug": "muse-wonder",
+"canonicalModelKey": "muse-wonder",
+"model": "Muse Wonder",
+"creator": "Meta",
+"displayScore": 62.78,
+"score": 62.78,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 48.43,
+"upper": 77.13
+}
+},
+{
+"slug": "gpt-5-3-codex",
+"canonicalModelKey": "gpt-5-3-codex",
+"model": "GPT-5.3 Codex",
+"creator": "OpenAI",
+"displayScore": 62.75,
+"score": 62.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 53.03,
+"upper": 72.47
+}
+},
+{
+"slug": "deepseek-v4-pro-0813",
+"canonicalModelKey": "deepseek-v4-pro-max",
+"model": "DeepSeek V4 Pro 0813",
+"creator": "DeepSeek",
+"displayScore": 62.53,
+"score": 62.53,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 48.18,
+"upper": 76.88
+}
+},
+{
+"slug": "ornith-1-5-397b",
+"canonicalModelKey": "ornith-1-5-397b",
+"model": "Ornith-1.5-397B",
+"creator": "Ornith AI",
+"displayScore": 62.47,
+"score": 62.47,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 48.12,
+"upper": 76.82
+}
+},
+{
+"slug": "gemini-3-6-flash",
+"canonicalModelKey": "gemini-3-6-flash",
+"model": "Gemini 3.6 Flash",
+"creator": "Google",
+"displayScore": 62.41,
+"score": 62.41,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 54.17,
+"upper": 70.66
+}
+},
+{
+"slug": "qwen3-7-max",
+"canonicalModelKey": "qwen3-7-max",
+"model": "Qwen3.7 Max",
+"creator": "Alibaba",
+"displayScore": 62.32,
+"score": 62.32,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.93,
+"upper": 72.71
+}
+},
+{
+"slug": "gpt-6-luna",
+"canonicalModelKey": "gpt-6-luna",
+"model": "GPT-6 Luna",
+"creator": "OpenAI",
+"displayScore": 62.14,
+"score": 62.14,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 50.99,
+"upper": 73.28
+}
+},
+{
+"slug": "claude-opus-4-6",
+"canonicalModelKey": "claude-opus-4-6",
+"model": "Claude Opus 4.6",
+"creator": "Anthropic",
+"displayScore": 61.82,
+"score": 61.82,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 48.96,
+"upper": 74.68
+}
+},
+{
+"slug": "hy4-preview",
+"canonicalModelKey": "hy4-preview",
+"model": "Hy4 preview",
+"creator": "Tencent",
+"displayScore": 61.46,
+"score": 61.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 47.11,
+"upper": 75.81
+}
+},
+{
+"slug": "gemini-3-5-flash",
+"canonicalModelKey": "gemini-3-5-flash",
+"model": "Gemini 3.5 Flash",
+"creator": "Google",
+"displayScore": 61.4,
+"score": 61.4,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 52.56,
+"upper": 70.24
+}
+},
+{
+"slug": "glm-5-3",
+"canonicalModelKey": "glm-5-3",
+"model": "GLM-5.3",
+"creator": "Z.AI",
+"displayScore": 61.03,
+"score": 61.03,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.18,
+"upper": 70.88
+}
+},
+{
+"slug": "gemini-3-pro",
+"canonicalModelKey": "gemini-3-pro",
+"model": "Gemini 3 Pro",
+"creator": "Google",
+"displayScore": 60.68,
+"score": 60.68,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 49.18,
+"upper": 72.17
+}
+},
+{
+"slug": "glm-5-2",
+"canonicalModelKey": "glm-5-2",
+"model": "GLM-5.2",
+"creator": "Z.AI",
+"displayScore": 60.03,
+"score": 60.03,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.68,
+"upper": 68.38
+}
+},
+{
+"slug": "muse-spark",
+"canonicalModelKey": "muse-spark",
+"model": "Muse Spark",
+"creator": "Meta",
+"displayScore": 59.84,
+"score": 59.84,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 49.38,
+"upper": 70.31
+}
+},
+{
+"slug": "minimax-m3-1-flash",
+"canonicalModelKey": "minimax-m3-1-flash",
+"model": "MiniMax M3.1 Flash",
+"creator": "MiniMax",
+"displayScore": 59.71,
+"score": 59.71,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 45.36,
+"upper": 74.06
+}
+},
+{
+"slug": "gpt-5-2",
+"canonicalModelKey": "gpt-5-2",
+"model": "GPT-5.2",
+"creator": "OpenAI",
+"displayScore": 59.41,
+"score": 59.41,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.61,
+"upper": 67.2
+}
+},
+{
+"slug": "glm-5-3-flash",
+"canonicalModelKey": "glm-5-3-flash",
+"model": "GLM-5.3-Flash",
+"creator": "Z.AI",
+"displayScore": 58.26,
+"score": 58.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 48.54,
+"upper": 67.98
+}
+},
+{
+"slug": "kimi-2-6",
+"canonicalModelKey": "kimi-2-6",
+"model": "Kimi K2.6",
+"creator": "Moonshot AI",
+"displayScore": 57.38,
+"score": 57.38,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 47.66,
+"upper": 67.1
+}
+},
+{
+"slug": "gpt-5-1",
+"canonicalModelKey": "gpt-5-1",
+"model": "GPT-5.1",
+"creator": "OpenAI",
+"displayScore": 56.8,
+"score": 56.8,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 45.44,
+"upper": 68.15
+}
+},
+{
+"slug": "mimo-v2-6-pro",
+"canonicalModelKey": "mimo-v2-6-pro",
+"model": "MiMo-V2.6-Pro",
+"creator": "Xiaomi",
+"displayScore": 56.44,
+"score": 56.44,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 46.72,
+"upper": 66.16
+}
+},
+{
+"slug": "gpt-5-2-codex",
+"canonicalModelKey": "gpt-5-2-codex",
+"model": "GPT-5.2-Codex",
+"creator": "OpenAI",
+"displayScore": 56.25,
+"score": 56.25,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 46.52,
+"upper": 65.97
+}
+},
+{
+"slug": "kimi-k2-5-reasoning",
+"canonicalModelKey": "kimi-k2-5-reasoning",
+"model": "Kimi K2.5 (Reasoning)",
+"creator": "Moonshot AI",
+"displayScore": 56.24,
+"score": 56.24,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.89,
+"upper": 70.59
+}
+},
+{
+"slug": "step-5-preview",
+"canonicalModelKey": "step-5-preview",
+"model": "Step 5 Preview",
+"creator": "StepFun",
+"displayScore": 56.15,
+"score": 56.15,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 46.42,
+"upper": 65.87
+}
+},
+{
+"slug": "grok-4-20-beta",
+"canonicalModelKey": "grok-4-20-beta",
+"model": "Grok 4.20",
+"creator": "xAI",
+"displayScore": 55.99,
+"score": 55.99,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 46.27,
+"upper": 65.71
+}
+},
+{
+"slug": "glm-5-1",
+"canonicalModelKey": "glm-5-1",
+"model": "GLM-5.1",
+"creator": "Z.AI",
+"displayScore": 55.83,
+"score": 55.83,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 44.47,
+"upper": 67.19
+}
+},
+{
+"slug": "qwen3-8-flash-next",
+"canonicalModelKey": "qwen3-8-flash-next",
+"model": "Qwen3.8-Flash-Next",
+"creator": "Alibaba",
+"displayScore": 55.8,
+"score": 55.8,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.45,
+"upper": 70.15
+}
+},
+{
+"slug": "agents-a1",
+"canonicalModelKey": "agents-a1",
+"model": "Agents-A1",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 55.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.39,
+"upper": 70.09
+}
+},
+{
+"slug": "agents-a1-f16-gguf",
+"canonicalModelKey": "agents-a1-f16-gguf",
+"model": "Agents-A1-F16-GGUF",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 55.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.39,
+"upper": 70.09
+}
+},
+{
+"slug": "agents-a1-fp8",
+"canonicalModelKey": "agents-a1-fp8",
+"model": "Agents-A1-FP8",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 55.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.39,
+"upper": 70.09
+}
+},
+{
+"slug": "agents-a1-q4-k-m-gguf",
+"canonicalModelKey": "agents-a1-q4-k-m-gguf",
+"model": "Agents-A1-Q4_K_M-GGUF",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 55.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.39,
+"upper": 70.09
+}
+},
+{
+"slug": "agents-a1-q8-0-gguf",
+"canonicalModelKey": "agents-a1-q8-0-gguf",
+"model": "Agents-A1-Q8_0-GGUF",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 55.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.39,
+"upper": 70.09
+}
+},
+{
+"slug": "qwen3-5-397b",
+"canonicalModelKey": "qwen3-5-397b",
+"model": "Qwen3.5 397B",
+"creator": "Alibaba",
+"displayScore": 55.47,
+"score": 55.47,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.12,
+"upper": 69.82
+}
+},
+{
+"slug": "qwen3-6-max-preview",
+"canonicalModelKey": "qwen3-6-max-preview",
+"model": "Qwen 3.6 Max (preview)",
+"creator": "Alibaba",
+"displayScore": 55.46,
+"score": 55.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 45.74,
+"upper": 65.18
+}
+},
+{
+"slug": "claude-sonnet-4-6",
+"canonicalModelKey": "claude-sonnet-4-6",
+"model": "Claude Sonnet 4.6",
+"creator": "Anthropic",
+"displayScore": 55.29,
+"score": 55.29,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 42.25,
+"upper": 68.34
+}
+},
+{
+"slug": "mimo-v2-5-pro",
+"canonicalModelKey": "mimo-v2-5-pro",
+"model": "MiMo-V2.5-Pro",
+"creator": "Xiaomi",
+"displayScore": 55.12,
+"score": 55.12,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 45.4,
+"upper": 64.84
+}
+},
+{
+"slug": "mimo-v2-pro",
+"canonicalModelKey": "mimo-v2-pro",
+"model": "MiMo-V2-Pro",
+"creator": "Xiaomi",
+"displayScore": 54.87,
+"score": 54.87,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 45.15,
+"upper": 64.59
+}
+},
+{
+"slug": "mimo-v2-6-flash",
+"canonicalModelKey": "mimo-v2-6-flash",
+"model": "MiMo-V2.6-Flash",
+"creator": "Xiaomi",
+"displayScore": 54.78,
+"score": 54.78,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 45.06,
+"upper": 64.51
+}
+},
+{
+"slug": "apodex-1-1",
+"canonicalModelKey": "apodex-1-1",
+"model": "Apodex 1.1",
+"creator": "Apodex",
+"displayScore": 54.57,
+"score": 54.57,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 40.22,
+"upper": 68.92
+}
+},
+{
+"slug": "gemma-4-31b",
+"canonicalModelKey": "gemma-4-31b",
+"model": "Gemma 4 31B",
+"creator": "Google",
+"displayScore": 54.39,
+"score": 54.39,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 40.04,
+"upper": 68.74
+}
+},
+{
+"slug": "glm-5",
+"canonicalModelKey": "glm-5",
+"model": "GLM-5",
+"creator": "Z.AI",
+"displayScore": 54.32,
+"score": 54.32,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.33,
+"upper": 65.31
+}
+},
+{
+"slug": "qwen3-8-27b",
+"canonicalModelKey": "qwen3-8-27b",
+"model": "Qwen3.8-27B",
+"creator": "Alibaba",
+"displayScore": 54.26,
+"score": 54.26,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 41.13,
+"upper": 67.4
+}
+},
+{
+"slug": "gemini-3-flash",
+"canonicalModelKey": "gemini-3-flash",
+"model": "Gemini 3 Flash",
+"creator": "Google",
+"displayScore": 54.12,
+"score": 54.12,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.2,
+"upper": 70.05
+}
+},
+{
+"slug": "ternary-bonsai-2-27b",
+"canonicalModelKey": "ternary-bonsai-2-27b",
+"model": "Ternary Bonsai 2 27B",
+"creator": "Prism ML",
+"displayScore": 53.95,
+"score": 53.95,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.6,
+"upper": 68.3
+}
+},
+{
+"slug": "qwen3-7-plus",
+"canonicalModelKey": "qwen3-7-plus",
+"model": "Qwen3.7 Plus",
+"creator": "Alibaba",
+"displayScore": 53.79,
+"score": 53.79,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 44.07,
+"upper": 63.51
+}
+},
+{
+"slug": "kimi-k2-7-code",
+"canonicalModelKey": "kimi-k2-7-code",
+"model": "Kimi K2.7 Code",
+"creator": "Moonshot AI",
+"displayScore": 53.59,
+"score": 53.59,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.24,
+"upper": 67.94
+}
+},
+{
+"slug": "qwen3-6-plus",
+"canonicalModelKey": "qwen3-6-plus",
+"model": "Qwen3.6 Plus",
+"creator": "Alibaba",
+"displayScore": 53.54,
+"score": 53.54,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.47,
+"upper": 63.61
+}
+},
+{
+"slug": "gpt-5-1-codex",
+"canonicalModelKey": "gpt-5-1-codex",
+"model": "GPT-5.1-Codex",
+"creator": "OpenAI",
+"displayScore": 53.43,
+"score": 53.43,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.08,
+"upper": 67.78
+}
+},
+{
+"slug": "claude-opus-4-5-thinking",
+"canonicalModelKey": "claude-opus-4-5-thinking",
+"model": "Claude Opus 4.5 Thinking",
+"creator": "Anthropic",
+"displayScore": 53.4,
+"score": 53.4,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.05,
+"upper": 67.75
+}
+},
+{
+"slug": "claude-opus-4-5",
+"canonicalModelKey": "claude-opus-4-5",
+"model": "Claude Opus 4.5",
+"creator": "Anthropic",
+"displayScore": 53.35,
+"score": 53.35,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 39.99,
+"upper": 66.71
+}
+},
+{
+"slug": "mai-thinking-1",
+"canonicalModelKey": "mai-thinking-1",
+"model": "MAI-Thinking-1",
+"creator": "Microsoft",
+"displayScore": 53.02,
+"score": 53.02,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 38.67,
+"upper": 67.37
+}
+},
+{
+"slug": "gpt-5-4-mini",
+"canonicalModelKey": "gpt-5-4-mini",
+"model": "GPT-5.4 mini",
+"creator": "OpenAI",
+"displayScore": 52.98,
+"score": 52.98,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 41.62,
+"upper": 64.34
+}
+},
+{
+"slug": "hy3-preview",
+"canonicalModelKey": "hy3-preview",
+"model": "Hy3 Preview",
+"creator": "Tencent",
+"displayScore": 52.95,
+"score": 52.95,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 38.6,
+"upper": 67.3
+}
+},
+{
+"slug": "glm-5-turbo",
+"canonicalModelKey": "glm-5-turbo",
+"model": "GLM-5-Turbo",
+"creator": "Z.AI",
+"displayScore": 52.94,
+"score": 52.94,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 43.22,
+"upper": 62.66
+}
+},
+{
+"slug": "qwen3-5-122b-a10b",
+"canonicalModelKey": "qwen3-5-122b-a10b",
+"model": "Qwen3.5-122B-A10B",
+"creator": "Alibaba",
+"displayScore": 52.9,
+"score": 52.9,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 38.55,
+"upper": 67.25
+}
+},
+{
+"slug": "grok-4-3",
+"canonicalModelKey": "grok-4-3",
+"model": "Grok 4.3",
+"creator": "xAI",
+"displayScore": 52.65,
+"score": 52.65,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 41.97,
+"upper": 63.32
+}
+},
+{
+"slug": "kimi-k2-5",
+"canonicalModelKey": "kimi-k2-5",
+"model": "Kimi K2.5",
+"creator": "Moonshot AI",
+"displayScore": 52.62,
+"score": 52.62,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.36,
+"upper": 61.88
+}
+},
+{
+"slug": "mistral-large-4",
+"canonicalModelKey": "mistral-large-4",
+"model": "Mistral Large 4",
+"creator": "Mistral",
+"displayScore": 51.46,
+"score": 51.46,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 39.91,
+"upper": 63
+}
+},
+{
+"slug": "grok-4",
+"canonicalModelKey": "grok-4",
+"model": "Grok 4",
+"creator": "xAI",
+"displayScore": 51.27,
+"score": 51.27,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 40.92,
+"upper": 61.62
+}
+},
+{
+"slug": "muse-spark-open",
+"canonicalModelKey": "muse-spark-open",
+"model": "Muse Spark Open",
+"creator": "Meta",
+"displayScore": 50.48,
+"score": 50.48,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 36.13,
+"upper": 64.83
+}
+},
+{
+"slug": "deepseek-v3-2",
+"canonicalModelKey": "deepseek-v3-2",
+"model": "DeepSeek V3.2",
+"creator": "DeepSeek",
+"displayScore": 49.73,
+"score": 49.73,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.62,
+"upper": 63.85
+}
+},
+{
+"slug": "inkling-small",
+"canonicalModelKey": "inkling-small",
+"model": "Inkling-Small",
+"creator": "Thinking Machines Lab",
+"displayScore": 49.5,
+"score": 49.5,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 32.39,
+"upper": 66.6
+}
+},
+{
+"slug": "qwen3-5-plus",
+"canonicalModelKey": "qwen3-5-plus",
+"model": "Qwen3.5 Plus",
+"creator": "Alibaba",
+"displayScore": 49.17,
+"score": 49.17,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 34.82,
+"upper": 63.52
+}
+},
+{
+"slug": "minimax-m2-5",
+"canonicalModelKey": "minimax-m2-5",
+"model": "MiniMax M2.5",
+"creator": "MiniMax",
+"displayScore": 49.17,
+"score": 49.17,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 39.25,
+"upper": 59.08
+}
+},
+{
+"slug": "nemotron-3-5-super-vl-120b-a12b",
+"canonicalModelKey": "nemotron-3-5-super-vl-120b-a12b",
+"model": "Nemotron 3.5 Super VL 120B A12B",
+"creator": "NVIDIA",
+"displayScore": 49.03,
+"score": 49.03,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 34.68,
+"upper": 63.38
+}
+},
+{
+"slug": "qwen3-5-27b",
+"canonicalModelKey": "qwen3-5-27b",
+"model": "Qwen3.5-27B",
+"creator": "Alibaba",
+"displayScore": 49.01,
+"score": 49.01,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.28,
+"upper": 58.73
+}
+},
+{
+"slug": "mimo-v2-omni",
+"canonicalModelKey": "mimo-v2-omni",
+"model": "MiMo-V2-Omni",
+"creator": "Xiaomi",
+"displayScore": 48.99,
+"score": 48.99,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.26,
+"upper": 58.71
+}
+},
+{
+"slug": "gemini-2-5-pro",
+"canonicalModelKey": "gemini-2-5-pro",
+"model": "Gemini 2.5 Pro",
+"creator": "Google",
+"displayScore": 48.7,
+"score": 48.7,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 33.5,
+"upper": 63.89
+}
+},
+{
+"slug": "glm-5v-turbo",
+"canonicalModelKey": "glm-5v-turbo",
+"model": "GLM-5V-Turbo",
+"creator": "Z.AI",
+"displayScore": 48.6,
+"score": 48.6,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 38.88,
+"upper": 58.32
+}
+},
+{
+"slug": "minimax-m3",
+"canonicalModelKey": "minimax-m3",
+"model": "MiniMax M3",
+"creator": "MiniMax",
+"displayScore": 48.57,
+"score": 48.57,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 32.65,
+"upper": 64.5
+}
+},
+{
+"slug": "glm-4-7",
+"canonicalModelKey": "glm-4-7",
+"model": "GLM-4.7",
+"creator": "Z.AI",
+"displayScore": 48.27,
+"score": 48.27,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.61,
+"upper": 60.92
+}
+},
+{
+"slug": "qwen3-6-27b",
+"canonicalModelKey": "qwen3-6-27b",
+"model": "Qwen3.6-27B",
+"creator": "Alibaba",
+"displayScore": 48.13,
+"score": 48.13,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 33.78,
+"upper": 62.48
+}
+},
+{
+"slug": "gpt-5-mini",
+"canonicalModelKey": "gpt-5-mini",
+"model": "GPT-5 mini",
+"creator": "OpenAI",
+"displayScore": 47.92,
+"score": 47.92,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.86,
+"upper": 59.98
+}
+},
+{
+"slug": "inkling",
+"canonicalModelKey": "inkling",
+"model": "Inkling",
+"creator": "Thinking Machines Lab",
+"displayScore": 47.91,
+"score": 47.91,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 29.8,
+"upper": 66.02
+}
+},
+{
+"slug": "nemotron-3-ultra",
+"canonicalModelKey": "nemotron-3-ultra-500b",
+"model": "Nemotron 3 Ultra",
+"creator": "NVIDIA",
+"displayScore": 47.37,
+"score": 47.37,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 33.02,
+"upper": 61.72
+}
+},
+{
+"slug": "qwen3-7-flash",
+"canonicalModelKey": "qwen3-7-flash",
+"model": "Qwen3.7 Flash",
+"creator": "Alibaba",
+"displayScore": 47.33,
+"score": 47.33,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.98,
+"upper": 61.68
+}
+},
+{
+"slug": "minimax-m2-7",
+"canonicalModelKey": "minimax-m2-7",
+"model": "MiniMax M2.7",
+"creator": "MiniMax",
+"displayScore": 47.29,
+"score": 47.29,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.18,
+"upper": 59.4
+}
+},
+{
+"slug": "claude-sonnet-4-5",
+"canonicalModelKey": "claude-sonnet-4-5",
+"model": "Claude Sonnet 4.5",
+"creator": "Anthropic",
+"displayScore": 47.18,
+"score": 47.18,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 37.46,
+"upper": 56.9
+}
+},
+{
+"slug": "gemini-3-5-flash-lite",
+"canonicalModelKey": "gemini-3-5-flash-lite",
+"model": "Gemini 3.5 Flash-Lite",
+"creator": "Google",
+"displayScore": 46.72,
+"score": 46.72,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 28.47,
+"upper": 64.98
+}
+},
+{
+"slug": "gemini-3-1-flash-lite",
+"canonicalModelKey": "gemini-3-1-flash-lite",
+"model": "Gemini 3.1 Flash-Lite",
+"creator": "Google",
+"displayScore": 46.47,
+"score": 46.47,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 36.75,
+"upper": 56.2
+}
+},
+{
+"slug": "gpt-5-4-nano",
+"canonicalModelKey": "gpt-5-4-nano",
+"model": "GPT-5.4 nano",
+"creator": "OpenAI",
+"displayScore": 46.15,
+"score": 46.15,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 34.79,
+"upper": 57.51
+}
+},
+{
+"slug": "ling-3-0-flash",
+"canonicalModelKey": "ling-3-0-flash",
+"model": "Ling 3.0 Flash",
+"creator": "InclusionAI",
+"displayScore": 45.33,
+"score": 45.33,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 30.98,
+"upper": 59.68
+}
+},
+{
+"slug": "gpt-5-medium",
+"canonicalModelKey": "gpt-5-medium",
+"model": "GPT-5 (medium)",
+"creator": "OpenAI",
+"displayScore": 45.26,
+"score": 45.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.54,
+"upper": 54.99
+}
+},
+{
+"slug": "o3",
+"canonicalModelKey": "o3",
+"model": "o3",
+"creator": "OpenAI",
+"displayScore": 45.24,
+"score": 45.24,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.52,
+"upper": 54.97
+}
+},
+{
+"slug": "qwen3-5-35b-a3b",
+"canonicalModelKey": "qwen3-5-35b-a3b",
+"model": "Qwen3.5-35B-A3B",
+"creator": "Alibaba",
+"displayScore": 45.15,
+"score": 45.15,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 33.56,
+"upper": 56.74
+}
+},
+{
+"slug": "grok-4-1-fast-reasoning",
+"canonicalModelKey": "grok-4-1-fast-reasoning",
+"model": "Grok 4.1 Fast (Reasoning)",
+"creator": "xAI",
+"displayScore": 44.78,
+"score": 44.78,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.05,
+"upper": 54.5
+}
+},
+{
+"slug": "step-3-7-flash",
+"canonicalModelKey": "step-3-7-flash",
+"model": "Step 3.7 Flash",
+"creator": "StepFun",
+"displayScore": 44.76,
+"score": 44.76,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 30.41,
+"upper": 59.11
+}
+},
+{
+"slug": "o3-pro",
+"canonicalModelKey": "o3-pro",
+"model": "o3-pro",
+"creator": "OpenAI",
+"displayScore": 44.71,
+"score": 44.71,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.12,
+"upper": 51.29
+}
+},
+{
+"slug": "grok-3-mini",
+"canonicalModelKey": "grok-3-mini",
+"model": "Grok 3 Mini",
+"creator": "xAI",
+"displayScore": 44.09,
+"score": 44.09,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 34.37,
+"upper": 53.81
+}
+},
+{
+"slug": "trinity-large-thinking",
+"canonicalModelKey": "trinity-large-thinking",
+"model": "Trinity-Large-Thinking",
+"creator": "Arcee AI",
+"displayScore": 43.94,
+"score": 43.94,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 29.59,
+"upper": 58.29
+}
+},
+{
+"slug": "mistral-small-4",
+"canonicalModelKey": "mistral-small-4",
+"model": "Mistral Small 4",
+"creator": "Mistral",
+"displayScore": 43.16,
+"score": 43.16,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.81,
+"upper": 57.5
+}
+},
+{
+"slug": "reflection-beam",
+"canonicalModelKey": "reflection-beam",
+"model": "Beam 1.0 501B-A23B",
+"creator": "Reflection AI",
+"displayScore": 43.08,
+"score": 43.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 33.35,
+"upper": 52.8
+}
+},
+{
+"slug": "qwen3-6-35b-a3b",
+"canonicalModelKey": "qwen3-6-35b-a3b",
+"model": "Qwen3.6-35B-A3B",
+"creator": "Alibaba",
+"displayScore": 43.05,
+"score": 43.05,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.7,
+"upper": 57.4
+}
+},
+{
+"slug": "nemotron-3-5-bolt-74b-a9b",
+"canonicalModelKey": "nemotron-3-5-bolt-74b-a9b",
+"model": "Nemotron 3.5 Bolt 74B-A9B",
+"creator": "NVIDIA",
+"displayScore": 42.8,
+"score": 42.8,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.45,
+"upper": 57.15
+}
+},
+{
+"slug": "grok-4-fast-reasoning",
+"canonicalModelKey": "grok-4-fast-reasoning",
+"model": "Grok 4 Fast (Reasoning)",
+"creator": "xAI",
+"displayScore": 42.54,
+"score": 42.54,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.82,
+"upper": 52.27
+}
+},
+{
+"slug": "qwen3-5-flash",
+"canonicalModelKey": "qwen3-5-flash",
+"model": "Qwen3.5 Flash",
+"creator": "Alibaba",
+"displayScore": 42.51,
+"score": 42.51,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.79,
+"upper": 52.23
+}
+},
+{
+"slug": "glm-4-6",
+"canonicalModelKey": "glm-4-6",
+"model": "GLM-4.6",
+"creator": "Z.AI",
+"displayScore": 41.93,
+"score": 41.93,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.21,
+"upper": 51.65
+}
+},
+{
+"slug": "gemma-4-26b-a4b",
+"canonicalModelKey": "gemma-4-26b-a4b",
+"model": "Gemma 4 26B A4B",
+"creator": "Google",
+"displayScore": 41.8,
+"score": 41.8,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.07,
+"upper": 51.52
+}
+},
+{
+"slug": "step-3-5-flash",
+"canonicalModelKey": "step-3-5-flash",
+"model": "Step 3.5 Flash",
+"creator": "StepFun",
+"displayScore": 41.69,
+"score": 41.69,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 31.97,
+"upper": 51.41
+}
+},
+{
+"slug": "gemini-2-5-flash",
+"canonicalModelKey": "gemini-2-5-flash",
+"model": "Gemini 2.5 Flash",
+"creator": "Google",
+"displayScore": 41.54,
+"score": 41.54,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 24.92,
+"upper": 58.15
+}
+},
+{
+"slug": "spark-x2-6-4b",
+"canonicalModelKey": "spark-x2-6-4b",
+"model": "Spark-X2.6-4B",
+"creator": "SparkLLM",
+"displayScore": 40.82,
+"score": 40.82,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 26.47,
+"upper": 55.17
+}
+},
+{
+"slug": "gpt-oss-120b",
+"canonicalModelKey": "gpt-oss-120b",
+"model": "GPT-OSS 120B",
+"creator": "OpenAI",
+"displayScore": 40.74,
+"score": 40.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 31.02,
+"upper": 50.46
+}
+},
+{
+"slug": "grok-3-beta",
+"canonicalModelKey": "grok-3-beta",
+"model": "Grok 3 [Beta]",
+"creator": "xAI",
+"displayScore": 40.68,
+"score": 40.68,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 30.96,
+"upper": 50.41
+}
+},
+{
+"slug": "deepseek-r1",
+"canonicalModelKey": "deepseek-r1",
+"model": "DeepSeek-R1",
+"creator": "DeepSeek",
+"displayScore": 40.4,
+"score": 40.4,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 25.56,
+"upper": 55.23
+}
+},
+{
+"slug": "claude-haiku-4-5",
+"canonicalModelKey": "claude-haiku-4-5",
+"model": "Claude Haiku 4.5",
+"creator": "Anthropic",
+"displayScore": 39.95,
+"score": 39.95,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 30.23,
+"upper": 49.67
+}
+},
+{
+"slug": "deepseek-v3-1",
+"canonicalModelKey": "deepseek-v3-1",
+"model": "DeepSeek V3.1",
+"creator": "DeepSeek",
+"displayScore": 39.77,
+"score": 39.77,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 22.49,
+"upper": 57.05
+}
+},
+{
+"slug": "claude-4-1-opus",
+"canonicalModelKey": "claude-4-1-opus",
+"model": "Claude 4.1 Opus",
+"creator": "Anthropic",
+"displayScore": 39.61,
+"score": 39.61,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 29.89,
+"upper": 49.33
+}
+},
+{
+"slug": "mimo-v2-flash",
+"canonicalModelKey": "mimo-v2-flash",
+"model": "MiMo-V2-Flash",
+"creator": "Xiaomi",
+"displayScore": 39.3,
+"score": 39.3,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 29.58,
+"upper": 49.02
+}
+},
+{
+"slug": "qwen3-max",
+"canonicalModelKey": "qwen3-max",
+"model": "Qwen3 Max",
+"creator": "Alibaba",
+"displayScore": 38.9,
+"score": 38.9,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 24.55,
+"upper": 53.25
+}
+},
+{
+"slug": "o3-mini",
+"canonicalModelKey": "o3-mini",
+"model": "o3-mini",
+"creator": "OpenAI",
+"displayScore": 38.8,
+"score": 38.8,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 26.14,
+"upper": 51.46
+}
+},
+{
+"slug": "claude-4-1-opus-thinking",
+"canonicalModelKey": "claude-4-1-opus-thinking",
+"model": "Claude 4.1 Opus Thinking",
+"creator": "Anthropic",
+"displayScore": 38.33,
+"score": 38.33,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.6,
+"upper": 48.05
+}
+},
+{
+"slug": "deepseek-v3-1-reasoning",
+"canonicalModelKey": "deepseek-v3-1-reasoning",
+"model": "DeepSeek V3.1 (Reasoning)",
+"creator": "DeepSeek",
+"displayScore": 38.16,
+"score": 38.16,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.43,
+"upper": 47.88
+}
+},
+{
+"slug": "glm-4-7-flash",
+"canonicalModelKey": "glm-4-7-flash",
+"model": "GLM-4.7-Flash",
+"creator": "Z.AI",
+"displayScore": 38.09,
+"score": 38.09,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.37,
+"upper": 47.81
+}
+},
+{
+"slug": "o1",
+"canonicalModelKey": "o1",
+"model": "o1",
+"creator": "OpenAI",
+"displayScore": 38.06,
+"score": 38.06,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 23.71,
+"upper": 52.4
+}
+},
+{
+"slug": "claude-4-sonnet",
+"canonicalModelKey": "claude-4-sonnet",
+"model": "Claude 4 Sonnet",
+"creator": "Anthropic",
+"displayScore": 37.65,
+"score": 37.65,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.92,
+"upper": 47.37
+}
+},
+{
+"slug": "gpt-oss-20b",
+"canonicalModelKey": "gpt-oss-20b",
+"model": "GPT-OSS 20B",
+"creator": "OpenAI",
+"displayScore": 37.11,
+"score": 37.11,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.39,
+"upper": 46.84
+}
+},
+{
+"slug": "lfm2-5-24b-a2b",
+"canonicalModelKey": "lfm2-5-24b-a2b",
+"model": "LFM2.5-24B-A2B",
+"creator": "LiquidAI",
+"displayScore": 36.91,
+"score": 36.91,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.56,
+"upper": 51.26
+}
+},
+{
+"slug": "gpt-4-1",
+"canonicalModelKey": "gpt-4-1",
+"model": "GPT-4.1",
+"creator": "OpenAI",
+"displayScore": 36.8,
+"score": 36.8,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 20.36,
+"upper": 53.23
+}
+},
+{
+"slug": "granite-4-2-8b",
+"canonicalModelKey": "granite-4-2-8b",
+"model": "Granite 4.2 8B",
+"creator": "IBM",
+"displayScore": 36.78,
+"score": 36.78,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.43,
+"upper": 51.13
+}
+},
+{
+"slug": "gpt-5-nano",
+"canonicalModelKey": "gpt-5-nano",
+"model": "GPT-5 nano",
+"creator": "OpenAI",
+"displayScore": 36.37,
+"score": 36.37,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 23.34,
+"upper": 49.4
+}
+},
+{
+"slug": "o1-pro",
+"canonicalModelKey": "o1-pro",
+"model": "o1-pro",
+"creator": "OpenAI",
+"displayScore": 36.28,
+"score": 36.28,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.93,
+"upper": 50.63
+}
+},
+{
+"slug": "ornith-1-5-35b-a3b",
+"canonicalModelKey": "ornith-1-5-35b-a3b",
+"model": "Ornith-1.5-35B-A3B",
+"creator": "Ornith AI",
+"displayScore": 36.07,
+"score": 36.07,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.72,
+"upper": 50.42
+}
+},
+{
+"slug": "deepseek-v3-0324",
+"canonicalModelKey": "deepseek-v3-0324",
+"model": "DeepSeek V3 0324",
+"creator": "DeepSeek",
+"displayScore": 35.64,
+"score": 35.64,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 18.55,
+"upper": 52.73
+}
+},
+{
+"slug": "gemma-4-12b",
+"canonicalModelKey": "gemma-4-12b",
+"model": "Gemma 4 12B",
+"creator": "Google",
+"displayScore": 35.48,
+"score": 35.48,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.13,
+"upper": 49.83
+}
+},
+{
+"slug": "grok-4-1-fast",
+"canonicalModelKey": "grok-4-1-fast",
+"model": "Grok 4.1 Fast",
+"creator": "xAI",
+"displayScore": 35.39,
+"score": 35.39,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 25.67,
+"upper": 45.11
+}
+},
+{
+"slug": "o1-preview",
+"canonicalModelKey": "o1-preview",
+"model": "o1-preview",
+"creator": "OpenAI",
+"displayScore": 34.96,
+"score": 34.96,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 17.81,
+"upper": 52.11
+}
+},
+{
+"slug": "zaya1-8b",
+"canonicalModelKey": "zaya1-8b",
+"model": "ZAYA1-8B",
+"creator": "Zyphra",
+"displayScore": 34.76,
+"score": 34.76,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 20.41,
+"upper": 49.11
+}
+},
+{
+"slug": "ornith-1-5-9b",
+"canonicalModelKey": "ornith-1-5-9b",
+"model": "Ornith-1.5-9B",
+"creator": "Ornith AI",
+"displayScore": 34.04,
+"score": 34.04,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.69,
+"upper": 48.39
+}
+},
+{
+"slug": "glm-4-5-air",
+"canonicalModelKey": "glm-4-5-air",
+"model": "GLM-4.5-Air",
+"creator": "Z.AI",
+"displayScore": 34,
+"score": 34,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 24.28,
+"upper": 43.72
+}
+},
+{
+"slug": "nemotron-3-nano-omni-30b-a3b",
+"canonicalModelKey": "nemotron-3-nano-omni-30b-a3b",
+"model": "Nemotron 3 Nano Omni 30B A3B",
+"creator": "NVIDIA",
+"displayScore": 33.93,
+"score": 33.93,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.58,
+"upper": 48.28
+}
+},
+{
+"slug": "mercury-2-5",
+"canonicalModelKey": "mercury-2-5",
+"model": "Mercury 2.5",
+"creator": "Inception",
+"displayScore": 33.41,
+"score": 33.41,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.06,
+"upper": 47.76
+}
+},
+{
+"slug": "mistral-medium-3-5-128b",
+"canonicalModelKey": "mistral-medium-3-5-128b",
+"model": "Mistral Medium 3.5 128B",
+"creator": "Mistral",
+"displayScore": 33.37,
+"score": 33.37,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.02,
+"upper": 47.72
+}
+},
+{
+"slug": "grok-code-fast-1",
+"canonicalModelKey": "grok-code-fast-1",
+"model": "Grok Code Fast 1",
+"creator": "xAI",
+"displayScore": 33.1,
+"score": 33.1,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 23.38,
+"upper": 42.82
+}
+},
+{
+"slug": "mistral-large-3",
+"canonicalModelKey": "mistral-large-3",
+"model": "Mistral Large 3",
+"creator": "Mistral",
+"displayScore": 33.06,
+"score": 33.06,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 23.34,
+"upper": 42.78
+}
+},
+{
+"slug": "mercury-2",
+"canonicalModelKey": "mercury-2",
+"model": "Mercury 2",
+"creator": "Inception",
+"displayScore": 32.91,
+"score": 32.91,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 23.18,
+"upper": 42.63
+}
+},
+{
+"slug": "kimi-k2",
+"canonicalModelKey": "kimi-k2",
+"model": "Kimi K2",
+"creator": "Moonshot AI",
+"displayScore": 32.66,
+"score": 32.66,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.94,
+"upper": 42.39
+}
+},
+{
+"slug": "ling-2-6-flash",
+"canonicalModelKey": "ling-2-6-flash",
+"model": "Ling 2.6 Flash",
+"creator": "InclusionAI",
+"displayScore": 32.43,
+"score": 32.43,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.08,
+"upper": 46.77
+}
+},
+{
+"slug": "muse-glimmer-30b",
+"canonicalModelKey": "muse-glimmer-30b",
+"model": "Muse Glimmer 30B",
+"creator": "Meta",
+"displayScore": 31.68,
+"score": 31.68,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.33,
+"upper": 46.03
+}
+},
+{
+"slug": "deepseek-v3",
+"canonicalModelKey": "deepseek-v3",
+"model": "DeepSeek V3",
+"creator": "DeepSeek",
+"displayScore": 30.85,
+"score": 30.85,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 13.79,
+"upper": 47.92
+}
+},
+{
+"slug": "sarvam-105b",
+"canonicalModelKey": "sarvam-105b",
+"model": "Sarvam 105B",
+"creator": "Sarvam",
+"displayScore": 30.79,
+"score": 30.79,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.44,
+"upper": 45.14
+}
+},
+{
+"slug": "deepseek-r1-distill-qwen-32b",
+"canonicalModelKey": "deepseek-r1-distill-qwen-32b",
+"model": "DeepSeek R1 Distill Qwen 32B",
+"creator": "DeepSeek",
+"displayScore": 30.21,
+"score": 30.21,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.86,
+"upper": 44.56
+}
+},
+{
+"slug": "solar-pro-3",
+"canonicalModelKey": "solar-pro-3",
+"model": "Solar Pro 3",
+"creator": "Upstage",
+"displayScore": 30.03,
+"score": 30.03,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.68,
+"upper": 44.38
+}
+},
+{
+"slug": "celeris-1",
+"canonicalModelKey": "celeris-1",
+"model": "Celeris-1",
+"creator": "Celeris",
+"displayScore": 29.46,
+"score": 29.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.11,
+"upper": 43.81
+}
+},
+{
+"slug": "gpt-4o",
+"canonicalModelKey": "gpt-4o",
+"model": "GPT-4o",
+"creator": "OpenAI",
+"displayScore": 29.32,
+"score": 29.32,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.59,
+"upper": 39.04
+}
+},
+{
+"slug": "command-a-plus",
+"canonicalModelKey": "command-a-plus",
+"model": "Command A+",
+"creator": "Cohere",
+"displayScore": 28.64,
+"score": 28.64,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 14.29,
+"upper": 42.99
+}
+},
+{
+"slug": "qwen2-5-72b",
+"canonicalModelKey": "qwen2-5-72b",
+"model": "Qwen2.5-72B",
+"creator": "Alibaba",
+"displayScore": 28.5,
+"score": 28.5,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.78,
+"upper": 38.22
+}
+},
+{
+"slug": "gpt-4-1-mini",
+"canonicalModelKey": "gpt-4-1-mini",
+"model": "GPT-4.1 mini",
+"creator": "OpenAI",
+"displayScore": 28.45,
+"score": 28.45,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 14.1,
+"upper": 42.8
+}
+},
+{
+"slug": "mistral-medium-3",
+"canonicalModelKey": "mistral-medium-3",
+"model": "Mistral Medium 3",
+"creator": "Mistral",
+"displayScore": 27.96,
+"score": 27.96,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 13.61,
+"upper": 42.31
+}
+},
+{
+"slug": "llama-3-1-405b",
+"canonicalModelKey": "llama-3-1-405b",
+"model": "Llama 3.1 405B",
+"creator": "Meta",
+"displayScore": 27.96,
+"score": 27.96,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.24,
+"upper": 37.68
+}
+},
+{
+"slug": "mistral-large-2",
+"canonicalModelKey": "mistral-large-2",
+"model": "Mistral Large 2",
+"creator": "Mistral",
+"displayScore": 27.89,
+"score": 27.89,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.17,
+"upper": 37.61
+}
+},
+{
+"slug": "llama-4-maverick",
+"canonicalModelKey": "llama-4-maverick",
+"model": "Llama 4 Maverick",
+"creator": "Meta",
+"displayScore": 27.75,
+"score": 27.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.03,
+"upper": 37.47
+}
+},
+{
+"slug": "gemma-3-27b",
+"canonicalModelKey": "gemma-3-27b",
+"model": "Gemma 3 27B",
+"creator": "Google",
+"displayScore": 27.62,
+"score": 27.62,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 8.1,
+"upper": 47.15
+}
+},
+{
+"slug": "claude-3-5-sonnet",
+"canonicalModelKey": "claude-3-5-sonnet",
+"model": "Claude 3.5 Sonnet",
+"creator": "Anthropic",
+"displayScore": 27.62,
+"score": 27.62,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.9,
+"upper": 37.34
+}
+},
+{
+"slug": "claude-3-opus",
+"canonicalModelKey": "claude-3-opus",
+"model": "Claude 3 Opus",
+"creator": "Anthropic",
+"displayScore": 27.43,
+"score": 27.43,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 11.68,
+"upper": 43.18
+}
+},
+{
+"slug": "gemini-1-5-pro",
+"canonicalModelKey": "gemini-1-5-pro",
+"model": "Gemini 1.5 Pro",
+"creator": "Google",
+"displayScore": 27.16,
+"score": 27.16,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.44,
+"upper": 36.88
+}
+},
+{
+"slug": "llama-4-scout",
+"canonicalModelKey": "llama-4-scout",
+"model": "Llama 4 Scout",
+"creator": "Meta",
+"displayScore": 26.83,
+"score": 26.83,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.11,
+"upper": 36.55
+}
+},
+{
+"slug": "gemma-4-e4b",
+"canonicalModelKey": "gemma-4-e4b",
+"model": "Gemma 4 E4B",
+"creator": "Google",
+"displayScore": 26.58,
+"score": 26.58,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 12.23,
+"upper": 40.93
+}
+},
+{
+"slug": "minimax-m1-80k",
+"canonicalModelKey": "minimax-m1-80k",
+"model": "MiniMax M1 80k",
+"creator": "MiniMax",
+"displayScore": 26.5,
+"score": 26.5,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.78,
+"upper": 36.22
+}
+},
+{
+"slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
+"canonicalModelKey": "nemotron-3-5-lightning-30b-a3b-nvfp4",
+"model": "Nemotron 3.5 Lightning 30B A3B NVFP4",
+"creator": "NVIDIA",
+"displayScore": 26.37,
+"score": 26.37,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 12.02,
+"upper": 40.72
+}
+},
+{
+"slug": "qwen2-5-coder-32b-instruct",
+"canonicalModelKey": "qwen2-5-coder-32b-instruct",
+"model": "Qwen2.5 Coder 32B Instruct",
+"creator": "Alibaba",
+"displayScore": 26.14,
+"score": 26.14,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.42,
+"upper": 35.86
+}
+},
+{
+"slug": "gpt-4o-mini",
+"canonicalModelKey": "gpt-4o-mini",
+"model": "GPT-4o mini",
+"creator": "OpenAI",
+"displayScore": 25.73,
+"score": 25.73,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 9.31,
+"upper": 42.14
+}
+},
+{
+"slug": "lfm2-5-2-6b",
+"canonicalModelKey": "lfm2-5-2-6b",
+"model": "LFM2.5-2.6B",
+"creator": "LiquidAI",
+"displayScore": 25.19,
+"score": 25.19,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 10.84,
+"upper": 39.54
+}
+},
+{
+"slug": "lfm2-5-8b-a1b",
+"canonicalModelKey": "lfm2-5-8b-a1b",
+"model": "LFM2.5-8B-A1B",
+"creator": "LiquidAI",
+"displayScore": 25.05,
+"score": 25.05,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 10.7,
+"upper": 39.4
+}
+},
+{
+"slug": "sarvam-30b",
+"canonicalModelKey": "sarvam-30b",
+"model": "Sarvam 30B",
+"creator": "Sarvam",
+"displayScore": 24.21,
+"score": 24.21,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.86,
+"upper": 38.56
+}
+},
+{
+"slug": "gpt-4-1-nano",
+"canonicalModelKey": "gpt-4-1-nano",
+"model": "GPT-4.1 nano",
+"creator": "OpenAI",
+"displayScore": 23.84,
+"score": 23.84,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.49,
+"upper": 38.19
+}
+},
+{
+"slug": "phi-4",
+"canonicalModelKey": "phi-4",
+"model": "Phi-4",
+"creator": "Microsoft",
+"displayScore": 23.01,
+"score": 23.01,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 13.28,
+"upper": 32.73
+}
+},
+{
+"slug": "nova-pro",
+"canonicalModelKey": "nova-pro",
+"model": "Nova Pro",
+"creator": "Amazon",
+"displayScore": 21.19,
+"score": 21.19,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 11.47,
+"upper": 30.92
+}
+},
+{
+"slug": "lfm3-1-7b",
+"canonicalModelKey": "lfm3-1-7b",
+"model": "LFM3-1.7B",
+"creator": "LiquidAI",
+"displayScore": 21.17,
+"score": 21.17,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.82,
+"upper": 35.52
+}
+},
+{
+"slug": "llama-3-70b",
+"canonicalModelKey": "llama-3-70b",
+"model": "Llama 3 70B",
+"creator": "Meta",
+"displayScore": 21.09,
+"score": 21.09,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 11.36,
+"upper": 30.81
+}
+},
+{
+"slug": "gpt-4-turbo",
+"canonicalModelKey": "gpt-4-turbo",
+"model": "GPT-4 Turbo",
+"creator": "OpenAI",
+"displayScore": 20.45,
+"score": 20.45,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 13.4,
+"upper": 27.51
+}
+},
+{
+"slug": "mixtral-8x22b-instruct-v0-1",
+"canonicalModelKey": "mixtral-8x22b-instruct-v0-1",
+"model": "Mixtral 8x22B Instruct v0.1",
+"creator": "Mistral",
+"displayScore": 18.82,
+"score": 18.82,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.09,
+"upper": 28.54
+}
+},
+{
+"slug": "claude-3-haiku",
+"canonicalModelKey": "claude-3-haiku",
+"model": "Claude 3 Haiku",
+"creator": "Anthropic",
+"displayScore": 13.2,
+"score": 13.2,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 4.99,
+"upper": 21.41
+}
+},
+{
+"slug": "gemini-1-0-pro",
+"canonicalModelKey": "gemini-1-0-pro",
+"model": "Gemini 1.0 Pro",
+"creator": "Google",
+"displayScore": 11,
+"score": 11,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 0.62,
+"upper": 21.39
+}
+},
+{
+"slug": "nemotron-4-15b",
+"canonicalModelKey": "nemotron-4-15b",
+"model": "Nemotron-4 15B",
+"creator": "NVIDIA",
+"displayScore": 9.89,
+"score": 9.89,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0.17,
+"upper": 19.61
+}
+},
+{
+"slug": "mistral-7b-v0-3",
+"canonicalModelKey": "mistral-7b-v0-3",
+"model": "Mistral 7B v0.3",
+"creator": "Mistral",
+"displayScore": 7.16,
+"score": 7.16,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 16.89
+}
+},
+{
+"slug": "minicpm5-1b",
+"canonicalModelKey": "minicpm5-1b",
+"model": "MiniCPM5-1B",
+"creator": "OpenBMB",
+"displayScore": 5.67,
+"score": 5.67,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 20.02
+}
+}
+],
+"categories": {
+"coding": [
+{
+"slug": "claude-opus-5-5",
+"canonicalModelKey": "claude-opus-5-5",
+"model": "Claude Opus 5.5",
+"creator": "Anthropic",
+"displayScore": 86.29,
+"score": 82.87,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 75.57,
+"upper": 90.17
+}
+},
+{
+"slug": "claude-sonnet-5-5",
+"canonicalModelKey": "claude-sonnet-5-5",
+"model": "Claude Sonnet 5.5",
+"creator": "Anthropic",
+"displayScore": 81.84,
+"score": 81.69,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 73.73,
+"upper": 89.64
+}
+},
+{
+"slug": "gemini-4-carbon",
+"canonicalModelKey": "gemini-4-carbon",
+"model": "Gemini 4 Carbon",
+"creator": "Google",
+"displayScore": 88.38,
+"score": 81.09,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 72.87,
+"upper": 89.32
+}
+},
+{
+"slug": "claude-fable-5-1",
+"canonicalModelKey": "claude-fable-5-1",
+"model": "Claude Fable 5.1",
+"creator": "Anthropic",
+"displayScore": 81.08,
+"score": 76.4,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 71.74,
+"upper": 81.07
+}
+},
+{
+"slug": "gpt-6-astra",
+"canonicalModelKey": "gpt-6-astra",
+"model": "GPT-6 Astra",
+"creator": "OpenAI",
+"displayScore": 86.07,
+"score": 74.71,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 65.24,
+"upper": 84.19
+}
+},
+{
+"slug": "gemini-4-argon",
+"canonicalModelKey": "gemini-4-argon",
+"model": "Gemini 4 Argon",
+"creator": "Google",
+"displayScore": 82.28,
+"score": 72.16,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 64.24,
+"upper": 80.08
+}
+},
+{
+"slug": "claude-fable",
+"canonicalModelKey": "claude-fable-5",
+"model": "Claude Fable 5",
+"creator": "Anthropic",
+"displayScore": 80.78,
+"score": 71.37,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 65.94,
+"upper": 76.79
+}
+},
+{
+"slug": "muse-wonder-full",
+"canonicalModelKey": "muse-wonder-full",
+"model": "Muse Wonder Full",
+"creator": "Meta",
+"displayScore": 68.96,
+"score": 71.12,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 59.19,
+"upper": 83.06
+}
+},
+{
+"slug": "claude-opus-5",
+"canonicalModelKey": "claude-opus-5",
+"model": "Claude Opus 5",
+"creator": "Anthropic",
+"displayScore": 79.68,
+"score": 70.49,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 63.74,
+"upper": 77.23
+}
+},
+{
+"slug": "gpt-6-1-sol",
+"canonicalModelKey": "gpt-6-1-sol",
+"model": "GPT-6.1 Sol",
+"creator": "OpenAI",
+"displayScore": 85.27,
+"score": 70.29,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 56.77,
+"upper": 83.81
+}
+},
+{
+"slug": "gpt-5-6-sol",
+"canonicalModelKey": "gpt-5-6-sol",
+"model": "GPT-5.6 Sol",
+"creator": "OpenAI",
+"displayScore": 74.83,
+"score": 67.1,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 61.23,
+"upper": 72.97
+}
+},
+{
+"slug": "muse-wonder",
+"canonicalModelKey": "muse-wonder",
+"model": "Muse Wonder",
+"creator": "Meta",
+"displayScore": 62.78,
+"score": 65.7,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 53.46,
+"upper": 77.94
+}
+},
+{
+"slug": "gpt-6-sol",
+"canonicalModelKey": "gpt-6-sol",
+"model": "GPT-6 Sol",
+"creator": "OpenAI",
+"displayScore": 77.97,
+"score": 64.96,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.61,
+"upper": 74.3
+}
+},
+{
+"slug": "deepseek-v4-1-flash",
+"canonicalModelKey": "deepseek-v4-1-flash",
+"model": "DeepSeek V4.1 Flash 1017",
+"creator": "DeepSeek",
+"displayScore": 65.22,
+"score": 62.91,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.49,
+"upper": 70.33
+}
+},
+{
+"slug": "gpt-5-5",
+"canonicalModelKey": "gpt-5-5",
+"model": "GPT-5.5",
+"creator": "OpenAI",
+"displayScore": 68.82,
+"score": 62.3,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.5,
+"upper": 69.1
+}
+},
+{
+"slug": "gpt-5-6-terra",
+"canonicalModelKey": "gpt-5-6-terra",
+"model": "GPT-5.6 Terra",
+"creator": "OpenAI",
+"displayScore": 69.81,
+"score": 61.99,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 52.6,
+"upper": 71.37
+}
+},
+{
+"slug": "gpt-5-6-luna",
+"canonicalModelKey": "gpt-5-6-luna",
+"model": "GPT-5.6 Luna",
+"creator": "OpenAI",
+"displayScore": 63.8,
+"score": 61.74,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.68,
+"upper": 67.79
+}
+},
+{
+"slug": "claude-opus-4-8",
+"canonicalModelKey": "claude-opus-4-8",
+"model": "Claude Opus 4.8",
+"creator": "Anthropic",
+"displayScore": 69.63,
+"score": 60.7,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 53.65,
+"upper": 67.75
+}
+},
+{
+"slug": "gemini-3-8-flash",
+"canonicalModelKey": "gemini-3-8-flash",
+"model": "Gemini 3.8 Flash",
+"creator": "Google",
+"displayScore": 66.22,
+"score": 59.8,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.05,
+"upper": 68.56
+}
+},
+{
+"slug": "kimi-k3",
+"canonicalModelKey": "kimi-3",
+"model": "Kimi K3",
+"creator": "Moonshot AI",
+"displayScore": 69.34,
+"score": 58.71,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.97,
+"upper": 65.45
+}
+},
+{
+"slug": "grok-4-6",
+"canonicalModelKey": "grok-4-6",
+"model": "Grok 4.6",
+"creator": "xAI",
+"displayScore": 66.62,
+"score": 58.43,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 49.97,
+"upper": 66.9
+}
+},
+{
+"slug": "ling-3-1-flash",
+"canonicalModelKey": "ling-3-1-flash",
+"model": "Ling 3.1 Flash",
+"creator": "InclusionAI",
+"displayScore": 65.41,
+"score": 58.02,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 44.17,
+"upper": 71.86
+}
+},
+{
+"slug": "gemini-3-7-flash",
+"canonicalModelKey": "gemini-3-7-flash",
+"model": "Gemini 3.7 Flash",
+"creator": "Google",
+"displayScore": 66.53,
+"score": 57.53,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 49.49,
+"upper": 65.56
+}
+},
+{
+"slug": "claude-sonnet-5",
+"canonicalModelKey": "claude-sonnet-5",
+"model": "Claude Sonnet 5",
+"creator": "Anthropic",
+"displayScore": 64.25,
+"score": 57.46,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 50.55,
+"upper": 64.36
+}
+},
+{
+"slug": "mimo-v2-6-pro",
+"canonicalModelKey": "mimo-v2-6-pro",
+"model": "MiMo-V2.6-Pro",
+"creator": "Xiaomi",
+"displayScore": 56.44,
+"score": 56.9,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 47.12,
+"upper": 66.67
+}
+},
+{
+"slug": "hy4-preview",
+"canonicalModelKey": "hy4-preview",
+"model": "Hy4 preview",
+"creator": "Tencent",
+"displayScore": 61.46,
+"score": 56.33,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 47.12,
+"upper": 65.54
+}
+},
+{
+"slug": "mimo-v2-6-flash",
+"canonicalModelKey": "mimo-v2-6-flash",
+"model": "MiMo-V2.6-Flash",
+"creator": "Xiaomi",
+"displayScore": 54.78,
+"score": 55.67,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 45.74,
+"upper": 65.59
+}
+},
+{
+"slug": "grok-4-5",
+"canonicalModelKey": "grok-4-5",
+"model": "Grok 4.5",
+"creator": "xAI",
+"displayScore": 62.92,
+"score": 55.48,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 44.28,
+"upper": 66.68
+}
+},
+{
+"slug": "glm-5-3",
+"canonicalModelKey": "glm-5-3",
+"model": "GLM-5.3",
+"creator": "Z.AI",
+"displayScore": 61.03,
+"score": 55.35,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 48.05,
+"upper": 62.66
+}
+},
+{
+"slug": "claude-opus-4-7-adaptive",
+"canonicalModelKey": "claude-opus-4-7-max",
+"model": "Claude Opus 4.7 (Adaptive)",
+"creator": "Anthropic",
+"displayScore": 68.11,
+"score": 55.33,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 43.82,
+"upper": 66.85
+}
+},
+{
+"slug": "claude-opus-4-7",
+"canonicalModelKey": "claude-opus-4-7",
+"model": "Claude Opus 4.7",
+"creator": "Anthropic",
+"displayScore": 65.18,
+"score": 55.08,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 48.71,
+"upper": 61.45
+}
+},
+{
+"slug": "sage-a1-5",
+"canonicalModelKey": "sage-a1-5",
+"model": "Sage-A1.5",
+"creator": "InternScience",
+"displayScore": 62.98,
+"score": 55.07,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 36.27,
+"upper": 73.87
+}
+},
+{
+"slug": "ornith-1-5-397b",
+"canonicalModelKey": "ornith-1-5-397b",
+"model": "Ornith-1.5-397B",
+"creator": "Ornith AI",
+"displayScore": 62.47,
+"score": 54.65,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.38,
+"upper": 73.92
+}
+},
+{
+"slug": "glm-5-2",
+"canonicalModelKey": "glm-5-2",
+"model": "GLM-5.2",
+"creator": "Z.AI",
+"displayScore": 60.03,
+"score": 53.66,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 46.96,
+"upper": 60.35
+}
+},
+{
+"slug": "gpt-5-3-codex",
+"canonicalModelKey": "gpt-5-3-codex",
+"model": "GPT-5.3 Codex",
+"creator": "OpenAI",
+"displayScore": 62.75,
+"score": 53.51,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 37.66,
+"upper": 69.36
+}
+},
+{
+"slug": "minimax-m3-1-flash",
+"canonicalModelKey": "minimax-m3-1-flash",
+"model": "MiniMax M3.1 Flash",
+"creator": "MiniMax",
+"displayScore": 59.71,
+"score": 53.5,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.64,
+"upper": 63.37
+}
+},
+{
+"slug": "muse-spark-1-2",
+"canonicalModelKey": "muse-spark-1-2",
+"model": "Muse Spark 1.2",
+"creator": "Meta",
+"displayScore": 65.41,
+"score": 52.81,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 44.82,
+"upper": 60.8
+}
+},
+{
+"slug": "qwen3-8-max",
+"canonicalModelKey": "qwen3-8-max",
+"model": "Qwen3.8 Max",
+"creator": "Alibaba",
+"displayScore": 64.86,
+"score": 52.72,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 42.25,
+"upper": 63.19
+}
+},
+{
+"slug": "muse-spark-1-1",
+"canonicalModelKey": "muse-spark-1-1",
+"model": "Muse Spark 1.1",
+"creator": "Meta",
+"displayScore": 65.16,
+"score": 52.56,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.17,
+"upper": 61.95
+}
+},
+{
+"slug": "claude-haiku-5-5",
+"canonicalModelKey": "claude-haiku-5-5",
+"model": "Claude Haiku 5.5",
+"creator": "Anthropic",
+"displayScore": 66.42,
+"score": 52.42,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 44.21,
+"upper": 60.62
+}
+},
+{
+"slug": "gpt-6-luna",
+"canonicalModelKey": "gpt-6-luna",
+"model": "GPT-6 Luna",
+"creator": "OpenAI",
+"displayScore": 62.14,
+"score": 51.4,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 42.81,
+"upper": 59.99
+}
+},
+{
+"slug": "gemini-3-6-flash",
+"canonicalModelKey": "gemini-3-6-flash",
+"model": "Gemini 3.6 Flash",
+"creator": "Google",
+"displayScore": 62.41,
+"score": 51.16,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.74,
+"upper": 58.58
+}
+},
+{
+"slug": "muse-spark-open",
+"canonicalModelKey": "muse-spark-open",
+"model": "Muse Spark Open",
+"creator": "Meta",
+"displayScore": 50.48,
+"score": 51.04,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.75,
+"upper": 63.34
+}
+},
+{
+"slug": "qwen3-8-flash-next",
+"canonicalModelKey": "qwen3-8-flash-next",
+"model": "Qwen3.8-Flash-Next",
+"creator": "Alibaba",
+"displayScore": 55.8,
+"score": 50.53,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 31.24,
+"upper": 69.82
+}
+},
+{
+"slug": "gemini-3-5-flash",
+"canonicalModelKey": "gemini-3-5-flash",
+"model": "Gemini 3.5 Flash",
+"creator": "Google",
+"displayScore": 61.4,
+"score": 50.35,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 42.38,
+"upper": 58.32
+}
+},
+{
+"slug": "muse-spark",
+"canonicalModelKey": "muse-spark",
+"model": "Muse Spark",
+"creator": "Meta",
+"displayScore": 59.84,
+"score": 49.75,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 40.28,
+"upper": 59.23
+}
+},
+{
+"slug": "apodex-1-1",
+"canonicalModelKey": "apodex-1-1",
+"model": "Apodex 1.1",
+"creator": "Apodex",
+"displayScore": 54.57,
+"score": 48.55,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 37.03,
+"upper": 60.06
+}
+},
+{
+"slug": "step-5-preview",
+"canonicalModelKey": "step-5-preview",
+"model": "Step 5 Preview",
+"creator": "StepFun",
+"displayScore": 56.15,
+"score": 48.29,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.04,
+"upper": 61.53
+}
+},
+{
+"slug": "claude-opus-4-6-thinking",
+"canonicalModelKey": "claude-opus-4-6-thinking",
+"model": "Claude Opus 4.6 (Adaptive)",
+"creator": "Anthropic",
+"displayScore": null,
+"score": 48.22,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 36.71,
+"upper": 59.74
+}
+},
+{
+"slug": "gpt-5-4",
+"canonicalModelKey": "gpt-5-4",
+"model": "GPT-5.4",
+"creator": "OpenAI",
+"displayScore": 66.4,
+"score": 47.84,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 32.57,
+"upper": 63.11
+}
+},
+{
+"slug": "deepseek-v4-pro-0813",
+"canonicalModelKey": "deepseek-v4-pro-max",
+"model": "DeepSeek V4 Pro 0813",
+"creator": "DeepSeek",
+"displayScore": 62.53,
+"score": 47.71,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 37.78,
+"upper": 57.64
+}
+},
+{
+"slug": "glm-5-3-flash",
+"canonicalModelKey": "glm-5-3-flash",
+"model": "GLM-5.3-Flash",
+"creator": "Z.AI",
+"displayScore": 58.26,
+"score": 47.31,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.2,
+"upper": 56.42
+}
+},
+{
+"slug": "glm-5-1",
+"canonicalModelKey": "glm-5-1",
+"model": "GLM-5.1",
+"creator": "Z.AI",
+"displayScore": 55.83,
+"score": 47.06,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 39.07,
+"upper": 55.06
+}
+},
+{
+"slug": "hy3",
+"canonicalModelKey": "hy3",
+"model": "Hy3",
+"creator": "Tencent",
+"displayScore": null,
+"score": 46.93,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 37.25,
+"upper": 56.61
+}
+},
+{
+"slug": "claude-opus-4-6",
+"canonicalModelKey": "claude-opus-4-6",
+"model": "Claude Opus 4.6",
+"creator": "Anthropic",
+"displayScore": 61.82,
+"score": 46.13,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.57,
+"upper": 53.7
+}
+},
+{
+"slug": "qwen3-8-27b",
+"canonicalModelKey": "qwen3-8-27b",
+"model": "Qwen3.8-27B",
+"creator": "Alibaba",
+"displayScore": 54.26,
+"score": 45.88,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 36.36,
+"upper": 55.41
+}
+},
+{
+"slug": "claude-sonnet-4-6",
+"canonicalModelKey": "claude-sonnet-4-6",
+"model": "Claude Sonnet 4.6",
+"creator": "Anthropic",
+"displayScore": 55.29,
+"score": 44.71,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.99,
+"upper": 50.42
+}
+},
+{
+"slug": "qwen3-7-max",
+"canonicalModelKey": "qwen3-7-max",
+"model": "Qwen3.7 Max",
+"creator": "Alibaba",
+"displayScore": 62.32,
+"score": 44.57,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 30.97,
+"upper": 58.16
+}
+},
+{
+"slug": "gpt-5-2-codex",
+"canonicalModelKey": "gpt-5-2-codex",
+"model": "GPT-5.2-Codex",
+"creator": "OpenAI",
+"displayScore": 56.25,
+"score": 44.47,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 22.89,
+"upper": 66.05
+}
+},
+{
+"slug": "gemini-3-pro",
+"canonicalModelKey": "gemini-3-pro",
+"model": "Gemini 3 Pro",
+"creator": "Google",
+"displayScore": 60.68,
+"score": 43.63,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.11,
+"upper": 55.14
+}
+},
+{
+"slug": "mistral-large-4",
+"canonicalModelKey": "mistral-large-4",
+"model": "Mistral Large 4",
+"creator": "Mistral",
+"displayScore": 51.46,
+"score": 43.54,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 33.92,
+"upper": 53.15
+}
+},
+{
+"slug": "mimo-v2-5-pro",
+"canonicalModelKey": "mimo-v2-5-pro",
+"model": "MiMo-V2.5-Pro",
+"creator": "Xiaomi",
+"displayScore": 55.12,
+"score": 43.27,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 32.69,
+"upper": 53.86
+}
+},
+{
+"slug": "kimi-2-6",
+"canonicalModelKey": "kimi-2-6",
+"model": "Kimi K2.6",
+"creator": "Moonshot AI",
+"displayScore": 57.38,
+"score": 42.93,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.5,
+"upper": 50.36
+}
+},
+{
+"slug": "qwen3-6-max-preview",
+"canonicalModelKey": "qwen3-6-max-preview",
+"model": "Qwen 3.6 Max (preview)",
+"creator": "Alibaba",
+"displayScore": 55.46,
+"score": 42.58,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 31.07,
+"upper": 54.09
+}
+},
+{
+"slug": "kimi-k2-7-code",
+"canonicalModelKey": "kimi-k2-7-code",
+"model": "Kimi K2.7 Code",
+"creator": "Moonshot AI",
+"displayScore": 53.59,
+"score": 42.02,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 31.05,
+"upper": 52.99
+}
+},
+{
+"slug": "claude-opus-4-5",
+"canonicalModelKey": "claude-opus-4-5",
+"model": "Claude Opus 4.5",
+"creator": "Anthropic",
+"displayScore": 53.35,
+"score": 41.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 29.95,
+"upper": 52.98
+}
+},
+{
+"slug": "qwen3-7-plus",
+"canonicalModelKey": "qwen3-7-plus",
+"model": "Qwen3.7 Plus",
+"creator": "Alibaba",
+"displayScore": 53.79,
+"score": 40.5,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 26.1,
+"upper": 54.9
+}
+},
+{
+"slug": "qwen3-6-plus",
+"canonicalModelKey": "qwen3-6-plus",
+"model": "Qwen3.6 Plus",
+"creator": "Alibaba",
+"displayScore": 53.54,
+"score": 40.09,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 30.98,
+"upper": 49.19
+}
+},
+{
+"slug": "kimi-k2-5",
+"canonicalModelKey": "kimi-k2-5",
+"model": "Kimi K2.5",
+"creator": "Moonshot AI",
+"displayScore": 52.62,
+"score": 39.28,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.76,
+"upper": 50.79
+}
+},
+{
+"slug": "gemini-3-1-pro",
+"canonicalModelKey": "gemini-3-1-pro",
+"model": "Gemini 3.1 Pro",
+"creator": "Google",
+"displayScore": 64.41,
+"score": 39.13,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 33.06,
+"upper": 45.21
+}
+},
+{
+"slug": "quasar-438b",
+"canonicalModelKey": "quasar-438b",
+"model": "Quasar 438B",
+"creator": "Multiverse Computing",
+"displayScore": null,
+"score": 39.13,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.62,
+"upper": 50.65
+}
+},
+{
+"slug": "mimo-v2-pro",
+"canonicalModelKey": "mimo-v2-pro",
+"model": "MiMo-V2-Pro",
+"creator": "Xiaomi",
+"displayScore": 54.87,
+"score": 39.02,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.5,
+"upper": 50.53
+}
+},
+{
+"slug": "glm-5",
+"canonicalModelKey": "glm-5",
+"model": "GLM-5",
+"creator": "Z.AI",
+"displayScore": 54.32,
+"score": 38.63,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.12,
+"upper": 50.15
+}
+},
+{
+"slug": "glm-4-7",
+"canonicalModelKey": "glm-4-7",
+"model": "GLM-4.7",
+"creator": "Z.AI",
+"displayScore": 48.27,
+"score": 37.45,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 29.48,
+"upper": 45.43
+}
+},
+{
+"slug": "minimax-m3",
+"canonicalModelKey": "minimax-m3",
+"model": "MiniMax M3",
+"creator": "MiniMax",
+"displayScore": 48.57,
+"score": 37.37,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 23.6,
+"upper": 51.13
+}
+},
+{
+"slug": "gpt-5-2",
+"canonicalModelKey": "gpt-5-2",
+"model": "GPT-5.2",
+"creator": "OpenAI",
+"displayScore": 59.41,
+"score": 37.03,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 29.58,
+"upper": 44.47
+}
+},
+{
+"slug": "inkling-small",
+"canonicalModelKey": "inkling-small",
+"model": "Inkling-Small",
+"creator": "Thinking Machines Lab",
+"displayScore": 49.5,
+"score": 36.89,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 26.22,
+"upper": 47.55
+}
+},
+{
+"slug": "gpt-5-1",
+"canonicalModelKey": "gpt-5-1",
+"model": "GPT-5.1",
+"creator": "OpenAI",
+"displayScore": 56.8,
+"score": 36.19,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 21.34,
+"upper": 51.03
+}
+},
+{
+"slug": "gpt-5-1-codex",
+"canonicalModelKey": "gpt-5-1-codex",
+"model": "GPT-5.1-Codex",
+"creator": "OpenAI",
+"displayScore": 53.43,
+"score": 35.77,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 24.25,
+"upper": 47.28
+}
+},
+{
+"slug": "gpt-5-4-mini",
+"canonicalModelKey": "gpt-5-4-mini",
+"model": "GPT-5.4 mini",
+"creator": "OpenAI",
+"displayScore": 52.98,
+"score": 35.33,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 25.77,
+"upper": 44.88
+}
+},
+{
+"slug": "qwen3-6-27b",
+"canonicalModelKey": "qwen3-6-27b",
+"model": "Qwen3.6-27B",
+"creator": "Alibaba",
+"displayScore": 48.13,
+"score": 35.26,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 16.75,
+"upper": 53.77
+}
+},
+{
+"slug": "gemini-3-5-flash-lite",
+"canonicalModelKey": "gemini-3-5-flash-lite",
+"model": "Gemini 3.5 Flash-Lite",
+"creator": "Google",
+"displayScore": 46.72,
+"score": 35.11,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.07,
+"upper": 43.15
+}
+},
+{
+"slug": "qwen3-5-122b-a10b",
+"canonicalModelKey": "qwen3-5-122b-a10b",
+"model": "Qwen3.5-122B-A10B",
+"creator": "Alibaba",
+"displayScore": 52.9,
+"score": 35.05,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 22.95,
+"upper": 47.15
+}
+},
+{
+"slug": "mimo-v2-5",
+"canonicalModelKey": "mimo-v2-5",
+"model": "MiMo-V2.5",
+"creator": "Xiaomi",
+"displayScore": null,
+"score": 35.03,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.58,
+"upper": 42.49
+}
+},
+{
+"slug": "minimax-m2-7",
+"canonicalModelKey": "minimax-m2-7",
+"model": "MiniMax M2.7",
+"creator": "MiniMax",
+"displayScore": 47.29,
+"score": 34.73,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 23.43,
+"upper": 46.03
+}
+},
+{
+"slug": "qwen3-6-35b-a3b",
+"canonicalModelKey": "qwen3-6-35b-a3b",
+"model": "Qwen3.6-35B-A3B",
+"creator": "Alibaba",
+"displayScore": 43.05,
+"score": 34.59,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 23.08,
+"upper": 46.11
+}
+},
+{
+"slug": "minimax-m2-5",
+"canonicalModelKey": "minimax-m2-5",
+"model": "MiniMax M2.5",
+"creator": "MiniMax",
+"displayScore": 49.17,
+"score": 34.48,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.97,
+"upper": 46
+}
+},
+{
+"slug": "gemma-4-31b",
+"canonicalModelKey": "gemma-4-31b",
+"model": "Gemma 4 31B",
+"creator": "Google",
+"displayScore": 54.39,
+"score": 34.12,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 23.65,
+"upper": 44.59
+}
+},
+{
+"slug": "hy3-preview",
+"canonicalModelKey": "hy3-preview",
+"model": "Hy3 Preview",
+"creator": "Tencent",
+"displayScore": 52.95,
+"score": 33.2,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.69,
+"upper": 44.71
+}
+},
+{
+"slug": "inkling",
+"canonicalModelKey": "inkling",
+"model": "Inkling",
+"creator": "Thinking Machines Lab",
+"displayScore": 47.91,
+"score": 32.97,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 24.16,
+"upper": 41.79
+}
+},
+{
+"slug": "qwen3-5-27b",
+"canonicalModelKey": "qwen3-5-27b",
+"model": "Qwen3.5-27B",
+"creator": "Alibaba",
+"displayScore": 49.01,
+"score": 32.84,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.33,
+"upper": 44.35
+}
+},
+{
+"slug": "glm-5v-turbo",
+"canonicalModelKey": "glm-5v-turbo",
+"model": "GLM-5V-Turbo",
+"creator": "Z.AI",
+"displayScore": 48.6,
+"score": 32.81,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.3,
+"upper": 44.33
+}
+},
+{
+"slug": "spark-x2-6-4b",
+"canonicalModelKey": "spark-x2-6-4b",
+"model": "Spark-X2.6-4B",
+"creator": "SparkLLM",
+"displayScore": 40.82,
+"score": 32.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 13.26,
+"upper": 52.25
+}
+},
+{
+"slug": "gpt-5-medium",
+"canonicalModelKey": "gpt-5-medium",
+"model": "GPT-5 (medium)",
+"creator": "OpenAI",
+"displayScore": 45.26,
+"score": 32.64,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.13,
+"upper": 44.15
+}
+},
+{
+"slug": "deepseek-v3-2-thinking",
+"canonicalModelKey": "deepseek-v3-2-thinking",
+"model": "DeepSeek V3.2 (Thinking)",
+"creator": "DeepSeek",
+"displayScore": null,
+"score": 32.39,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 20.88,
+"upper": 43.91
+}
+},
+{
+"slug": "step-3-7-flash",
+"canonicalModelKey": "step-3-7-flash",
+"model": "Step 3.7 Flash",
+"creator": "StepFun",
+"displayScore": 44.76,
+"score": 32.29,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 20.78,
+"upper": 43.81
+}
+},
+{
+"slug": "ling-3-0-flash",
+"canonicalModelKey": "ling-3-0-flash",
+"model": "Ling 3.0 Flash",
+"creator": "InclusionAI",
+"displayScore": 45.33,
+"score": 32.25,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 14.72,
+"upper": 49.77
+}
+},
+{
+"slug": "gemini-3-flash",
+"canonicalModelKey": "gemini-3-flash",
+"model": "Gemini 3 Flash",
+"creator": "Google",
+"displayScore": 54.12,
+"score": 32.09,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 21.36,
+"upper": 42.83
+}
+},
+{
+"slug": "gemma-4-26b-a4b",
+"canonicalModelKey": "gemma-4-26b-a4b",
+"model": "Gemma 4 26B A4B",
+"creator": "Google",
+"displayScore": 41.8,
+"score": 31.44,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 21.76,
+"upper": 41.12
+}
+},
+{
+"slug": "gpt-5-4-nano",
+"canonicalModelKey": "gpt-5-4-nano",
+"model": "GPT-5.4 nano",
+"creator": "OpenAI",
+"displayScore": 46.15,
+"score": 30.11,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 15.19,
+"upper": 45.03
+}
+},
+{
+"slug": "ministral-3-14b",
+"canonicalModelKey": "ministral-3-14b",
+"model": "Ministral 3 14B",
+"creator": "Mistral",
+"displayScore": null,
+"score": 29.92,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.4,
+"upper": 41.43
+}
+},
+{
+"slug": "mimo-v2-flash",
+"canonicalModelKey": "mimo-v2-flash",
+"model": "MiMo-V2-Flash",
+"creator": "Xiaomi",
+"displayScore": 39.3,
+"score": 29.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.74,
+"upper": 40.77
+}
+},
+{
+"slug": "deepseek-v3-2",
+"canonicalModelKey": "deepseek-v3-2",
+"model": "DeepSeek V3.2",
+"creator": "DeepSeek",
+"displayScore": 49.73,
+"score": 29.21,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.69,
+"upper": 40.72
+}
+},
+{
+"slug": "o1",
+"canonicalModelKey": "o1",
+"model": "o1",
+"creator": "OpenAI",
+"displayScore": 38.06,
+"score": 29.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.56,
+"upper": 40.59
+}
+},
+{
+"slug": "ministral-3-8b",
+"canonicalModelKey": "ministral-3-8b",
+"model": "Ministral 3 8B",
+"creator": "Mistral",
+"displayScore": null,
+"score": 29.05,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.54,
+"upper": 40.57
+}
+},
+{
+"slug": "reflection-beam",
+"canonicalModelKey": "reflection-beam",
+"model": "Beam 1.0 501B-A23B",
+"creator": "Reflection AI",
+"displayScore": 43.08,
+"score": 28.69,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.18,
+"upper": 40.2
+}
+},
+{
+"slug": "gemma-4-e2b",
+"canonicalModelKey": "gemma-4-e2b",
+"model": "Gemma 4 E2B",
+"creator": "Google",
+"displayScore": null,
+"score": 28.6,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.09,
+"upper": 40.12
+}
+},
+{
+"slug": "gpt-oss-120b",
+"canonicalModelKey": "gpt-oss-120b",
+"model": "GPT-OSS 120B",
+"creator": "OpenAI",
+"displayScore": 40.74,
+"score": 28.4,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.89,
+"upper": 39.92
+}
+},
+{
+"slug": "gemini-3-1-flash-lite",
+"canonicalModelKey": "gemini-3-1-flash-lite",
+"model": "Gemini 3.1 Flash-Lite",
+"creator": "Google",
+"displayScore": 46.47,
+"score": 28.28,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.76,
+"upper": 39.79
+}
+},
+{
+"slug": "ministral-3-3b",
+"canonicalModelKey": "ministral-3-3b",
+"model": "Ministral 3 3B",
+"creator": "Mistral",
+"displayScore": null,
+"score": 28.16,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.64,
+"upper": 39.67
+}
+},
+{
+"slug": "gpt-5-mini",
+"canonicalModelKey": "gpt-5-mini",
+"model": "GPT-5 mini",
+"creator": "OpenAI",
+"displayScore": 47.92,
+"score": 27.7,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.19,
+"upper": 39.21
+}
+},
+{
+"slug": "gemma-4-12b",
+"canonicalModelKey": "gemma-4-12b",
+"model": "Gemma 4 12B",
+"creator": "Google",
+"displayScore": 35.48,
+"score": 27.24,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.72,
+"upper": 38.75
+}
+},
+{
+"slug": "ornith-1-5-35b-a3b",
+"canonicalModelKey": "ornith-1-5-35b-a3b",
+"model": "Ornith-1.5-35B-A3B",
+"creator": "Ornith AI",
+"displayScore": 36.07,
+"score": 27.13,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.07,
+"upper": 45.19
+}
+},
+{
+"slug": "qwen3-5-flash",
+"canonicalModelKey": "qwen3-5-flash",
+"model": "Qwen3.5 Flash",
+"creator": "Alibaba",
+"displayScore": 42.51,
+"score": 27.13,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.61,
+"upper": 38.64
+}
+},
+{
+"slug": "qwen3-5-35b-a3b",
+"canonicalModelKey": "qwen3-5-35b-a3b",
+"model": "Qwen3.5-35B-A3B",
+"creator": "Alibaba",
+"displayScore": 45.15,
+"score": 26.69,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.17,
+"upper": 38.2
+}
+},
+{
+"slug": "grok-4-3",
+"canonicalModelKey": "grok-4-3",
+"model": "Grok 4.3",
+"creator": "xAI",
+"displayScore": 52.65,
+"score": 26.65,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 17.23,
+"upper": 36.07
+}
+},
+{
+"slug": "grok-build-0-1",
+"canonicalModelKey": "grok-build-0-1",
+"model": "Grok Build 0.1",
+"creator": "xAI",
+"displayScore": null,
+"score": 26.47,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 14.96,
+"upper": 37.98
+}
+},
+{
+"slug": "glm-4-6",
+"canonicalModelKey": "glm-4-6",
+"model": "GLM-4.6",
+"creator": "Z.AI",
+"displayScore": 41.93,
+"score": 26.15,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 14.63,
+"upper": 37.66
+}
+},
+{
+"slug": "laguna-m-1",
+"canonicalModelKey": "laguna-m-1",
+"model": "Laguna M.1",
+"creator": "Poolside",
+"displayScore": null,
+"score": 26.1,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 16.64,
+"upper": 35.56
+}
+},
+{
+"slug": "mistral-small-4",
+"canonicalModelKey": "mistral-small-4",
+"model": "Mistral Small 4",
+"creator": "Mistral",
+"displayScore": 43.16,
+"score": 25.9,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 14.39,
+"upper": 37.41
+}
+},
+{
+"slug": "mistral-medium-3-5-128b",
+"canonicalModelKey": "mistral-medium-3-5-128b",
+"model": "Mistral Medium 3.5 128B",
+"creator": "Mistral",
+"displayScore": 33.37,
+"score": 25.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 4.92,
+"upper": 46
+}
+},
+{
+"slug": "grok-4-1-fast-reasoning",
+"canonicalModelKey": "grok-4-1-fast-reasoning",
+"model": "Grok 4.1 Fast (Reasoning)",
+"creator": "xAI",
+"displayScore": 44.78,
+"score": 25.44,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 13.92,
+"upper": 36.95
+}
+},
+{
+"slug": "gpt-oss-20b",
+"canonicalModelKey": "gpt-oss-20b",
+"model": "GPT-OSS 20B",
+"creator": "OpenAI",
+"displayScore": 37.11,
+"score": 24.31,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 12.79,
+"upper": 35.82
+}
+},
+{
+"slug": "nemotron-3-nano-omni-30b-a3b",
+"canonicalModelKey": "nemotron-3-nano-omni-30b-a3b",
+"model": "Nemotron 3 Nano Omni 30B A3B",
+"creator": "NVIDIA",
+"displayScore": 33.93,
+"score": 22.73,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 11.21,
+"upper": 34.24
+}
+},
+{
+"slug": "gemini-2-5-pro",
+"canonicalModelKey": "gemini-2-5-pro",
+"model": "Gemini 2.5 Pro",
+"creator": "Google",
+"displayScore": 48.7,
+"score": 22.69,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 8.48,
+"upper": 36.9
+}
+},
+{
+"slug": "nemotron-3-ultra",
+"canonicalModelKey": "nemotron-3-ultra-500b",
+"model": "Nemotron 3 Ultra",
+"creator": "NVIDIA",
+"displayScore": 47.37,
+"score": 22.49,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 16.06,
+"upper": 28.92
+}
+},
+{
+"slug": "laguna-xs-2",
+"canonicalModelKey": "laguna-xs-2",
+"model": "Laguna XS.2",
+"creator": "Poolside",
+"displayScore": null,
+"score": 22.25,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 13.21,
+"upper": 31.3
+}
+},
+{
+"slug": "grok-4-20-beta",
+"canonicalModelKey": "grok-4-20-beta",
+"model": "Grok 4.20",
+"creator": "xAI",
+"displayScore": 55.99,
+"score": 21.95,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 13.45,
+"upper": 30.46
+}
+},
+{
+"slug": "granite-4-2-8b",
+"canonicalModelKey": "granite-4-2-8b",
+"model": "Granite 4.2 8B",
+"creator": "IBM",
+"displayScore": 36.78,
+"score": 21.93,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 10.41,
+"upper": 33.44
+}
+},
+{
+"slug": "muse-glimmer-30b",
+"canonicalModelKey": "muse-glimmer-30b",
+"model": "Muse Glimmer 30B",
+"creator": "Meta",
+"displayScore": 31.68,
+"score": 21.86,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 10.35,
+"upper": 33.37
+}
+},
+{
+"slug": "grok-4-fast-reasoning",
+"canonicalModelKey": "grok-4-fast-reasoning",
+"model": "Grok 4 Fast (Reasoning)",
+"creator": "xAI",
+"displayScore": 42.54,
+"score": 21.36,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.85,
+"upper": 32.88
+}
+},
+{
+"slug": "mercury-2-5",
+"canonicalModelKey": "mercury-2-5",
+"model": "Mercury 2.5",
+"creator": "Inception",
+"displayScore": 33.41,
+"score": 21.25,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.74,
+"upper": 32.77
+}
+},
+{
+"slug": "o1-preview",
+"canonicalModelKey": "o1-preview",
+"model": "o1-preview",
+"creator": "OpenAI",
+"displayScore": 34.96,
+"score": 21.12,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 9.61,
+"upper": 32.64
+}
+},
+{
+"slug": "trinity-large-thinking",
+"canonicalModelKey": "trinity-large-thinking",
+"model": "Trinity-Large-Thinking",
+"creator": "Arcee AI",
+"displayScore": 43.94,
+"score": 19.81,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 9.51,
+"upper": 30.11
+}
+},
+{
+"slug": "celeris-1",
+"canonicalModelKey": "celeris-1",
+"model": "Celeris-1",
+"creator": "Celeris",
+"displayScore": 29.46,
+"score": 19.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 7.75,
+"upper": 30.77
+}
+},
+{
+"slug": "llama-4-maverick",
+"canonicalModelKey": "llama-4-maverick",
+"model": "Llama 4 Maverick",
+"creator": "Meta",
+"displayScore": 27.75,
+"score": 18.18,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.66,
+"upper": 29.69
+}
+},
+{
+"slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
+"canonicalModelKey": "nemotron-3-5-lightning-30b-a3b-nvfp4",
+"model": "Nemotron 3.5 Lightning 30B A3B NVFP4",
+"creator": "NVIDIA",
+"displayScore": 26.37,
+"score": 17.95,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0.98,
+"upper": 34.93
+}
+},
+{
+"slug": "grok-code-fast-1",
+"canonicalModelKey": "grok-code-fast-1",
+"model": "Grok Code Fast 1",
+"creator": "xAI",
+"displayScore": 33.1,
+"score": 17.72,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.21,
+"upper": 29.24
+}
+},
+{
+"slug": "gpt-4-1-mini",
+"canonicalModelKey": "gpt-4-1-mini",
+"model": "GPT-4.1 mini",
+"creator": "OpenAI",
+"displayScore": 28.45,
+"score": 17.7,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.18,
+"upper": 29.21
+}
+},
+{
+"slug": "ling-2-6-flash",
+"canonicalModelKey": "ling-2-6-flash",
+"model": "Ling 2.6 Flash",
+"creator": "InclusionAI",
+"displayScore": 32.43,
+"score": 17.59,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.08,
+"upper": 29.11
+}
+},
+{
+"slug": "claude-haiku-4-5",
+"canonicalModelKey": "claude-haiku-4-5",
+"model": "Claude Haiku 4.5",
+"creator": "Anthropic",
+"displayScore": 39.95,
+"score": 16.98,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 8.61,
+"upper": 25.35
+}
+},
+{
+"slug": "mercury-2",
+"canonicalModelKey": "mercury-2",
+"model": "Mercury 2",
+"creator": "Inception",
+"displayScore": 32.91,
+"score": 16.27,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 0,
+"upper": 32.76
+}
+},
+{
+"slug": "gemma-4-e4b",
+"canonicalModelKey": "gemma-4-e4b",
+"model": "Gemma 4 E4B",
+"creator": "Google",
+"displayScore": 26.58,
+"score": 16.02,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 4.5,
+"upper": 27.53
+}
+},
+{
+"slug": "deepseek-v3",
+"canonicalModelKey": "deepseek-v3",
+"model": "DeepSeek V3",
+"creator": "DeepSeek",
+"displayScore": 30.85,
+"score": 15.81,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 4.3,
+"upper": 27.33
+}
+},
+{
+"slug": "mistral-large-3",
+"canonicalModelKey": "mistral-large-3",
+"model": "Mistral Large 3",
+"creator": "Mistral",
+"displayScore": 33.06,
+"score": 15.59,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 7.18,
+"upper": 24
+}
+},
+{
+"slug": "gemini-1-5-pro",
+"canonicalModelKey": "gemini-1-5-pro",
+"model": "Gemini 1.5 Pro",
+"creator": "Google",
+"displayScore": 27.16,
+"score": 15.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 3.56,
+"upper": 26.59
+}
+},
+{
+"slug": "lfm2-5-2-6b",
+"canonicalModelKey": "lfm2-5-2-6b",
+"model": "LFM2.5-2.6B",
+"creator": "LiquidAI",
+"displayScore": 25.19,
+"score": 14.6,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 3.09,
+"upper": 26.11
+}
+},
+{
+"slug": "command-a-plus",
+"canonicalModelKey": "command-a-plus",
+"model": "Command A+",
+"creator": "Cohere",
+"displayScore": 28.64,
+"score": 14.38,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 2.87,
+"upper": 25.89
+}
+},
+{
+"slug": "llama-4-scout",
+"canonicalModelKey": "llama-4-scout",
+"model": "Llama 4 Scout",
+"creator": "Meta",
+"displayScore": 26.83,
+"score": 13.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 1.74,
+"upper": 24.77
+}
+},
+{
+"slug": "lfm3-1-7b",
+"canonicalModelKey": "lfm3-1-7b",
+"model": "LFM3-1.7B",
+"creator": "LiquidAI",
+"displayScore": 21.17,
+"score": 12.68,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 29.32
+}
+},
+{
+"slug": "claude-3-opus",
+"canonicalModelKey": "claude-3-opus",
+"model": "Claude 3 Opus",
+"creator": "Anthropic",
+"displayScore": 27.43,
+"score": 11.72,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0.21,
+"upper": 23.23
+}
+},
+{
+"slug": "gpt-4-1-nano",
+"canonicalModelKey": "gpt-4-1-nano",
+"model": "GPT-4.1 nano",
+"creator": "OpenAI",
+"displayScore": 23.84,
+"score": 11.45,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 22.96
+}
+},
+{
+"slug": "gpt-4-turbo",
+"canonicalModelKey": "gpt-4-turbo",
+"model": "GPT-4 Turbo",
+"creator": "OpenAI",
+"displayScore": 20.45,
+"score": 10.89,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 22.4
+}
+},
+{
+"slug": "gemma-3-27b",
+"canonicalModelKey": "gemma-3-27b",
+"model": "Gemma 3 27B",
+"creator": "Google",
+"displayScore": 27.62,
+"score": 9.92,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 21.43
+}
+},
+{
+"slug": "gpt-4o-mini",
+"canonicalModelKey": "gpt-4o-mini",
+"model": "GPT-4o mini",
+"creator": "OpenAI",
+"displayScore": 25.73,
+"score": 8.87,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 20.38
+}
+}
+],
+"agentic": [
+{
+"slug": "claude-opus-5-5",
+"canonicalModelKey": "claude-opus-5-5",
+"model": "Claude Opus 5.5",
+"creator": "Anthropic",
+"displayScore": 86.29,
+"score": 90.07,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 83.33,
+"upper": 96.82
+}
+},
+{
+"slug": "claude-fable-5-1",
+"canonicalModelKey": "claude-fable-5-1",
+"model": "Claude Fable 5.1",
+"creator": "Anthropic",
+"displayScore": 81.08,
+"score": 80.7,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 74.99,
+"upper": 86.4
+}
+},
+{
+"slug": "claude-opus-5",
+"canonicalModelKey": "claude-opus-5",
+"model": "Claude Opus 5",
+"creator": "Anthropic",
+"displayScore": 79.68,
+"score": 78.78,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 74.35,
+"upper": 83.21
+}
+},
+{
+"slug": "gemini-4-argon",
+"canonicalModelKey": "gemini-4-argon",
+"model": "Gemini 4 Argon",
+"creator": "Google",
+"displayScore": 82.28,
+"score": 78.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 65.1,
+"upper": 91.42
+}
+},
+{
+"slug": "gpt-6-1-sol",
+"canonicalModelKey": "gpt-6-1-sol",
+"model": "GPT-6.1 Sol",
+"creator": "OpenAI",
+"displayScore": 85.27,
+"score": 77.24,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 65.72,
+"upper": 88.75
+}
+},
+{
+"slug": "gpt-6-1-terra",
+"canonicalModelKey": "gpt-6-1-terra",
+"model": "GPT-6.1 Terra",
+"creator": "OpenAI",
+"displayScore": 80.46,
+"score": 76.71,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 63.55,
+"upper": 89.87
+}
+},
+{
+"slug": "gpt-6-astra",
+"canonicalModelKey": "gpt-6-astra",
+"model": "GPT-6 Astra",
+"creator": "OpenAI",
+"displayScore": 86.07,
+"score": 75.97,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 66.67,
+"upper": 85.27
+}
+},
+{
+"slug": "claude-fable",
+"canonicalModelKey": "claude-fable-5",
+"model": "Claude Fable 5",
+"creator": "Anthropic",
+"displayScore": 80.78,
+"score": 75.27,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 70.44,
+"upper": 80.09
+}
+},
+{
+"slug": "kimi-3-1-pro",
+"canonicalModelKey": "kimi-3-1-pro",
+"model": "Kimi K3.1 Pro",
+"creator": "Moonshot AI",
+"displayScore": 74.61,
+"score": 73.22,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 61.48,
+"upper": 84.97
+}
+},
+{
+"slug": "grok-4-6",
+"canonicalModelKey": "grok-4-6",
+"model": "Grok 4.6",
+"creator": "xAI",
+"displayScore": 66.62,
+"score": 70.04,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 60.5,
+"upper": 79.58
+}
+},
+{
+"slug": "glm-5-3",
+"canonicalModelKey": "glm-5-3",
+"model": "GLM-5.3",
+"creator": "Z.AI",
+"displayScore": 61.03,
+"score": 69.94,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 63.04,
+"upper": 76.84
+}
+},
+{
+"slug": "claude-sonnet-5-5",
+"canonicalModelKey": "claude-sonnet-5-5",
+"model": "Claude Sonnet 5.5",
+"creator": "Anthropic",
+"displayScore": 81.84,
+"score": 69.12,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 60.62,
+"upper": 77.61
+}
+},
+{
+"slug": "gpt-5-6-sol",
+"canonicalModelKey": "gpt-5-6-sol",
+"model": "GPT-5.6 Sol",
+"creator": "OpenAI",
+"displayScore": 74.83,
+"score": 68.76,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 60.97,
+"upper": 76.55
+}
+},
+{
+"slug": "kimi-k3",
+"canonicalModelKey": "kimi-3",
+"model": "Kimi K3",
+"creator": "Moonshot AI",
+"displayScore": 69.34,
+"score": 67.63,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 60.74,
+"upper": 74.52
+}
+},
+{
+"slug": "claude-sonnet-5",
+"canonicalModelKey": "claude-sonnet-5",
+"model": "Claude Sonnet 5",
+"creator": "Anthropic",
+"displayScore": 64.25,
+"score": 66.37,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 60.97,
+"upper": 71.77
+}
+},
+{
+"slug": "qwen3-8-max",
+"canonicalModelKey": "qwen3-8-max",
+"model": "Qwen3.8 Max",
+"creator": "Alibaba",
+"displayScore": 64.86,
+"score": 65.99,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 56.92,
+"upper": 75.06
+}
+},
+{
+"slug": "gemini-3-8-flash",
+"canonicalModelKey": "gemini-3-8-flash",
+"model": "Gemini 3.8 Flash",
+"creator": "Google",
+"displayScore": 66.22,
+"score": 65.79,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.94,
+"upper": 75.64
+}
+},
+{
+"slug": "ling-3-1-flash",
+"canonicalModelKey": "ling-3-1-flash",
+"model": "Ling 3.1 Flash",
+"creator": "InclusionAI",
+"displayScore": 65.41,
+"score": 63.39,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 50.23,
+"upper": 76.55
+}
+},
+{
+"slug": "qwen3-8-flash-next",
+"canonicalModelKey": "qwen3-8-flash-next",
+"model": "Qwen3.8-Flash-Next",
+"creator": "Alibaba",
+"displayScore": 55.8,
+"score": 63.3,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 54.37,
+"upper": 72.23
+}
+},
+{
+"slug": "qwen3-8-27b",
+"canonicalModelKey": "qwen3-8-27b",
+"model": "Qwen3.8-27B",
+"creator": "Alibaba",
+"displayScore": 54.26,
+"score": 63.01,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.66,
+"upper": 70.36
+}
+},
+{
+"slug": "deepseek-v4-1-flash",
+"canonicalModelKey": "deepseek-v4-1-flash",
+"model": "DeepSeek V4.1 Flash 1017",
+"creator": "DeepSeek",
+"displayScore": 65.22,
+"score": 62.18,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 52.73,
+"upper": 71.64
+}
+},
+{
+"slug": "claude-haiku-5-5",
+"canonicalModelKey": "claude-haiku-5-5",
+"model": "Claude Haiku 5.5",
+"creator": "Anthropic",
+"displayScore": 66.42,
+"score": 61.83,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 53.35,
+"upper": 70.31
+}
+},
+{
+"slug": "grok-4-5",
+"canonicalModelKey": "grok-4-5",
+"model": "Grok 4.5",
+"creator": "xAI",
+"displayScore": 62.92,
+"score": 61.35,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 54.86,
+"upper": 67.83
+}
+},
+{
+"slug": "claude-opus-4-7-adaptive",
+"canonicalModelKey": "claude-opus-4-7-max",
+"model": "Claude Opus 4.7 (Adaptive)",
+"creator": "Anthropic",
+"displayScore": 68.11,
+"score": 61.24,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.45,
+"upper": 71.02
+}
+},
+{
+"slug": "gemini-3-7-flash",
+"canonicalModelKey": "gemini-3-7-flash",
+"model": "Gemini 3.7 Flash",
+"creator": "Google",
+"displayScore": 66.53,
+"score": 61.07,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.45,
+"upper": 70.69
+}
+},
+{
+"slug": "gpt-5-5",
+"canonicalModelKey": "gpt-5-5",
+"model": "GPT-5.5",
+"creator": "OpenAI",
+"displayScore": 68.82,
+"score": 61.03,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 55.13,
+"upper": 66.92
+}
+},
+{
+"slug": "gpt-5-6-terra",
+"canonicalModelKey": "gpt-5-6-terra",
+"model": "GPT-5.6 Terra",
+"creator": "OpenAI",
+"displayScore": 69.81,
+"score": 60.91,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 53.88,
+"upper": 67.93
+}
+},
+{
+"slug": "dots3-note-preview",
+"canonicalModelKey": "dots3-note-preview",
+"model": "dots3-note Preview",
+"creator": "Dots Studio",
+"displayScore": 64.35,
+"score": 60.74,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 44.2,
+"upper": 77.28
+}
+},
+{
+"slug": "claude-opus-4-8",
+"canonicalModelKey": "claude-opus-4-8",
+"model": "Claude Opus 4.8",
+"creator": "Anthropic",
+"displayScore": 69.63,
+"score": 60.67,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 50.97,
+"upper": 70.37
+}
+},
+{
+"slug": "ornith-1-5-397b",
+"canonicalModelKey": "ornith-1-5-397b",
+"model": "Ornith-1.5-397B",
+"creator": "Ornith AI",
+"displayScore": 62.47,
+"score": 59.91,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 43.35,
+"upper": 76.48
+}
+},
+{
+"slug": "muse-spark-1-2",
+"canonicalModelKey": "muse-spark-1-2",
+"model": "Muse Spark 1.2",
+"creator": "Meta",
+"displayScore": 65.41,
+"score": 59.89,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 43.27,
+"upper": 76.5
+}
+},
+{
+"slug": "gpt-5-6-luna",
+"canonicalModelKey": "gpt-5-6-luna",
+"model": "GPT-5.6 Luna",
+"creator": "OpenAI",
+"displayScore": 63.8,
+"score": 59.23,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 48.82,
+"upper": 69.63
+}
+},
+{
+"slug": "muse-spark-1-1",
+"canonicalModelKey": "muse-spark-1-1",
+"model": "Muse Spark 1.1",
+"creator": "Meta",
+"displayScore": 65.16,
+"score": 59.07,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 46,
+"upper": 72.14
+}
+},
+{
+"slug": "sage-a1-5",
+"canonicalModelKey": "sage-a1-5",
+"model": "Sage-A1.5",
+"creator": "InternScience",
+"displayScore": 62.98,
+"score": 59,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 42.56,
+"upper": 75.43
+}
+},
+{
+"slug": "glm-5-3-flash",
+"canonicalModelKey": "glm-5-3-flash",
+"model": "GLM-5.3-Flash",
+"creator": "Z.AI",
+"displayScore": 58.26,
+"score": 58.3,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 51.15,
+"upper": 65.44
+}
+},
+{
+"slug": "gpt-6-sol",
+"canonicalModelKey": "gpt-6-sol",
+"model": "GPT-6 Sol",
+"creator": "OpenAI",
+"displayScore": 77.97,
+"score": 58.16,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 48.04,
+"upper": 68.28
+}
+},
+{
+"slug": "hy4-preview",
+"canonicalModelKey": "hy4-preview",
+"model": "Hy4 preview",
+"creator": "Tencent",
+"displayScore": 61.46,
+"score": 57.25,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 45.74,
+"upper": 68.76
+}
+},
+{
+"slug": "glm-5-2",
+"canonicalModelKey": "glm-5-2",
+"model": "GLM-5.2",
+"creator": "Z.AI",
+"displayScore": 60.03,
+"score": 57.12,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 50.76,
+"upper": 63.49
+}
+},
+{
+"slug": "gpt-5-3-codex",
+"canonicalModelKey": "gpt-5-3-codex",
+"model": "GPT-5.3 Codex",
+"creator": "OpenAI",
+"displayScore": 62.75,
+"score": 57.02,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 42.92,
+"upper": 71.11
+}
+},
+{
+"slug": "mimo-v2-6-pro",
+"canonicalModelKey": "mimo-v2-6-pro",
+"model": "MiMo-V2.6-Pro",
+"creator": "Xiaomi",
+"displayScore": 56.44,
+"score": 56.09,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 42.93,
+"upper": 69.25
+}
+},
+{
+"slug": "minimax-m3-1-flash",
+"canonicalModelKey": "minimax-m3-1-flash",
+"model": "MiniMax M3.1 Flash",
+"creator": "MiniMax",
+"displayScore": 59.71,
+"score": 55.8,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 42.24,
+"upper": 69.36
+}
+},
+{
+"slug": "step-5-preview",
+"canonicalModelKey": "step-5-preview",
+"model": "Step 5 Preview",
+"creator": "StepFun",
+"displayScore": 56.15,
+"score": 54.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 41.59,
+"upper": 67.91
+}
+},
+{
+"slug": "claude-opus-4-7",
+"canonicalModelKey": "claude-opus-4-7",
+"model": "Claude Opus 4.7",
+"creator": "Anthropic",
+"displayScore": 65.18,
+"score": 54.51,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 41.91,
+"upper": 67.12
+}
+},
+{
+"slug": "gpt-5-4",
+"canonicalModelKey": "gpt-5-4",
+"model": "GPT-5.4",
+"creator": "OpenAI",
+"displayScore": 66.4,
+"score": 54.44,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 47.52,
+"upper": 61.35
+}
+},
+{
+"slug": "gpt-6-luna",
+"canonicalModelKey": "gpt-6-luna",
+"model": "GPT-6 Luna",
+"creator": "OpenAI",
+"displayScore": 62.14,
+"score": 53.82,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 42.31,
+"upper": 65.33
+}
+},
+{
+"slug": "deepseek-v4-pro-0813",
+"canonicalModelKey": "deepseek-v4-pro-max",
+"model": "DeepSeek V4 Pro 0813",
+"creator": "DeepSeek",
+"displayScore": 62.53,
+"score": 53.4,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 46.98,
+"upper": 59.82
+}
+},
+{
+"slug": "muse-spark",
+"canonicalModelKey": "muse-spark",
+"model": "Muse Spark",
+"creator": "Meta",
+"displayScore": 59.84,
+"score": 53.37,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 41.69,
+"upper": 65.04
+}
+},
+{
+"slug": "apodex-1-1",
+"canonicalModelKey": "apodex-1-1",
+"model": "Apodex 1.1",
+"creator": "Apodex",
+"displayScore": 54.57,
+"score": 52.66,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 39.3,
+"upper": 66.02
+}
+},
+{
+"slug": "gemini-3-6-flash",
+"canonicalModelKey": "gemini-3-6-flash",
+"model": "Gemini 3.6 Flash",
+"creator": "Google",
+"displayScore": 62.41,
+"score": 52.39,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 38.81,
+"upper": 65.98
+}
+},
+{
+"slug": "gemini-3-5-flash",
+"canonicalModelKey": "gemini-3-5-flash",
+"model": "Gemini 3.5 Flash",
+"creator": "Google",
+"displayScore": 61.4,
+"score": 51.91,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 42.88,
+"upper": 60.95
+}
+},
+{
+"slug": "muse-spark-open",
+"canonicalModelKey": "muse-spark-open",
+"model": "Muse Spark Open",
+"creator": "Meta",
+"displayScore": 50.48,
+"score": 51.26,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 38.11,
+"upper": 64.42
+}
+},
+{
+"slug": "agents-a1",
+"canonicalModelKey": "agents-a1",
+"model": "Agents-A1",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 51.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.92,
+"upper": 66.24
+}
+},
+{
+"slug": "agents-a1-f16-gguf",
+"canonicalModelKey": "agents-a1-f16-gguf",
+"model": "Agents-A1-F16-GGUF",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 51.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.92,
+"upper": 66.24
+}
+},
+{
+"slug": "agents-a1-fp8",
+"canonicalModelKey": "agents-a1-fp8",
+"model": "Agents-A1-FP8",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 51.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.92,
+"upper": 66.24
+}
+},
+{
+"slug": "agents-a1-q4-k-m-gguf",
+"canonicalModelKey": "agents-a1-q4-k-m-gguf",
+"model": "Agents-A1-Q4_K_M-GGUF",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 51.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.92,
+"upper": 66.24
+}
+},
+{
+"slug": "agents-a1-q8-0-gguf",
+"canonicalModelKey": "agents-a1-q8-0-gguf",
+"model": "Agents-A1-Q8_0-GGUF",
+"creator": "InternScience",
+"displayScore": 55.74,
+"score": 51.08,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 35.92,
+"upper": 66.24
+}
+},
+{
+"slug": "mimo-v2-6-flash",
+"canonicalModelKey": "mimo-v2-6-flash",
+"model": "MiMo-V2.6-Flash",
+"creator": "Xiaomi",
+"displayScore": 54.78,
+"score": 48.8,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 34.71,
+"upper": 62.88
+}
+},
+{
+"slug": "claude-sonnet-4-6",
+"canonicalModelKey": "claude-sonnet-4-6",
+"model": "Claude Sonnet 4.6",
+"creator": "Anthropic",
+"displayScore": 55.29,
+"score": 46.68,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.62,
+"upper": 57.73
+}
+},
+{
+"slug": "claude-opus-4-6",
+"canonicalModelKey": "claude-opus-4-6",
+"model": "Claude Opus 4.6",
+"creator": "Anthropic",
+"displayScore": 61.82,
+"score": 46.48,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 37.57,
+"upper": 55.39
+}
+},
+{
+"slug": "claude-opus-4-6-thinking",
+"canonicalModelKey": "claude-opus-4-6-thinking",
+"model": "Claude Opus 4.6 (Adaptive)",
+"creator": "Anthropic",
+"displayScore": null,
+"score": 46.45,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 33.4,
+"upper": 59.5
+}
+},
+{
+"slug": "qwen3-5-397b",
+"canonicalModelKey": "qwen3-5-397b",
+"model": "Qwen3.5 397B",
+"creator": "Alibaba",
+"displayScore": 55.47,
+"score": 46.23,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.81,
+"upper": 59.65
+}
+},
+{
+"slug": "nemotron-3-5-super-vl-120b-a12b",
+"canonicalModelKey": "nemotron-3-5-super-vl-120b-a12b",
+"model": "Nemotron 3.5 Super VL 120B A12B",
+"creator": "NVIDIA",
+"displayScore": 49.03,
+"score": 45.63,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 28.19,
+"upper": 63.07
+}
+},
+{
+"slug": "gpt-5-2",
+"canonicalModelKey": "gpt-5-2",
+"model": "GPT-5.2",
+"creator": "OpenAI",
+"displayScore": 59.41,
+"score": 45.45,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 36.04,
+"upper": 54.86
+}
+},
+{
+"slug": "glm-5-1",
+"canonicalModelKey": "glm-5-1",
+"model": "GLM-5.1",
+"creator": "Z.AI",
+"displayScore": 55.83,
+"score": 45.12,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 33.6,
+"upper": 56.63
+}
+},
+{
+"slug": "reflection-beam",
+"canonicalModelKey": "reflection-beam",
+"model": "Beam 1.0 501B-A23B",
+"creator": "Reflection AI",
+"displayScore": 43.08,
+"score": 44.75,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 31.22,
+"upper": 58.28
+}
+},
+{
+"slug": "gpt-5-2-codex",
+"canonicalModelKey": "gpt-5-2-codex",
+"model": "GPT-5.2-Codex",
+"creator": "OpenAI",
+"displayScore": 56.25,
+"score": 44.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 33.23,
+"upper": 56.26
+}
+},
+{
+"slug": "kimi-2-6",
+"canonicalModelKey": "kimi-2-6",
+"model": "Kimi K2.6",
+"creator": "Moonshot AI",
+"displayScore": 57.38,
+"score": 44.55,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 35.7,
+"upper": 53.4
+}
+},
+{
+"slug": "mistral-large-4",
+"canonicalModelKey": "mistral-large-4",
+"model": "Mistral Large 4",
+"creator": "Mistral",
+"displayScore": 51.46,
+"score": 43.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 32.24,
+"upper": 55.26
+}
+},
+{
+"slug": "glm-5",
+"canonicalModelKey": "glm-5",
+"model": "GLM-5",
+"creator": "Z.AI",
+"displayScore": 54.32,
+"score": 43.15,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 29.99,
+"upper": 56.3
+}
+},
+{
+"slug": "kimi-k2-5",
+"canonicalModelKey": "kimi-k2-5",
+"model": "Kimi K2.5",
+"creator": "Moonshot AI",
+"displayScore": 52.62,
+"score": 42.25,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 29.1,
+"upper": 55.41
+}
+},
+{
+"slug": "qwen3-7-max",
+"canonicalModelKey": "qwen3-7-max",
+"model": "Qwen3.7 Max",
+"creator": "Alibaba",
+"displayScore": 62.32,
+"score": 41.35,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 32.49,
+"upper": 50.2
+}
+},
+{
+"slug": "kimi-k2-5-reasoning",
+"canonicalModelKey": "kimi-k2-5-reasoning",
+"model": "Kimi K2.5 (Reasoning)",
+"creator": "Moonshot AI",
+"displayScore": 56.24,
+"score": 41.05,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.5,
+"upper": 54.59
+}
+},
+{
+"slug": "gemini-3-1-pro",
+"canonicalModelKey": "gemini-3-1-pro",
+"model": "Gemini 3.1 Pro",
+"creator": "Google",
+"displayScore": 64.41,
+"score": 40.9,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 33.28,
+"upper": 48.52
+}
+},
+{
+"slug": "kimi-k2-7-code",
+"canonicalModelKey": "kimi-k2-7-code",
+"model": "Kimi K2.7 Code",
+"creator": "Moonshot AI",
+"displayScore": 53.59,
+"score": 39.94,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 30.99,
+"upper": 48.89
+}
+},
+{
+"slug": "step-3-7-flash",
+"canonicalModelKey": "step-3-7-flash",
+"model": "Step 3.7 Flash",
+"creator": "StepFun",
+"displayScore": 44.76,
+"score": 39.84,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 26.68,
+"upper": 53
+}
+},
+{
+"slug": "minimax-m3",
+"canonicalModelKey": "minimax-m3",
+"model": "MiniMax M3",
+"creator": "MiniMax",
+"displayScore": 48.57,
+"score": 39.3,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.86,
+"upper": 50.74
+}
+},
+{
+"slug": "quasar-438b",
+"canonicalModelKey": "quasar-438b",
+"model": "Quasar 438B",
+"creator": "Multiverse Computing",
+"displayScore": null,
+"score": 39.11,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 27.6,
+"upper": 50.63
+}
+},
+{
+"slug": "qwen3-5-27b",
+"canonicalModelKey": "qwen3-5-27b",
+"model": "Qwen3.5-27B",
+"creator": "Alibaba",
+"displayScore": 49.01,
+"score": 38.97,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 24.84,
+"upper": 53.1
+}
+},
+{
+"slug": "mimo-v2-5-pro",
+"canonicalModelKey": "mimo-v2-5-pro",
+"model": "MiMo-V2.5-Pro",
+"creator": "Xiaomi",
+"displayScore": 55.12,
+"score": 38.62,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 28.34,
+"upper": 48.91
+}
+},
+{
+"slug": "nemotron-3-5-bolt-74b-a9b",
+"canonicalModelKey": "nemotron-3-5-bolt-74b-a9b",
+"model": "Nemotron 3.5 Bolt 74B-A9B",
+"creator": "NVIDIA",
+"displayScore": 42.8,
+"score": 38.55,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 25.39,
+"upper": 51.71
+}
+},
+{
+"slug": "inkling",
+"canonicalModelKey": "inkling",
+"model": "Inkling",
+"creator": "Thinking Machines Lab",
+"displayScore": 47.91,
+"score": 37,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.32,
+"upper": 46.67
+}
+},
+{
+"slug": "hy3",
+"canonicalModelKey": "hy3",
+"model": "Hy3",
+"creator": "Tencent",
+"displayScore": null,
+"score": 36.93,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 24.98,
+"upper": 48.87
+}
+},
+{
+"slug": "mimo-v2-5",
+"canonicalModelKey": "mimo-v2-5",
+"model": "MiMo-V2.5",
+"creator": "Xiaomi",
+"displayScore": null,
+"score": 36.77,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 25.25,
+"upper": 48.28
+}
+},
+{
+"slug": "gpt-5-4-mini",
+"canonicalModelKey": "gpt-5-4-mini",
+"model": "GPT-5.4 mini",
+"creator": "OpenAI",
+"displayScore": 52.98,
+"score": 36.42,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.18,
+"upper": 45.67
+}
+},
+{
+"slug": "spark-x2-6-4b",
+"canonicalModelKey": "spark-x2-6-4b",
+"model": "Spark-X2.6-4B",
+"creator": "SparkLLM",
+"displayScore": 40.82,
+"score": 36.14,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.75,
+"upper": 53.54
+}
+},
+{
+"slug": "inkling-small",
+"canonicalModelKey": "inkling-small",
+"model": "Inkling-Small",
+"creator": "Thinking Machines Lab",
+"displayScore": 49.5,
+"score": 36.09,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 24.1,
+"upper": 48.08
+}
+},
+{
+"slug": "claude-sonnet-4-5",
+"canonicalModelKey": "claude-sonnet-4-5",
+"model": "Claude Sonnet 4.5",
+"creator": "Anthropic",
+"displayScore": 47.18,
+"score": 36,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.03,
+"upper": 49.97
+}
+},
+{
+"slug": "qwen3-7-plus",
+"canonicalModelKey": "qwen3-7-plus",
+"model": "Qwen3.7 Plus",
+"creator": "Alibaba",
+"displayScore": 53.79,
+"score": 35.96,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.95,
+"upper": 43.97
+}
+},
+{
+"slug": "gemini-3-5-flash-lite",
+"canonicalModelKey": "gemini-3-5-flash-lite",
+"model": "Gemini 3.5 Flash-Lite",
+"creator": "Google",
+"displayScore": 46.72,
+"score": 35.36,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 28.62,
+"upper": 42.11
+}
+},
+{
+"slug": "qwen3-5-35b-a3b",
+"canonicalModelKey": "qwen3-5-35b-a3b",
+"model": "Qwen3.5-35B-A3B",
+"creator": "Alibaba",
+"displayScore": 45.15,
+"score": 35.36,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.09,
+"upper": 49.63
+}
+},
+{
+"slug": "qwen3-6-plus",
+"canonicalModelKey": "qwen3-6-plus",
+"model": "Qwen3.6 Plus",
+"creator": "Alibaba",
+"displayScore": 53.54,
+"score": 35.09,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 25.68,
+"upper": 44.5
+}
+},
+{
+"slug": "glm-4-7",
+"canonicalModelKey": "glm-4-7",
+"model": "GLM-4.7",
+"creator": "Z.AI",
+"displayScore": 48.27,
+"score": 34.47,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 21.31,
+"upper": 47.63
+}
+},
+{
+"slug": "grok-build-0-1",
+"canonicalModelKey": "grok-build-0-1",
+"model": "Grok Build 0.1",
+"creator": "xAI",
+"displayScore": null,
+"score": 34.42,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.91,
+"upper": 45.93
+}
+},
+{
+"slug": "ling-3-0-flash",
+"canonicalModelKey": "ling-3-0-flash",
+"model": "Ling 3.0 Flash",
+"creator": "InclusionAI",
+"displayScore": 45.33,
+"score": 34.29,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 23.84,
+"upper": 44.73
+}
+},
+{
+"slug": "claude-opus-4-5",
+"canonicalModelKey": "claude-opus-4-5",
+"model": "Claude Opus 4.5",
+"creator": "Anthropic",
+"displayScore": 53.35,
+"score": 34.18,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.66,
+"upper": 45.69
+}
+},
+{
+"slug": "qwen3-6-35b-a3b",
+"canonicalModelKey": "qwen3-6-35b-a3b",
+"model": "Qwen3.6-35B-A3B",
+"creator": "Alibaba",
+"displayScore": 43.05,
+"score": 33.95,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.44,
+"upper": 45.46
+}
+},
+{
+"slug": "gpt-5-4-nano",
+"canonicalModelKey": "gpt-5-4-nano",
+"model": "GPT-5.4 nano",
+"creator": "OpenAI",
+"displayScore": 46.15,
+"score": 33.67,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 27.52,
+"upper": 39.82
+}
+},
+{
+"slug": "qwen3-5-122b-a10b",
+"canonicalModelKey": "qwen3-5-122b-a10b",
+"model": "Qwen3.5-122B-A10B",
+"creator": "Alibaba",
+"displayScore": 52.9,
+"score": 33.54,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 22.03,
+"upper": 45.06
+}
+},
+{
+"slug": "minimax-m2-7",
+"canonicalModelKey": "minimax-m2-7",
+"model": "MiniMax M2.7",
+"creator": "MiniMax",
+"displayScore": 47.29,
+"score": 33.19,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 23.95,
+"upper": 42.43
+}
+},
+{
+"slug": "gemini-3-flash",
+"canonicalModelKey": "gemini-3-flash",
+"model": "Gemini 3 Flash",
+"creator": "Google",
+"displayScore": 54.12,
+"score": 33.12,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 22.19,
+"upper": 44.05
+}
+},
+{
+"slug": "lfm2-5-24b-a2b",
+"canonicalModelKey": "lfm2-5-24b-a2b",
+"model": "LFM2.5-24B-A2B",
+"creator": "LiquidAI",
+"displayScore": 36.91,
+"score": 32.56,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 13.36,
+"upper": 51.76
+}
+},
+{
+"slug": "ornith-1-5-35b-a3b",
+"canonicalModelKey": "ornith-1-5-35b-a3b",
+"model": "Ornith-1.5-35B-A3B",
+"creator": "Ornith AI",
+"displayScore": 36.07,
+"score": 31.95,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 15.33,
+"upper": 48.57
+}
+},
+{
+"slug": "gemma-4-31b",
+"canonicalModelKey": "gemma-4-31b",
+"model": "Gemma 4 31B",
+"creator": "Google",
+"displayScore": 54.39,
+"score": 31.83,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 20.32,
+"upper": 43.35
+}
+},
+{
+"slug": "ministral-3-14b",
+"canonicalModelKey": "ministral-3-14b",
+"model": "Ministral 3 14B",
+"creator": "Mistral",
+"displayScore": null,
+"score": 31.13,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.62,
+"upper": 42.65
+}
+},
+{
+"slug": "ministral-3-3b",
+"canonicalModelKey": "ministral-3-3b",
+"model": "Ministral 3 3B",
+"creator": "Mistral",
+"displayScore": null,
+"score": 31.05,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.54,
+"upper": 42.57
+}
+},
+{
+"slug": "ministral-3-8b",
+"canonicalModelKey": "ministral-3-8b",
+"model": "Ministral 3 8B",
+"creator": "Mistral",
+"displayScore": null,
+"score": 31.01,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 19.5,
+"upper": 42.53
+}
+},
+{
+"slug": "gpt-5-mini",
+"canonicalModelKey": "gpt-5-mini",
+"model": "GPT-5 mini",
+"creator": "OpenAI",
+"displayScore": 47.92,
+"score": 30.48,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.96,
+"upper": 41.99
+}
+},
+{
+"slug": "gemini-3-1-flash-lite",
+"canonicalModelKey": "gemini-3-1-flash-lite",
+"model": "Gemini 3.1 Flash-Lite",
+"creator": "Google",
+"displayScore": 46.47,
+"score": 30.11,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.6,
+"upper": 41.63
+}
+},
+{
+"slug": "minimax-m2-5",
+"canonicalModelKey": "minimax-m2-5",
+"model": "MiniMax M2.5",
+"creator": "MiniMax",
+"displayScore": 49.17,
+"score": 30.06,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 18.55,
+"upper": 41.57
+}
+},
+{
+"slug": "qwen3-6-27b",
+"canonicalModelKey": "qwen3-6-27b",
+"model": "Qwen3.6-27B",
+"creator": "Alibaba",
+"displayScore": 48.13,
+"score": 29.86,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 15.4,
+"upper": 44.32
+}
+},
+{
+"slug": "gemini-2-5-pro",
+"canonicalModelKey": "gemini-2-5-pro",
+"model": "Gemini 2.5 Pro",
+"creator": "Google",
+"displayScore": 48.7,
+"score": 29.01,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 17.49,
+"upper": 40.52
+}
+},
+{
+"slug": "ornith-1-5-9b",
+"canonicalModelKey": "ornith-1-5-9b",
+"model": "Ornith-1.5-9B",
+"creator": "Ornith AI",
+"displayScore": 34.04,
+"score": 28.6,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 13.04,
+"upper": 44.16
+}
+},
+{
+"slug": "grok-4-3",
+"canonicalModelKey": "grok-4-3",
+"model": "Grok 4.3",
+"creator": "xAI",
+"displayScore": 52.65,
+"score": 28.43,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 0,
+"upper": 58.88
+}
+},
+{
+"slug": "gpt-oss-120b",
+"canonicalModelKey": "gpt-oss-120b",
+"model": "GPT-OSS 120B",
+"creator": "OpenAI",
+"displayScore": 40.74,
+"score": 27.54,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 16.02,
+"upper": 39.05
+}
+},
+{
+"slug": "grok-4-20-beta",
+"canonicalModelKey": "grok-4-20-beta",
+"model": "Grok 4.20",
+"creator": "xAI",
+"displayScore": 55.99,
+"score": 25.8,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 16.86,
+"upper": 34.73
+}
+},
+{
+"slug": "nemotron-3-ultra",
+"canonicalModelKey": "nemotron-3-ultra-500b",
+"model": "Nemotron 3 Ultra",
+"creator": "NVIDIA",
+"displayScore": 47.37,
+"score": 25.09,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 16.96,
+"upper": 33.23
+}
+},
+{
+"slug": "mistral-small-4",
+"canonicalModelKey": "mistral-small-4",
+"model": "Mistral Small 4",
+"creator": "Mistral",
+"displayScore": 43.16,
+"score": 24.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 12.95,
+"upper": 35.97
+}
+},
+{
+"slug": "trinity-large-thinking",
+"canonicalModelKey": "trinity-large-thinking",
+"model": "Trinity-Large-Thinking",
+"creator": "Arcee AI",
+"displayScore": 43.94,
+"score": 24.03,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 12.52,
+"upper": 35.55
+}
+},
+{
+"slug": "gpt-oss-20b",
+"canonicalModelKey": "gpt-oss-20b",
+"model": "GPT-OSS 20B",
+"creator": "OpenAI",
+"displayScore": 37.11,
+"score": 23.96,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 12.44,
+"upper": 35.47
+}
+},
+{
+"slug": "mistral-medium-3-5-128b",
+"canonicalModelKey": "mistral-medium-3-5-128b",
+"model": "Mistral Medium 3.5 128B",
+"creator": "Mistral",
+"displayScore": 33.37,
+"score": 22.54,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 15.97,
+"upper": 29.12
+}
+},
+{
+"slug": "claude-haiku-4-5",
+"canonicalModelKey": "claude-haiku-4-5",
+"model": "Claude Haiku 4.5",
+"creator": "Anthropic",
+"displayScore": 39.95,
+"score": 22.29,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 13.32,
+"upper": 31.26
+}
+},
+{
+"slug": "granite-4-2-8b",
+"canonicalModelKey": "granite-4-2-8b",
+"model": "Granite 4.2 8B",
+"creator": "IBM",
+"displayScore": 36.78,
+"score": 21.54,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 10.02,
+"upper": 33.05
+}
+},
+{
+"slug": "lfm2-5-2-6b",
+"canonicalModelKey": "lfm2-5-2-6b",
+"model": "LFM2.5-2.6B",
+"creator": "LiquidAI",
+"displayScore": 25.19,
+"score": 20.49,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 7.33,
+"upper": 33.65
+}
+},
+{
+"slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
+"canonicalModelKey": "nemotron-3-5-lightning-30b-a3b-nvfp4",
+"model": "Nemotron 3.5 Lightning 30B A3B NVFP4",
+"creator": "NVIDIA",
+"displayScore": 26.37,
+"score": 19.81,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 4.03,
+"upper": 35.58
+}
+},
+{
+"slug": "celeris-1",
+"canonicalModelKey": "celeris-1",
+"model": "Celeris-1",
+"creator": "Celeris",
+"displayScore": 29.46,
+"score": 19.65,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 8.14,
+"upper": 31.17
+}
+},
+{
+"slug": "llama-4-maverick",
+"canonicalModelKey": "llama-4-maverick",
+"model": "Llama 4 Maverick",
+"creator": "Meta",
+"displayScore": 27.75,
+"score": 18.12,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.6,
+"upper": 29.63
+}
+},
+{
+"slug": "muse-glimmer-30b",
+"canonicalModelKey": "muse-glimmer-30b",
+"model": "Muse Glimmer 30B",
+"creator": "Meta",
+"displayScore": 31.68,
+"score": 17.79,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 6.27,
+"upper": 29.3
+}
+},
+{
+"slug": "mercury-2",
+"canonicalModelKey": "mercury-2",
+"model": "Mercury 2",
+"creator": "Inception",
+"displayScore": 32.91,
+"score": 15.75,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 4.24,
+"upper": 27.26
+}
+},
+{
+"slug": "mistral-large-3",
+"canonicalModelKey": "mistral-large-3",
+"model": "Mistral Large 3",
+"creator": "Mistral",
+"displayScore": 33.06,
+"score": 15.7,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 4.18,
+"upper": 27.21
+}
+},
+{
+"slug": "lfm3-1-7b",
+"canonicalModelKey": "lfm3-1-7b",
+"model": "LFM3-1.7B",
+"creator": "LiquidAI",
+"displayScore": 21.17,
+"score": 15.36,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 31.4
+}
+},
+{
+"slug": "mercury-2-5",
+"canonicalModelKey": "mercury-2-5",
+"model": "Mercury 2.5",
+"creator": "Inception",
+"displayScore": 33.41,
+"score": 14.92,
+"evidenceStatus": "supported",
+"scoreInterval90": {
+"lower": 7.5,
+"upper": 22.35
+}
+},
+{
+"slug": "llama-4-scout",
+"canonicalModelKey": "llama-4-scout",
+"model": "Llama 4 Scout",
+"creator": "Meta",
+"displayScore": 26.83,
+"score": 14.46,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 2.94,
+"upper": 25.97
+}
+},
+{
+"slug": "deepseek-v3",
+"canonicalModelKey": "deepseek-v3",
+"model": "DeepSeek V3",
+"creator": "DeepSeek",
+"displayScore": 30.85,
+"score": 14.28,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 2.77,
+"upper": 25.79
+}
+},
+{
+"slug": "command-a-plus",
+"canonicalModelKey": "command-a-plus",
+"model": "Command A+",
+"creator": "Cohere",
+"displayScore": 28.64,
+"score": 12.52,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 1.01,
+"upper": 24.04
+}
+},
+{
+"slug": "gemma-3-27b",
+"canonicalModelKey": "gemma-3-27b",
+"model": "Gemma 3 27B",
+"creator": "Google",
+"displayScore": 27.62,
+"score": 10.42,
+"evidenceStatus": "estimated",
+"scoreInterval90": {
+"lower": 0,
+"upper": 21.94
+}
+}
+]
+}
+}

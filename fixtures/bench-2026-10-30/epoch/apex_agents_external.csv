@@ -1,0 +1,61 @@
+Model version,Pass@1 score,Release date,Organization
+gemini-4-argon_unknown,0.8240000000000001,2026-09-30,Google DeepMind
+claude-sonnet-5-5_max,0.755,2026-09-28,Anthropic
+claude-opus-5-5_max,0.735,2026-09-22,Anthropic
+deepseek-v4.1-flash-1017_max,0.698,2026-10-17,DeepSeek
+claude-fable-5-1_unknown,0.6859999999999999,2026-09-01,Anthropic
+gpt-6.1-terra_max,0.6829999999999999,2026-10-26,OpenAI
+gemini-3.7-flash_unknown,0.6779999999999999,2026-08-13,Google DeepMind
+muse-wonder-1.0_max,0.6609999999999999,2026-10-12,Meta AI
+claude-opus-5_max,0.658,2026-07-24,Anthropic
+grok-4.6_unknown,0.653,2026-08-12,xAI
+gpt-6-astra_unknown,0.647,2026-09-03,OpenAI
+gemini-3.8-flash_unknown,0.643,2026-09-02,Google DeepMind
+claude-fable-5,0.636,2026-06-09,Anthropic
+qwen3.8-max_unknown,0.633,2026-08-02,Alibaba
+gpt-6.1-sol_max,0.6,2026-09-29,OpenAI
+claude-fable-5-1_high,0.5970000000000001,2026-09-01,Anthropic
+muse-spark-1.3_unknown,0.5860000000000001,2026-09-02,Meta AI
+gpt-5.6-terra_max,0.5820000000000001,2026-07-09,OpenAI
+glm-5.3_unknown,0.5660000000000001,2026-08-14,Z.ai (Zhipu AI)
+grok-4.5_unknown,0.562,2026-07-08,xAI
+claude-haiku-5-5_max,0.561,2026-10-07,Anthropic
+gpt-5.5_unknown,0.551,2026-04-23,OpenAI
+grok-4.7_unknown,0.546,2026-09-21,xAI
+claude-sonnet-5_unknown,0.545,2026-06-30,Anthropic
+mimo-v2.6-pro,0.544,2026-09-21,Xiaomi Corp
+gpt-6-sol_max,0.543,2026-09-22,OpenAI
+glm-5.3-flash_unknown,0.528,2026-08-20,Z.ai (Zhipu AI)
+claude-opus-5-5_medium,0.525,2026-09-22,Anthropic
+gpt-5.4-2026-03-05_unknown,0.524,2026-03-05,OpenAI
+mistral-large-4-0_high,0.516,2026-10-06,Mistral AI
+gpt-5.6-sol_promax,0.514,2026-07-09,OpenAI
+claude-opus-4-7_max,0.49200000000000005,2026-04-16,Anthropic
+claude-opus-4-8_max,0.489,2026-05-28,Anthropic
+beam-1.0_max,0.488,2026-10-05,Reflection
+kimi-k3_unknown,0.478,2026-07-16,Moonshot
+muse-spark-1.3_max,0.47600000000000003,2026-09-02,Meta AI
+qwen3.8-27b,0.47500000000000003,2026-08-14,Alibaba
+deepseek-v4-pro-0813_unknown,0.473,2026-08-13,DeepSeek
+gemini-3.6-flash_unknown,0.469,2026-07-21,Google DeepMind
+claude-opus-4-6_max,0.46299999999999997,2026-02-05,Anthropic
+muse-spark-1.2,0.454,2026-08-05,Meta AI
+glm-5.2_unknown,0.452,2026-06-16,Z.ai (Zhipu AI)
+claude-sonnet-5-5_medium,0.446,2026-09-28,Anthropic
+gpt-6-luna_max,0.443,2026-09-22,OpenAI
+claude-sonnet-4-6_high,0.43,2026-02-17,Anthropic
+gpt-5.6-luna_unknown,0.43,2026-07-09,OpenAI
+glm-5.1,0.409,2026-04-07,Z.ai (Zhipu AI)
+deepseek-v4.1-flash_unknown,0.395,2026-09-09,DeepSeek
+MiniMax-M3,0.37700000000000006,2026-06-01,MiniMax
+kimi-k2.7-code,0.376,2026-06-12,Moonshot
+gemini-3.1-pro-preview,0.35100000000000003,2026-02-19,Google DeepMind
+Inkling,0.33799999999999997,2026-07-15,Thinking Machines
+Muse-Spark-Open-816B-A42B_unknown,0.334,2026-10-15,Meta AI
+muse-spark-1.1,0.318,2026-07-09,Meta AI
+gemini-3.5-flash-lite,0.29300000000000004,2026-07-21,Google DeepMind
+gemini-3.5-flash_unknown,0.275,2026-05-19,Google DeepMind
+qwen3.5-397b-a17b,0.249,2026-02-13,Alibaba
+nemotron-3-ultra,0.227,2026-06-04,Nvidia
+deepseek/deepseek-v3.2,0.21300000000000002,2025-12-01,DeepSeek
+gpt-oss-120b,0.044000000000000004,2025-08-05,OpenAI

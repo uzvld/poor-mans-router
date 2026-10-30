@@ -83,8 +83,8 @@ test('benchmark power blends coding and agentic, and stays undefined without a m
   assert.equal(benchmarkPower(undefined), undefined);
   assert.equal(benchmarkPower({ taskFit: 0.9, popularity: 0.9 }), undefined, 'usage signals are not capability');
   assert.equal(benchmarkPower({ coding: 0.5 }), 0.5, 'a single-axis model is scored on that axis');
-  // 0.63 * 0.8 + 0.37 * 0.5 — the coding:agentic ratio `qualityFromIntel` already uses.
-  assert.equal(Number(benchmarkPower({ coding: 0.8, agentic: 0.5 })?.toFixed(4)), 0.689);
+  // (0.45 * 0.8 + 0.35 * 0.5) / (0.45 + 0.35): the balanced weights, renormalised over the two facets present.
+  assert.ok(Math.abs((benchmarkPower({ coding: 0.8, agentic: 0.5 }) ?? 0) - 0.66875) < 1e-9);
   assert.ok(
     (benchmarkPower({ coding: 0.8, agentic: 0.2 }) ?? 0) > (benchmarkPower({ coding: 0.2, agentic: 0.8 }) ?? 0),
     'coding dominates agentic at an equal magnitude',
