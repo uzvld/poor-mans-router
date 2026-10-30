@@ -160,8 +160,12 @@ score. Nothing is dropped automatically.
 
 ## Publication gate
 
-The full-tree `secret-scan.sh --all` run is blocked. Gitleaks' `generic-api-key` rule reports 27 public
-BenchLM model identifiers in `canonicalModelKey` fields and two attestation hashes in an unrelated local
-temporary PR description. These are not access credentials, but the repository contract does not permit
-changing scanner allowlists or bypassing hooks to publish them. The earlier staged scans are not evidence
-of a clean full-tree gate. No push or PR creation is claimed while this remains unresolved.
+The initial full-tree scan reported 27 public BenchLM model identifiers in `canonicalModelKey` fields and
+two attestation hashes in an unrelated local temporary PR description. No credentials were found in those rows.
+The fixture now omits the 27 nonessential sample rows (16 identities); all 24 tier/class choices were
+compared before and after curation and stayed unchanged. Runtime adapters retain full upstream coverage.
+The numeric fit examples above describe the original capture; curation can adjust fitted scores without
+changing those selections. A direct gitleaks scan of the curated fixture directory reports no leaks.
+
+Publication uses a clean checkout of the committed tree so unrelated private/untracked files are not copied.
+The unchanged full-tree scanner and normal pre-push hook must run there; no allowlist or hook is bypassed.

@@ -7,8 +7,15 @@ Public benchmark data plus sanitised telemetry (`scripts/sanitize-fixtures.py`).
 | `aa-intel.json` | Artificial Analysis through the OpenRouter Data API (the router's own cache) | OpenRouter / Artificial Analysis terms |
 | `lmarena-*.json` | `lmarena-ai/leaderboard-dataset` on Hugging Face | CC-BY 4.0, LMArena |
 | `epoch/*.csv` | Epoch AI benchmark data (`epoch.ai/data/benchmark_data.zip`), columns trimmed | CC-BY 4.0, credit Epoch AI |
-| `benchlm-leaderboard.json` | `benchlm.ai/data/leaderboard.json`, fields trimmed | CC BY-NC 4.0, "Data from BenchLM.ai" |
+| `benchlm-leaderboard.json` | `benchlm.ai/data/leaderboard.json`, fields and sample rows trimmed | CC BY-NC 4.0, "Data from BenchLM.ai" |
 | `omp-*.json`, `codexbar-usage.json` | local telemetry, sanitised | |
+
+The BenchLM fixture is a curated sample, not the complete upstream leaderboard. Publication curation removed
+27 rows representing 16 model identities whose public `canonicalModelKey` strings triggered gitleaks'
+generic API-key rule. The remaining boards contain 200 overall, 149 coding and 128 agentic rows.
+All 24 tier/class selections were compared before and after this curation and remained unchanged.
+The adapter still downloads and processes the full upstream boards; only this test fixture is reduced.
+`dataVersion` remains the upstream provenance hash, not a hash of the trimmed fixture.
 
 ## One correction to `aa-intel.json`
 

@@ -268,19 +268,6 @@
 }
 },
 {
-"slug": "claude-opus-4-7-adaptive",
-"canonicalModelKey": "claude-opus-4-7-max",
-"model": "Claude Opus 4.7 (Adaptive)",
-"creator": "Anthropic",
-"displayScore": 68.11,
-"score": 68.11,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 53.76,
-"upper": 82.46
-}
-},
-{
 "slug": "grok-4-6",
 "canonicalModelKey": "grok-4-6",
 "model": "Grok 4.6",
@@ -554,19 +541,6 @@
 }
 },
 {
-"slug": "ornith-1-5-397b",
-"canonicalModelKey": "ornith-1-5-397b",
-"model": "Ornith-1.5-397B",
-"creator": "Ornith AI",
-"displayScore": 62.47,
-"score": 62.47,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 48.12,
-"upper": 76.82
-}
-},
-{
 "slug": "gemini-3-6-flash",
 "canonicalModelKey": "gemini-3-6-flash",
 "model": "Gemini 3.6 Flash",
@@ -785,19 +759,6 @@
 "scoreInterval90": {
 "lower": 46.52,
 "upper": 65.97
-}
-},
-{
-"slug": "kimi-k2-5-reasoning",
-"canonicalModelKey": "kimi-k2-5-reasoning",
-"model": "Kimi K2.5 (Reasoning)",
-"creator": "Moonshot AI",
-"displayScore": 56.24,
-"score": 56.24,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 41.89,
-"upper": 70.59
 }
 },
 {
@@ -1061,19 +1022,6 @@
 }
 },
 {
-"slug": "ternary-bonsai-2-27b",
-"canonicalModelKey": "ternary-bonsai-2-27b",
-"model": "Ternary Bonsai 2 27B",
-"creator": "Prism ML",
-"displayScore": 53.95,
-"score": 53.95,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 39.6,
-"upper": 68.3
-}
-},
-{
 "slug": "qwen3-7-plus",
 "canonicalModelKey": "qwen3-7-plus",
 "model": "Qwen3.7 Plus",
@@ -1123,19 +1071,6 @@
 "scoreInterval90": {
 "lower": 39.08,
 "upper": 67.78
-}
-},
-{
-"slug": "claude-opus-4-5-thinking",
-"canonicalModelKey": "claude-opus-4-5-thinking",
-"model": "Claude Opus 4.5 Thinking",
-"creator": "Anthropic",
-"displayScore": 53.4,
-"score": 53.4,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 39.05,
-"upper": 67.75
 }
 },
 {
@@ -1464,19 +1399,6 @@
 }
 },
 {
-"slug": "nemotron-3-ultra",
-"canonicalModelKey": "nemotron-3-ultra-500b",
-"model": "Nemotron 3 Ultra",
-"creator": "NVIDIA",
-"displayScore": 47.37,
-"score": 47.37,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 33.02,
-"upper": 61.72
-}
-},
-{
 "slug": "qwen3-7-flash",
 "canonicalModelKey": "qwen3-7-flash",
 "model": "Qwen3.7 Flash",
@@ -1711,19 +1633,6 @@
 }
 },
 {
-"slug": "nemotron-3-5-bolt-74b-a9b",
-"canonicalModelKey": "nemotron-3-5-bolt-74b-a9b",
-"model": "Nemotron 3.5 Bolt 74B-A9B",
-"creator": "NVIDIA",
-"displayScore": 42.8,
-"score": 42.8,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 28.45,
-"upper": 57.15
-}
-},
-{
 "slug": "grok-4-fast-reasoning",
 "canonicalModelKey": "grok-4-fast-reasoning",
 "model": "Grok 4 Fast (Reasoning)",
@@ -1932,32 +1841,6 @@
 }
 },
 {
-"slug": "claude-4-1-opus-thinking",
-"canonicalModelKey": "claude-4-1-opus-thinking",
-"model": "Claude 4.1 Opus Thinking",
-"creator": "Anthropic",
-"displayScore": 38.33,
-"score": 38.33,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 28.6,
-"upper": 48.05
-}
-},
-{
-"slug": "deepseek-v3-1-reasoning",
-"canonicalModelKey": "deepseek-v3-1-reasoning",
-"model": "DeepSeek V3.1 (Reasoning)",
-"creator": "DeepSeek",
-"displayScore": 38.16,
-"score": 38.16,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 28.43,
-"upper": 47.88
-}
-},
-{
 "slug": "glm-4-7-flash",
 "canonicalModelKey": "glm-4-7-flash",
 "model": "GLM-4.7-Flash",
@@ -1981,19 +1864,6 @@
 "scoreInterval90": {
 "lower": 23.71,
 "upper": 52.4
-}
-},
-{
-"slug": "claude-4-sonnet",
-"canonicalModelKey": "claude-4-sonnet",
-"model": "Claude 4 Sonnet",
-"creator": "Anthropic",
-"displayScore": 37.65,
-"score": 37.65,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 27.92,
-"upper": 47.37
 }
 },
 {
@@ -2202,19 +2072,6 @@
 "scoreInterval90": {
 "lower": 19.06,
 "upper": 47.76
-}
-},
-{
-"slug": "mistral-medium-3-5-128b",
-"canonicalModelKey": "mistral-medium-3-5-128b",
-"model": "Mistral Medium 3.5 128B",
-"creator": "Mistral",
-"displayScore": 33.37,
-"score": 33.37,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 19.02,
-"upper": 47.72
 }
 },
 {
@@ -2478,19 +2335,6 @@
 }
 },
 {
-"slug": "claude-3-5-sonnet",
-"canonicalModelKey": "claude-3-5-sonnet",
-"model": "Claude 3.5 Sonnet",
-"creator": "Anthropic",
-"displayScore": 27.62,
-"score": 27.62,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 17.9,
-"upper": 37.34
-}
-},
-{
 "slug": "claude-3-opus",
 "canonicalModelKey": "claude-3-opus",
 "model": "Claude 3 Opus",
@@ -2712,19 +2556,6 @@
 }
 },
 {
-"slug": "mixtral-8x22b-instruct-v0-1",
-"canonicalModelKey": "mixtral-8x22b-instruct-v0-1",
-"model": "Mixtral 8x22B Instruct v0.1",
-"creator": "Mistral",
-"displayScore": 18.82,
-"score": 18.82,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 9.09,
-"upper": 28.54
-}
-},
-{
 "slug": "claude-3-haiku",
 "canonicalModelKey": "claude-3-haiku",
 "model": "Claude 3 Haiku",
@@ -2761,19 +2592,6 @@
 "scoreInterval90": {
 "lower": 0.17,
 "upper": 19.61
-}
-},
-{
-"slug": "mistral-7b-v0-3",
-"canonicalModelKey": "mistral-7b-v0-3",
-"model": "Mistral 7B v0.3",
-"creator": "Mistral",
-"displayScore": 7.16,
-"score": 7.16,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 0,
-"upper": 16.89
 }
 },
 {
@@ -3170,19 +2988,6 @@
 }
 },
 {
-"slug": "claude-opus-4-7-adaptive",
-"canonicalModelKey": "claude-opus-4-7-max",
-"model": "Claude Opus 4.7 (Adaptive)",
-"creator": "Anthropic",
-"displayScore": 68.11,
-"score": 55.33,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 43.82,
-"upper": 66.85
-}
-},
-{
 "slug": "claude-opus-4-7",
 "canonicalModelKey": "claude-opus-4-7",
 "model": "Claude Opus 4.7",
@@ -3206,19 +3011,6 @@
 "scoreInterval90": {
 "lower": 36.27,
 "upper": 73.87
-}
-},
-{
-"slug": "ornith-1-5-397b",
-"canonicalModelKey": "ornith-1-5-397b",
-"model": "Ornith-1.5-397B",
-"creator": "Ornith AI",
-"displayScore": 62.47,
-"score": 54.65,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 35.38,
-"upper": 73.92
 }
 },
 {
@@ -3414,19 +3206,6 @@
 "scoreInterval90": {
 "lower": 35.04,
 "upper": 61.53
-}
-},
-{
-"slug": "claude-opus-4-6-thinking",
-"canonicalModelKey": "claude-opus-4-6-thinking",
-"model": "Claude Opus 4.6 (Adaptive)",
-"creator": "Anthropic",
-"displayScore": null,
-"score": 48.22,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 36.71,
-"upper": 59.74
 }
 },
 {
@@ -4015,19 +3794,6 @@
 }
 },
 {
-"slug": "deepseek-v3-2-thinking",
-"canonicalModelKey": "deepseek-v3-2-thinking",
-"model": "DeepSeek V3.2 (Thinking)",
-"creator": "DeepSeek",
-"displayScore": null,
-"score": 32.39,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 20.88,
-"upper": 43.91
-}
-},
-{
 "slug": "step-3-7-flash",
 "canonicalModelKey": "step-3-7-flash",
 "model": "Step 3.7 Flash",
@@ -4353,19 +4119,6 @@
 }
 },
 {
-"slug": "mistral-medium-3-5-128b",
-"canonicalModelKey": "mistral-medium-3-5-128b",
-"model": "Mistral Medium 3.5 128B",
-"creator": "Mistral",
-"displayScore": 33.37,
-"score": 25.46,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 4.92,
-"upper": 46
-}
-},
-{
 "slug": "grok-4-1-fast-reasoning",
 "canonicalModelKey": "grok-4-1-fast-reasoning",
 "model": "Grok 4.1 Fast (Reasoning)",
@@ -4415,19 +4168,6 @@
 "scoreInterval90": {
 "lower": 8.48,
 "upper": 36.9
-}
-},
-{
-"slug": "nemotron-3-ultra",
-"canonicalModelKey": "nemotron-3-ultra-500b",
-"model": "Nemotron 3 Ultra",
-"creator": "NVIDIA",
-"displayScore": 47.37,
-"score": 22.49,
-"evidenceStatus": "supported",
-"scoreInterval90": {
-"lower": 16.06,
-"upper": 28.92
 }
 },
 {
@@ -5109,19 +4849,6 @@
 }
 },
 {
-"slug": "claude-opus-4-7-adaptive",
-"canonicalModelKey": "claude-opus-4-7-max",
-"model": "Claude Opus 4.7 (Adaptive)",
-"creator": "Anthropic",
-"displayScore": 68.11,
-"score": 61.24,
-"evidenceStatus": "supported",
-"scoreInterval90": {
-"lower": 51.45,
-"upper": 71.02
-}
-},
-{
 "slug": "gemini-3-7-flash",
 "canonicalModelKey": "gemini-3-7-flash",
 "model": "Gemini 3.7 Flash",
@@ -5184,19 +4911,6 @@
 "scoreInterval90": {
 "lower": 50.97,
 "upper": 70.37
-}
-},
-{
-"slug": "ornith-1-5-397b",
-"canonicalModelKey": "ornith-1-5-397b",
-"model": "Ornith-1.5-397B",
-"creator": "Ornith AI",
-"displayScore": 62.47,
-"score": 59.91,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 43.35,
-"upper": 76.48
 }
 },
 {
@@ -5577,19 +5291,6 @@
 }
 },
 {
-"slug": "claude-opus-4-6-thinking",
-"canonicalModelKey": "claude-opus-4-6-thinking",
-"model": "Claude Opus 4.6 (Adaptive)",
-"creator": "Anthropic",
-"displayScore": null,
-"score": 46.45,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 33.4,
-"upper": 59.5
-}
-},
-{
 "slug": "qwen3-5-397b",
 "canonicalModelKey": "qwen3-5-397b",
 "model": "Qwen3.5 397B",
@@ -5733,19 +5434,6 @@
 }
 },
 {
-"slug": "kimi-k2-5-reasoning",
-"canonicalModelKey": "kimi-k2-5-reasoning",
-"model": "Kimi K2.5 (Reasoning)",
-"creator": "Moonshot AI",
-"displayScore": 56.24,
-"score": 41.05,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 27.5,
-"upper": 54.59
-}
-},
-{
 "slug": "gemini-3-1-pro",
 "canonicalModelKey": "gemini-3-1-pro",
 "model": "Gemini 3.1 Pro",
@@ -5834,19 +5522,6 @@
 "scoreInterval90": {
 "lower": 28.34,
 "upper": 48.91
-}
-},
-{
-"slug": "nemotron-3-5-bolt-74b-a9b",
-"canonicalModelKey": "nemotron-3-5-bolt-74b-a9b",
-"model": "Nemotron 3.5 Bolt 74B-A9B",
-"creator": "NVIDIA",
-"displayScore": 42.8,
-"score": 38.55,
-"evidenceStatus": "estimated",
-"scoreInterval90": {
-"lower": 25.39,
-"upper": 51.71
 }
 },
 {
@@ -6305,19 +5980,6 @@
 }
 },
 {
-"slug": "nemotron-3-ultra",
-"canonicalModelKey": "nemotron-3-ultra-500b",
-"model": "Nemotron 3 Ultra",
-"creator": "NVIDIA",
-"displayScore": 47.37,
-"score": 25.09,
-"evidenceStatus": "supported",
-"scoreInterval90": {
-"lower": 16.96,
-"upper": 33.23
-}
-},
-{
 "slug": "mistral-small-4",
 "canonicalModelKey": "mistral-small-4",
 "model": "Mistral Small 4",
@@ -6354,19 +6016,6 @@
 "scoreInterval90": {
 "lower": 12.44,
 "upper": 35.47
-}
-},
-{
-"slug": "mistral-medium-3-5-128b",
-"canonicalModelKey": "mistral-medium-3-5-128b",
-"model": "Mistral Medium 3.5 128B",
-"creator": "Mistral",
-"displayScore": 33.37,
-"score": 22.54,
-"evidenceStatus": "supported",
-"scoreInterval90": {
-"lower": 15.97,
-"upper": 29.12
 }
 },
 {
