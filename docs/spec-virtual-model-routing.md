@@ -141,6 +141,22 @@ repair chooses again. Deprecation of request parameters, future retirement
 warnings, and unrelated HTTP 410 errors do not imply a retired model.
 See [the deprecated-model retry investigation](investigations/deprecated-model-retry-loop.md).
 
+Explicit `Model is unavailable` / `model is currently unavailable` rejections
+also veto the route regardless of HTTP status. A retired-model notice in a failed
+assistant's partial text is used only when it identifies that failed model;
+successful prose is not provider-error evidence. Recognized expired-key and
+transport failures receive a temporary per-route veto without assuming every
+credential on the provider is broken.
+
+**Terminal failures:** native OMP retains all continuation ownership. PMR learns
+the failed route's health in `agent_end`, but does not switch models or enqueue
+another turn there or in `session_stop`. If native fallback declines recovery,
+the user must continue manually; the next routing pass excludes the vetoed route.
+This applies uniformly to providers without changing session activation,
+manual opt-out, credential rotation or remote-compaction protection. Unknown
+request-shape/native-turn protocol errors are not blindly retried.
+See [the provider-error investigation](investigations/provider-error-recovery-2026-11-01.md).
+
 ## 7. Multica mapping
 
 - Frontier agent → `model: pmr/frontier`

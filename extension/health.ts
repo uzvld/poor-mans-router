@@ -222,14 +222,23 @@ export function cooldownFromRetry(message: string, delayMs: number | undefined, 
 // `evaluateRouteHealth`'s AVAILABLE verdict, so the ladder re-derives and re-announces the
 // identical dead route on every fresh process forever (2026-09-19 live incident:
 // `docs/investigations/multica-repeated-switch-marker.md`).
-export function isPermanentModelError(message: string): boolean {
+export function isPermanentModelError(message: string, modelId?: string): boolean {
   // The quoted model id sits between "model" and the verdict and has no length bound
   // (`bytedance-seed/dola-seed-2.0-pro:free` is 41 chars with quotes; ids get longer).
   // Anthropic's retired-model 404 is `{"error":{"type":"not_found_error","message":"model: <id>"}}`;
   // other not_found_error resources (files, batches) must not cool a model route.
   // OpenCode's 410 ModelDeprecated names the retired id before "has been deprecated".
   // Require that verdict directly after the id, not incidental deprecated request fields.
-  return /model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id|not_found_error"[^\n]*?"message"\s*:\s*"model:|\bmodel\s+\S+\s+has been deprecated\b/i.test(message);
+  if (/model\b[^\n]*?\b(does not exist|not found)|no such model|unknown model|invalid model ?id|not_found_error"[^\n]*?"message"\s*:\s*"model:|\bmodel\s+\S+\s+has been deprecated\b/i.test(message)) return true;
+  const verdict = /\b(?:is (?:currently )?unavailable|is no longer available|has been (?:retired|decommissioned))(?=[.!?]|$)/i.exec(message);
+  if (!verdict) return false;
+  const subject = message.slice(message.lastIndexOf('\n', verdict.index) + 1, verdict.index).trim();
+  if (/\bmodel(?:\s+['"`]?[\w./:-]+['"`]?)?$/i.test(subject)) return true;
+  if (!modelId) return false;
+  // Compare display names and ids without provider-specific family lists:
+  // "Claude Sonnet 4.6" and "claude-sonnet-4-6" identify the same failed route.
+  const namedModel = subject.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return namedModel === modelId.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
 // Catalog drift does not heal in minutes: on 2026-09-19 32 of the 52 `kilo/*:free` ids in
@@ -239,11 +248,36 @@ export function isPermanentModelError(message: string): boolean {
 // store's GC window; a re-added model is picked up again the next day.
 const PERMANENT_MODEL_ERROR_COOLDOWN_MS = 24 * 60 * 60_000;
 
-export function cooldownFromPermanentModelError(message: string, now = Date.now()): LocalRouteState | undefined {
-  if (!isPermanentModelError(message)) return undefined;
+export function cooldownFromPermanentModelError(message: string, now = Date.now(), modelId?: string): LocalRouteState | undefined {
+  if (!isPermanentModelError(message, modelId)) return undefined;
   return {
     cooldownUntil: now + PERMANENT_MODEL_ERROR_COOLDOWN_MS,
     lastFailureAt: now,
     reason: message.slice(0, 240),
   };
+}
+
+/** Only failed assistant output is provider evidence; successful prose is never a verdict. */
+export function providerErrorMessage(value: unknown): string {
+  if (!value || typeof value !== 'object' || !('stopReason' in value) || value.stopReason !== 'error') return '';
+  const message = 'errorMessage' in value && typeof value.errorMessage === 'string' ? value.errorMessage : '';
+  const modelId = 'model' in value && typeof value.model === 'string' ? value.model : undefined;
+  if (!('content' in value) || !Array.isArray(value.content)) return message;
+  const partial = value.content
+    .filter((block): block is { type: 'text'; text: string } => !!block && typeof block === 'object'
+      && block.type === 'text' && typeof block.text === 'string')
+    .map((block) => block.text).join('');
+  const subject = partial.split(/\s+(?:is|has)\b/i, 1)[0].replace(/^model\s+/i, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const identifiesFailedModel = modelId !== undefined
+    && subject === modelId.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return identifiesFailedModel && isPermanentModelError(partial, modelId) ? `${message}\n${partial}` : message;
+}
+
+/** Recognized route failures only; request-shape and native-turn protocol errors need their own repair. */
+export function cooldownFromProviderError(message: string, now = Date.now(), modelId?: string): LocalRouteState | undefined {
+  const known = cooldownFromPermanentModelError(message, now, modelId) ?? cooldownFromRetry(message, undefined, now);
+  if (known) return known;
+  if (!/\b(?:API key|access token|credential)\b[^\n]*\b(?:expired|invalid|revoked)\b|api_key_expired|stream ended without a finish reason|socket connection was closed unexpectedly|connection (?:reset|refused)|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|fetch failed|request timed out/i.test(message)) return undefined;
+  return { cooldownUntil: now + 5 * 60_000, lastFailureAt: now, reason: message.slice(0, 240) };
 }

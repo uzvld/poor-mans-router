@@ -202,6 +202,25 @@ from `402 → pmr/balanced` without losing the user context; the second avoids b
 paid routes sharing the rejected wallet. Temporary config/state are removed.
 No live provider inference, installation, or live configuration changes.
 
+Provider-error route-veto regression (OMP 18.12.3):
+
+```bash
+bun scripts/provider-error-recovery-probe.ts
+```
+
+Exercises seven scenarios in real, isolated OMP processes against loopback-only
+stream fixtures: retired-model partial output, HTTP 400 model unavailability,
+expired credentials, interrupted partial output, exhausted alternatives, manual
+opt-out and unknown request errors. Native OMP owns all continuation. Terminal
+errors stay terminal, but the next user attempt avoids the rejected route.
+No live inference or shared configuration is used. See the
+[incident and recovery boundaries](docs/investigations/provider-error-recovery-2026-11-01.md).
+
+PMR does not add a terminal retry loop or `session_stop` model switching.
+If native fallback cannot continue a failed turn, manually continue the task
+or select `pmr/*` again; the learned route cooldown also survives a fresh session.
+Unknown request-shape and native-turn protocol errors are not blindly retried.
+
 Read [`AGENTS.md`](AGENTS.md) before changing routing behaviour — it defines the invariants every change must keep and the evidence a PR must carry. Every fix here has been a *proven* root cause first and a failing test second; keep it that way.
 
 ## Status

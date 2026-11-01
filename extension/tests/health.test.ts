@@ -121,3 +121,27 @@ test('deprecation of a request parameter or a future model retirement is not a p
     assert.equal(cooldownFromPermanentModelError(message, 1000), undefined, message);
   }
 });
+
+test('semantic model unavailability is rejected regardless of HTTP status or provider wording', () => {
+  for (const message of [
+    '400 Upstream request failed: Model is unavailable.',
+    '404 The requested model is currently unavailable. Please choose a different model.',
+    'Model example-v1 is no longer available. Please switch to example-v2.',
+    'Model example-v1 has been retired.',
+  ]) {
+    assert.ok(cooldownFromPermanentModelError(message, 1000)?.cooldownUntil! > 1000, message);
+  }
+});
+
+test('a display-name retirement notice must identify the failed model', () => {
+  const message = 'Claude Sonnet 4.6 is no longer available. Please switch to Claude Sonnet 5.5.';
+  assert.ok(cooldownFromPermanentModelError(message, 1000, 'claude-sonnet-4-6')?.cooldownUntil! > 1000);
+  assert.equal(cooldownFromPermanentModelError(message, 1000, 'claude-sonnet-5-5'), undefined);
+  for (const other of [
+    'The requested file is no longer available. Please switch to a different file.',
+    'Model example-v1 will no longer be available next month.',
+    'Model example-v1 is unavailable in the documentation example.',
+  ]) {
+    assert.equal(cooldownFromPermanentModelError(other, 1000), undefined, other);
+  }
+});
