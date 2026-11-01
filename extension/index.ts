@@ -18,7 +18,7 @@ import {
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
 import { computeLadders, type ComputedLadder } from './rungs.ts';
-import { cooldownFromPermanentModelError, cooldownFromRetry, isPaidBalanceError, isPermanentModelError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
+import { cooldownFromProviderError, cooldownFromRetry, providerErrorMessage, isPaidBalanceError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
 import { IntelStore, RouterStateStore } from './state.ts';
 import { blendIntel, type BlendReport } from './bench-blend.ts';
 import { LIVE_FETCHERS, recordAaSnapshot, refreshKeylessSources } from './bench-refresh.ts';
@@ -611,10 +611,6 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     retryActive = true;
     const message = String(event?.errorMessage ?? '');
     const rateOrQuota = isRateOrQuotaError(message);
-    // Catalog drift ("model does not exist"/"not found"): permanent for this route, unlike
-    // a rate/quota backoff, so it always cools down regardless of delayMs/native-fallback
-    // heuristics that exist to protect healthy same-provider credential rotation.
-    const permanentModelError = isPermanentModelError(message);
     const retryDecision = retryRoutingPolicy(
       rateOrQuota,
       typeof event?.delayMs === 'number' ? event.delayMs : undefined,
@@ -630,12 +626,12 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     const routeKey = lastRetryFrom ?? lastRoutedSelector ?? modelKey(ctx.models.current());
     lastRetryFrom = undefined;
     if (!routeKey) return;
+    const routeCooldown = !rateOrQuota
+      ? cooldownFromProviderError(message, Date.now(), routeKey.slice(routeKey.indexOf('/') + 1))
+      : undefined;
 
-    if (permanentModelError) {
-      const cooldown = cooldownFromPermanentModelError(message, Date.now());
-      if (cooldown?.cooldownUntil) {
-        markErrorCooldown(ctx, routeKey, message, cooldown);
-      }
+    if (routeCooldown?.cooldownUntil) {
+      markErrorCooldown(ctx, routeKey, message, routeCooldown);
     } else if (retryDecision.markRouteCooldown) {
       const cooldown = cooldownFromRetry(message, event?.delayMs, Date.now());
       if (cooldown?.cooldownUntil) {
@@ -700,18 +696,16 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     lastRetryFrom = undefined;
   });
 
-  // The only hook that observes a failure OMP does not retry. OMP 18.2.6 `isRetryableError`
-  // returns false for every 4xx except 408/429 (and its non-retryable wording includes
-  // "not found"), so a 404 "model does not exist" never reaches `auto_retry_start`: the turn
-  // ends with the assistant message carrying `stopReason: "error"` + `errorMessage`, and
-  // that message is what arrives here. Recording it as a success (2026-09-19 14:52/14:57
-  // live incident, after d3b888e was installed) keeps a dead route AVAILABLE forever.
+
+  // Final bookkeeping attributes only an actual assistant result; setup/judge
+  // errors are not main-route failures. Native OMP owns all continuation.
   pi.on('agent_end', async (event: any, ctx: any) => {
     const messages: any[] = Array.isArray(event?.messages) ? event.messages : [];
     let last: any;
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i]?.role === 'assistant') { last = messages[i]; break; }
     }
+    if (!last) return;
     const key = (last?.provider && last?.model ? `${last.provider}/${last.model}` : undefined)
       ?? modelKey(ctx.models.current())
       ?? lastRoutedSelector;
@@ -723,9 +717,9 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
       return;
     }
 
-    const message = String(last.errorMessage ?? '');
+    const message = providerErrorMessage(last);
     const now = Date.now();
-    const cooldown = cooldownFromPermanentModelError(message, now) ?? cooldownFromRetry(message, undefined, now);
+    const cooldown = cooldownFromProviderError(message, now, last.model);
     if (cooldown?.cooldownUntil) {
       markErrorCooldown(ctx, key, message, cooldown);
     } else {
