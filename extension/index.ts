@@ -1,7 +1,7 @@
 import type { ExtensionAPI, ExtensionContext } from '@oh-my-pi/pi-coding-agent';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { RouterPolicy, Tier } from './types.ts';
+import type { NormalizedRoute, RouterPolicy, Tier } from './types.ts';
 import { DEFAULT_POLICY, DEFAULT_WEIGHTS, normalizePolicy } from './policy.ts';
 import { fetchCodexBarUsage, fetchOmpUsage, type CodexBarUsage, type OmpCredentialUsage } from './telemetry.ts';
 import { fetchOmpHistory, type HistoryMap } from './history.ts';
@@ -18,7 +18,7 @@ import {
 } from './openrouter-intel.ts';
 import { buildRoutes, selectForTier, type SelectionResult } from './ranking.ts';
 import { computeLadders, type ComputedLadder } from './rungs.ts';
-import { cooldownFromProviderError, cooldownFromRetry, providerErrorMessage, isPaidBalanceError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
+import { cooldownFromProviderError, cooldownFromRetry, providerErrorMessage, isCredentialRejection, isPaidBalanceError, isRateOrQuotaError, type LocalRouteState } from './health.ts';
 import { IntelStore, RouterStateStore } from './state.ts';
 import { blendIntel, type BlendReport } from './bench-blend.ts';
 import { LIVE_FETCHERS, recordAaSnapshot, refreshKeylessSources } from './bench-refresh.ts';
@@ -79,6 +79,76 @@ function asModelLike(model: any) {
     name: typeof model.name === 'string' ? model.name : undefined,
     cost: model.cost ?? {},
   };
+}
+
+/**
+ * OMP's retry events name no failed credential. Only OMP's own, complete view of the pool it
+ * would use for this provider can say that no credential can serve it: every one of them
+ * auth-blocked AND reported depleted by `health.model`. Anything missing, stale (the pool
+ * generation moved), unreadable or slow answers `undefined`: the caller then stays with the
+ * failed route and never guesses an account.
+ */
+const AUTH_HEALTH_TIMEOUT_MS = 250;
+
+async function authBlockedUntil(ctx: ExtensionContext, route: NormalizedRoute): Promise<number | undefined> {
+  const auth = ctx?.modelRegistry?.authStorage;
+  if (typeof auth?.credentials?.list !== 'function' || typeof auth?.keys?.source !== 'function'
+    || typeof auth?.health?.model !== 'function' || typeof auth?.blocks?.list !== 'function') return undefined;
+  try {
+    const generation = auth.credentials.generation;
+    if (typeof generation !== 'number') return undefined;
+    const source = auth.keys.source(route.provider);
+    if (source?.kind !== 'oauth' && source?.kind !== 'api_key') return undefined;
+    const listed = auth.credentials.list(route.provider);
+    if (!Array.isArray(listed) || !listed.length) return undefined;
+    // Only the row id, credential kind and login provenance are read; never key material.
+    const rows = listed.map(row => ({
+      id: row?.id, provider: row?.provider, type: row?.credential?.type, disabled: row?.disabledCause,
+      login: row?.credential?.type === 'api_key' && row.credential.source === 'login',
+    }));
+    if (rows.some(row => !Number.isSafeInteger(row.id) || row.provider !== route.provider
+      || (row.type !== 'oauth' && row.type !== 'api_key') || row.disabled != null)
+      || new Set(rows.map(row => row.id)).size !== rows.length) return undefined;
+    // OMP falls through from OAuth to a login API key when no OAuth account can serve; with both kinds
+    // stored, one kind being blocked proves nothing about the other, so there is no conclusive answer.
+    if (rows.some(row => row.type === 'api_key' && row.login) && rows.some(row => row.type === 'oauth')) return undefined;
+    const pool = rows.filter(row => row.type === source.kind && (source.kind !== 'api_key' || row.login));
+    if (!pool.length) return undefined;
+
+    const poolBlockedUntil = (): number | undefined => {
+      const blocks = auth.blocks.list(pool.map(row => row.id));
+      if (!Array.isArray(blocks)) return undefined;
+      const now = Date.now();
+      const deadlines = pool.map(row => {
+        const live = blocks.filter(block => block?.credentialId === row.id
+          && block.providerKey === `${route.provider}:${row.type}` && block.blockScope === 'auth'
+          && typeof block.blockedUntilMs === 'number' && Number.isFinite(block.blockedUntilMs) && block.blockedUntilMs > now);
+        return live.length ? Math.max(...live.map(block => block.blockedUntilMs)) : undefined;
+      });
+      if (deadlines.some(deadline => deadline === undefined)) return undefined;
+      return Math.min(...deadlines.filter((deadline): deadline is number => deadline !== undefined));
+    };
+    // Checking the blocks first means a pool with any unblocked credential never costs a usage fetch.
+    if (poolBlockedUntil() === undefined) return undefined;
+    const signal = AbortSignal.timeout(AUTH_HEALTH_TIMEOUT_MS);
+    const { promise: timeout, resolve: timedOut } = Promise.withResolvers<undefined>();
+    signal.addEventListener('abort', () => timedOut(undefined), { once: true });
+    const health = await Promise.race([
+      auth.health.model(route.provider, {
+        modelId: route.modelId, sessionId: ctx.sessionManager?.getSessionId?.(),
+        baseUrl: ctx.models.resolve(route.selector)?.baseUrl, reserveFraction: 0.1, signal,
+      }),
+      timeout,
+    ]);
+    if (auth.credentials.generation !== generation || auth.keys.source(route.provider)?.kind !== source.kind
+      || health?.state !== 'depleted' || !Array.isArray(health.accounts)
+      || health.accounts.length !== pool.length) return undefined;
+    if (!pool.every(row => health.accounts.some(account => account?.credentialId === row.id
+      && account.credentialType === row.type && account.state === 'depleted'))) return undefined;
+    return poolBlockedUntil();
+  } catch {
+    return undefined;
+  }
 }
 
 function sortStatusRoutes(routes: any[], selected?: string) {
@@ -392,6 +462,26 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     }
   }
 
+  // A credential rejection cools the failed route (above). It reaches the provider's other
+  // models only when OMP itself reports that no credential of the pool can serve them, so a
+  // sibling account that can still serve is never penalised by a guess. Failing here must not
+  // cost the caller its state save or the virtual-fallback repair that follows.
+  async function widenCredentialCooldown(ctx: ExtensionContext, key: string, message: string, cooldown: LocalRouteState): Promise<void> {
+    if (!cooldown.cooldownUntil || !isCredentialRejection(message)) return;
+    try {
+      const routes = currentRoutes(ctx);
+      const failed = routes.find((route) => route.key === key);
+      if (!failed || await authBlockedUntil(ctx, failed) === undefined) return;
+      for (const route of routes) {
+        if (route.provider !== failed.provider || route.key === key) continue;
+        if ((state.get(route.key)?.cooldownUntil ?? 0) > cooldown.cooldownUntil) continue;
+        state.markCooldown(route.key, cooldown.cooldownUntil, 'OMP reports every credential of this provider auth-blocked', cooldown.lastFailureAt);
+      }
+    } catch (error) {
+      logger.warn('pmr could not widen a credential cooldown', { error: String(error) });
+    }
+  }
+
   pi.on('session_start', async (_event: any, ctx: any) => {
     policy = await loadPolicy();
     // policy.yml may have changed the class sets, so any ladder derived from the previous
@@ -632,6 +722,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
 
     if (routeCooldown?.cooldownUntil) {
       markErrorCooldown(ctx, routeKey, message, routeCooldown);
+      await widenCredentialCooldown(ctx, routeKey, message, routeCooldown);
     } else if (retryDecision.markRouteCooldown) {
       const cooldown = cooldownFromRetry(message, event?.delayMs, Date.now());
       if (cooldown?.cooldownUntil) {
@@ -722,6 +813,7 @@ export default function adaptiveRouter(pi: ExtensionAPI) {
     const cooldown = cooldownFromProviderError(message, now, last.model);
     if (cooldown?.cooldownUntil) {
       markErrorCooldown(ctx, key, message, cooldown);
+      await widenCredentialCooldown(ctx, key, message, cooldown);
     } else {
       state.recordFailure(key, now);
     }

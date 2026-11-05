@@ -37,13 +37,16 @@ function relevantWindows(report: OmpCredentialUsage, route: RouteDescriptor): Us
   });
 }
 
-function isExhausted(window: UsageWindow): boolean {
+function isExhausted(window: UsageWindow, provider: string): boolean {
   if (window.status === 'exhausted') return true;
+  // OMP's Codex warning at 100% explicitly means requests remain permitted,
+  // potentially on paid credits. Other providers' warning semantics may differ.
+  if (provider === 'openai-codex' && window.status === 'warning') return false;
   return typeof window.remainingFraction === 'number' && window.remainingFraction <= 0;
 }
 
-function credentialReadyAt(windows: UsageWindow[], now: number): number | undefined {
-  const exhausted = windows.filter(isExhausted);
+function credentialReadyAt(windows: UsageWindow[], now: number, provider: string): number | undefined {
+  const exhausted = windows.filter((window) => isExhausted(window, provider));
   if (!exhausted.length) return undefined;
   const resets = exhausted
     .map((w) => w.resetsAt)
@@ -54,8 +57,8 @@ function credentialReadyAt(windows: UsageWindow[], now: number): number | undefi
 function reportQuality(report: OmpCredentialUsage, route: RouteDescriptor, reserveFraction: number, now: number) {
   const windows = relevantWindows(report, route);
   if (!windows.length) return { usable: true, healthy: true, unknown: true };
-  const exhausted = windows.some(isExhausted);
-  if (exhausted) return { usable: false, healthy: false, readyAt: credentialReadyAt(windows, now), unknown: false };
+  const exhausted = windows.some((window) => isExhausted(window, report.provider));
+  if (exhausted) return { usable: false, healthy: false, readyAt: credentialReadyAt(windows, now, report.provider), unknown: false };
 
   const knownRemaining = windows
     .map((w) => w.remainingFraction)
@@ -274,10 +277,17 @@ export function providerErrorMessage(value: unknown): string {
   return identifiesFailedModel && isPermanentModelError(partial, modelId) ? `${message}\n${partial}` : message;
 }
 
+const CREDENTIAL_REJECTION = /\b(?:API key|access token|credential)\b[^\n]*\b(?:expired|invalid|revoked)\b|api_key_expired/i;
+
+/** An explicit provider statement that the presented credential is expired, invalid or revoked. */
+export function isCredentialRejection(message: string): boolean {
+  return CREDENTIAL_REJECTION.test(message);
+}
+
 /** Recognized route failures only; request-shape and native-turn protocol errors need their own repair. */
 export function cooldownFromProviderError(message: string, now = Date.now(), modelId?: string): LocalRouteState | undefined {
   const known = cooldownFromPermanentModelError(message, now, modelId) ?? cooldownFromRetry(message, undefined, now);
   if (known) return known;
-  if (!/\b(?:API key|access token|credential)\b[^\n]*\b(?:expired|invalid|revoked)\b|api_key_expired|stream ended without a finish reason|socket connection was closed unexpectedly|connection (?:reset|refused)|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|fetch failed|request timed out/i.test(message)) return undefined;
+  if (!isCredentialRejection(message) && !/stream ended without a finish reason|socket connection was closed unexpectedly|connection (?:reset|refused)|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|fetch failed|request timed out/i.test(message)) return undefined;
   return { cooldownUntil: now + 5 * 60_000, lastFailureAt: now, reason: message.slice(0, 240) };
 }
