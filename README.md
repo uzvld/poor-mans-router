@@ -216,6 +216,31 @@ errors stay terminal, but the next user attempt avoids the rejected route.
 No live inference or shared configuration is used. See the
 [incident and recovery boundaries](docs/investigations/provider-error-recovery-2026-11-01.md).
 
+Credential-rejection regression (OMP 18.12.3, synthetic keys, loopback only):
+
+```bash
+bun scripts/provider-auth-recovery-probe.ts
+```
+
+Runs OMP's real login-key resolver, usage-health and retry path in a disposable
+profile (the probe extension refuses to run anywhere else). With one expired key,
+a sibling model of the same provider must not be tried with it and the task
+finishes on the next route; with a healthy second key OMP rotates to it and the
+provider is never abandoned. See the
+[investigation](docs/investigations/auth-pool-401-recovery-2026-11-05.md).
+
+A credential rejection (`401` naming an expired, invalid or revoked key) cools the
+failed route for five minutes, as before. It reaches the provider's other models
+only when OMP itself reports that **every** credential of the pool it would use is
+auth-blocked and depleted; missing, stale, partial or slow evidence changes nothing.
+
+For Codex, an OMP 100% usage window marked `warning` is treated as
+`DRAINING`, not exhausted: OMP explicitly permits requests in that state,
+which can consume paid credits after the subscription allowance is spent.
+An OMP `exhausted` window and a local runtime 429 remain hard vetoes. Because
+`pmr/frontier` never selects a `DRAINING` route, this does not make Codex credits
+reachable from the frontier tier; that remains an owner decision.
+
 PMR does not add a terminal retry loop or `session_stop` model switching.
 If native fallback cannot continue a failed turn, manually continue the task
 or select `pmr/*` again; the learned route cooldown also survives a fresh session.

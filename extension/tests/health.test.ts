@@ -19,6 +19,32 @@ test('all exhausted subscription credentials cooldown only until earliest creden
   assert.equal(h.cooldownUntil, Math.min(...resets));
 });
 
+test('Codex plan warning permits credit-backed capacity while preserving a runtime 429 veto', () => {
+  const reports = normalizeOmpUsage({ reports: [{
+    provider: 'openai-codex', fetchedAt: 1000,
+    limits: [
+      { scope: { shared: true, windowId: '5h' }, amount: { remainingFraction: 1 }, status: 'ok' },
+      { scope: { shared: true, windowId: '7d' }, amount: { remainingFraction: 0 }, status: 'warning' },
+    ],
+  }] });
+  const route = { provider: 'openai-codex', modelId: 'gpt-6.1-terra', free: false };
+  const input = { ompReports: reports, codexbar: [], reservePct: 10, now: 1001 };
+  assert.equal(evaluateRouteHealth(route, input).state, 'DRAINING');
+  assert.equal(evaluateRouteHealth(route, { ...input, local: { cooldownUntil: 5000, reason: '429' } }).state, 'COOLDOWN');
+});
+
+test('Codex explicit exhaustion and non-Codex zero capacity remain hard vetoes', () => {
+  const route = { provider: 'openai-codex', modelId: 'gpt-6.1-terra', free: false };
+  const report = { provider: 'openai-codex', credentialKey: 'codex#1', fetchedAt: 1000, windows: [
+    { id: '7d', shared: true, remainingFraction: 0, status: 'warning' },
+    { id: 'extra', shared: true, remainingFraction: 0, status: 'exhausted' },
+  ] };
+  const input = { ompReports: [report], codexbar: [], reservePct: 10, now: 1001 };
+  assert.equal(evaluateRouteHealth(route, input).state, 'COOLDOWN');
+  const other = { ...report, provider: 'other', windows: [report.windows[0]] };
+  assert.equal(evaluateRouteHealth({ ...route, provider: 'other' }, { ...input, ompReports: [other] }).state, 'COOLDOWN');
+});
+
 test('one healthy credential keeps a provider route available', () => {
   const reports = [
     { provider: 'p', credentialKey: 'p#1', fetchedAt: 1, windows: [
